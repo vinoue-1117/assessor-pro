@@ -1,0 +1,22 @@
+{
+  "name": "xpp",
+  "owner": {
+    "name": "Victor Inoue"
+  },
+  "metadata": {
+    "description": "Plugins para assessores XP enviarem o relatório mensal XPerformance aos clientes pelo WhatsApp, com dois bots: um que prepara e confere o lote e outro que envia pelo WhatsApp Web.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "xpp-envio",
+      "source": "./plugins/xpp-envio",
+      "description": "Bot Envio-XPPerformance: prepara e confere o lote mensal XPerformance e entrega os envios ao bot de WhatsApp."
+    },
+    {
+      "name": "xpp-whatsapp",
+      "source": "./plugins/xpp-whatsapp",
+      "description": "Bot de WhatsApp (ex.: WO): lê e envia no WhatsApp Web exatamente o que outros bots pedem, dentro da permissão do dono."
+    }
+  ]
+}

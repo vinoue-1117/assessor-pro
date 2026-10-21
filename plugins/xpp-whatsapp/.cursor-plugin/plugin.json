@@ -1,0 +1,13 @@
+{
+  "name": "xpp-whatsapp",
+  "displayName": "XPP WhatsApp",
+  "version": "0.1.0",
+  "description": "Porta do WhatsApp do assessor para os outros bots: envia exatamente o que recebe, lê e exporta conversas e, se ligado, faz a triagem de mensagens recebidas.",
+  "author": {
+    "name": "Victor Inoue"
+  },
+  "repository": "https://github.com/vinoue-1117/xpp-plugins",
+  "license": "MIT",
+  "keywords": ["whatsapp", "assessor", "envio", "xp"],
+  "skills": "./skills/"
+}
