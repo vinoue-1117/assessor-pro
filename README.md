@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Assessor Pro" width="192">
+</p>
+
 # Assessor Pro
 
 Plugins para assessores enviarem o relatório mensal de performance da corretora (PDF + mensagem com os números do mês) aos clientes pelo WhatsApp, usando dois bots. Repositório no formato de *multi-plugin* do Cursor (`.cursor-plugin/marketplace.json` na raiz, nome do marketplace `assessor-pro`).

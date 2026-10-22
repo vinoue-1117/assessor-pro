@@ -1,7 +1,7 @@
 {
   "name": "assessor-zap",
   "displayName": "Assessor Pro Zap",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Porta do WhatsApp do assessor para os outros bots: envia exatamente o que recebe, lê e exporta conversas e, se ligado, faz a triagem de mensagens recebidas.",
   "author": {
     "name": "Victor Inoue"
@@ -9,5 +9,6 @@
   "repository": "https://github.com/vinoue-1117/assessor-pro",
   "license": "MIT",
   "keywords": ["assessor", "relatorio", "carteira", "whatsapp"],
+  "logo": "assets/logo.png",
   "skills": "./skills/"
 }
