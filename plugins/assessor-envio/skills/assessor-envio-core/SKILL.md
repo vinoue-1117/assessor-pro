@@ -24,6 +24,7 @@ Nenhum envio a cliente sem UMA aprovação explícita do assessor, nesta convers
 | "sim" ao resumo do lote | `assessor-enviar-relatorio` |
 | ver como chega antes | `assessor-envio-teste` |
 | preencher/corrigir apelidos | `assessor-rastrear-apelido` |
+| adicionar, alterar ou remover um cliente | `assessor-ajustar-cliente` |
 | "como foi o último envio?" | `assessor-resumo-ultimo-envio` |
 
 ## Primeiro uso (setup)
@@ -34,7 +35,7 @@ Faça uma vez, quando faltar algo na memória:
 Se `whatsapp_bot_id` salvo deixar de funcionar, refaça o passo 1.
 
 ## Arquivos (computador do bot)
-- `/workspace/assessor/clientes.*` planilha atual; `/workspace/assessor/entrada/` zips recebidos
+- `/workspace/assessor/clientes.csv` ou `clientes.xlsx`: planilha ativa (ignore `clientes.bak-*`; se as duas existirem, a mais recente). `/workspace/assessor/entrada/` zips recebidos
 - `/workspace/assessor/lote-<ref>/` pacotes (`<conta>/relatorio.pdf`, `<conta>/mensagem.txt`, `lote.csv`)
 - `/workspace/assessor/envios.csv` log de envios
 Dados de clientes ficam só aí. Não copie dados de cliente para a memória do bot.

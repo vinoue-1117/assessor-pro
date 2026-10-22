@@ -9,7 +9,7 @@ Monta, de forma determinística (sem IA no conteúdo), um pacote por cliente: `r
 
 ## Entradas
 - **Zip do lote** do relatório mensal de performance da corretora, exportado do portal da corretora (um PDF por conta). Vem anexado no chat; salve em `/workspace/assessor/entrada/`.
-- **Planilha de clientes** (.csv ou .xlsx, 1ª aba) com as colunas `conta_xp, telefone, nome, apelido`. `conta_xp` é o número da conta na corretora. Salve como `/workspace/assessor/clientes.<ext>`. Se não veio agora, use a última salva; se não houver nenhuma, peça.
+- **Planilha de clientes** (.csv ou .xlsx, 1ª aba) com as colunas `conta_xp, telefone, nome, apelido`. `conta_xp` é o número da conta na corretora. Salve como `/workspace/assessor/clientes.<ext>`. Se não veio agora, use a ativa (`clientes.csv` ou `clientes.xlsx`; ignore `clientes.bak-*`; se as duas existirem, a mais recente). Se não houver nenhuma, peça.
 - **Discurso macro**: baixe a cada execução, sempre da URL fixa: `curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/main/discurso/discurso-macro.md -o /workspace/assessor/discurso.md`. Se falhar, vier vazio ou contiver "ainda não publicado", pare e avise (não invente cenário, não reaproveite o do mês anterior sem o assessor autorizar).
 
 ## Script

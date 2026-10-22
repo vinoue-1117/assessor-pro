@@ -8,7 +8,7 @@ description: 'Use quando o assessor pedir para preencher ou corrigir a coluna ap
 Descobre como o assessor chama cada cliente (ex.: "Fala, Zé" → `Zé`) e propõe a coluna `apelido`. Nada é enviado; a planilha só muda depois da aprovação.
 
 ## Passos
-1. Planilha: a última em `/workspace/assessor/clientes.*` (colunas `conta_xp, telefone, nome, apelido`). `conta_xp` é o número da conta na corretora. Escopo: o que o assessor pedir (todos, só os sem apelido, ou contas específicas). Ignore linhas sem telefone (liste-as no fim).
+1. Planilha: a ativa em `/workspace/assessor/` (`clientes.csv` ou `clientes.xlsx`; ignore `clientes.bak-*`; se as duas existirem, a mais recente). Colunas `conta_xp, telefone, nome, apelido`. `conta_xp` é o número da conta na corretora. Escopo: o que o assessor pedir (todos, só os sem apelido, ou contas específicas). Ignore linhas sem telefone (liste-as no fim).
 2. `whatsapp_bot_id` da memória (se faltar, setup em `assessor-envio-core`).
 3. UMA chamada `SendToAgent` (`priority: true`) para o bot de WhatsApp, com a lista `conta_xp | telefone | nome`:
    ```
@@ -23,7 +23,7 @@ Descobre como o assessor chama cada cliente (ex.: "Fala, Zé" → `Zé`) e prop�
    `conta_xp | nome | apelido atual | proposto | evidência (trecho + data) | confiança (alta: ≥2 ocorrências / baixa: 1 / sem evidência)`
    Destaque onde o proposto difere do atual. Sem evidência → não propõe (mantém o atual).
 6. Pergunte: aprova todos, só os de confiança alta, ou quais contas?
-7. Só após a aprovação: grave `/workspace/assessor/clientes.csv` (UTF-8, mesmas 4 colunas) alterando apenas `apelido` das contas aprovadas; guarde a versão anterior como `clientes.bak-<AAAAMMDD-HHMM>.csv`. Mande o arquivo atualizado ao assessor para ele manter a cópia dele.
+7. Só após a aprovação: grave `/workspace/assessor/clientes.csv` (UTF-8, mesmas 4 colunas) alterando apenas `apelido` das contas aprovadas; guarde a versão anterior como `clientes.bak-<AAAAMMDD-HHMM>.<ext>`. Não deixe outro `clientes.csv` ou `clientes.xlsx` ativo (os `clientes.bak-*` não contam). Mande o arquivo atualizado ao assessor para ele manter a cópia dele.
 
 ## Regras
 - Este fluxo nunca envia mensagem. Se o bot de WhatsApp perguntar algo sobre envio, a resposta é "não enviar".
