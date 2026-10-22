@@ -1,0 +1,13 @@
+{
+  "name": "assessor-envio",
+  "displayName": "Assessor Pro Envio",
+  "version": "0.2.0",
+  "description": "Prepara e confere o lote mensal do relatório de performance da corretora (PDF + mensagem por cliente), pede uma aprovação do lote ao assessor e entrega os envios ao bot de WhatsApp.",
+  "author": {
+    "name": "Victor Inoue"
+  },
+  "repository": "https://github.com/vinoue-1117/assessor-pro",
+  "license": "MIT",
+  "keywords": ["assessor", "relatorio", "carteira", "whatsapp"],
+  "skills": "./skills/"
+}
