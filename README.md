@@ -32,7 +32,7 @@ O discurso macro do mês vem de [`discurso/discurso-macro.md`](discurso/), baixa
 - **Marketplace do time (Teams/Enterprise)**: importar este repositório como marketplace do time com **Auto Refresh**; cada push no branch é reindexado em poucos minutos, sem revisão. Os assessores precisam estar no time.
 - **Instalar direto por link do GitHub** (https://github.com/vinoue-1117/assessor-pro, fora de marketplace) fixa o commit da instalação: o plugin não atualiza sozinho.
 
-O que é baixado em tempo de execução (o discurso, e o script como fallback) vem sempre do branch `main`, independente da versão do plugin instalada.
+O que é baixado em tempo de execução (o discurso e os scripts) vem sempre da branch `stable`, independente da versão do plugin instalada. A edição fica na `main`; a promoção está em [`template/README.md`](template/README.md).
 
 ## Manutenção
 - Mudou algo? Suba a `version` em `plugins/<nome>/.cursor-plugin/plugin.json` e registre a mudança no commit.

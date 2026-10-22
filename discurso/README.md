@@ -2,7 +2,7 @@
 
 `discurso-macro.md` é o texto curto de cenário que entra no fim da mensagem de cada cliente (placeholder `{discurso_macro}` do script `assessor.py`). A skill `assessor-preparar-envio` baixa este arquivo a cada lote, de:
 
-https://raw.githubusercontent.com/vinoue-1117/assessor-pro/main/discurso/discurso-macro.md
+https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discurso-macro.md
 
 ## Regras
 - Quem atualiza: Victor Inoue, uma vez por mês, antes dos envios.

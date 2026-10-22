@@ -21,10 +21,11 @@ A ativa é `/workspace/assessor/clientes.csv` ou `/workspace/assessor/clientes.x
 3. Sem o sim, não rode o script.
 
 ## Script
-O script determinístico é `scripts/cliente.py`, no diretório desta skill. A cada execução:
-1. Copie `<diretório desta skill>/scripts/cliente.py` para `/workspace/assessor/cliente.py`, sobrescrevendo.
-2. Se não achar o arquivo, baixe: `curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/main/plugins/assessor-envio/skills/assessor-ajustar-cliente/scripts/cliente.py -o /workspace/assessor/cliente.py`.
-3. Confira que a 1ª linha de comentário começa com `# cliente.py v`. Se não, pare. Nunca edite o script.
+Baixe o script a cada execução, da branch `stable`, para o caminho de trabalho. Não dependa de uma cópia que tenha vindo com o plugin: quando só existe o ponteiro, o arquivo não está ao lado desta skill.
+
+`mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-ajustar-cliente/scripts/cliente.py -o /workspace/assessor/cliente.py`
+
+Confira que a 1ª linha de comentário começa com `# cliente.py v`. Se o download falhar ou a conferência não bater, pare. Não use cópia antiga. Nunca edite o script.
 
 Depois do sim, uma chamada por ajuste, na ordem pedida. Passe a planilha ativa. Aspas quando o valor tiver espaço:
 - `python3 /workspace/assessor/cliente.py <planilha> add <conta> <telefone> "<nome>" ["<apelido>"]`

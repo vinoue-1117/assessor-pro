@@ -10,13 +10,14 @@ Monta, de forma determinística (sem IA no conteúdo), um pacote por cliente: `r
 ## Entradas
 - **Zip do lote** do relatório mensal de performance da corretora, exportado do portal da corretora (um PDF por conta). Vem anexado no chat; salve em `/workspace/assessor/entrada/`.
 - **Planilha de clientes** (.csv ou .xlsx, 1ª aba) com as colunas `conta_xp, telefone, nome, apelido`. `conta_xp` é o número da conta na corretora. Salve como `/workspace/assessor/clientes.<ext>`. Se não veio agora, use a ativa (`clientes.csv` ou `clientes.xlsx`; ignore `clientes.bak-*`; se as duas existirem, a mais recente). Se não houver nenhuma, peça.
-- **Discurso macro**: baixe a cada execução, sempre da URL fixa: `curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/main/discurso/discurso-macro.md -o /workspace/assessor/discurso.md`. Se falhar, vier vazio ou contiver "ainda não publicado", pare e avise (não invente cenário, não reaproveite o do mês anterior sem o assessor autorizar).
+- **Discurso macro**: baixe a cada execução, sempre da URL fixa: `mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discurso-macro.md -o /workspace/assessor/discurso.md`. Se falhar, vier vazio ou contiver "ainda não publicado", pare e avise (não invente cenário, não reaproveite o do mês anterior sem o assessor autorizar).
 
 ## Script
-O script determinístico é `scripts/assessor.py`, dentro do diretório desta skill (o mesmo diretório deste `SKILL.md`, informado pela ferramenta que carregou a skill). A cada execução:
-1. Copie `<diretório desta skill>/scripts/assessor.py` para `/workspace/assessor/assessor.py`, sobrescrevendo (assim vale sempre a versão do plugin instalado).
-2. Se não achar o arquivo no diretório da skill, baixe: `curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/main/plugins/assessor-envio/skills/assessor-preparar-envio/scripts/assessor.py -o /workspace/assessor/assessor.py`.
-3. Confira que a 1ª linha de comentário começa com `# assessor.py v`. Se não, pare e avise. Nunca edite o script.
+Baixe o script a cada execução, da branch `stable`, para o caminho de trabalho. Não dependa de uma cópia que tenha vindo com o plugin: quando só existe o ponteiro, o arquivo não está ao lado desta skill.
+
+`mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-preparar-envio/scripts/assessor.py -o /workspace/assessor/assessor.py`
+
+Confira que a 1ª linha de comentário começa com `# assessor.py v`. Se o download falhar ou a conferência não bater, pare e avise. Não use cópia antiga. Nunca edite o script.
 
 ## Passos
 1. Garanta o `pdftotext` (`which pdftotext`; se faltar: `sudo apt-get install -y poppler-utils`).

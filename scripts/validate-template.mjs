@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { spawnSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -355,7 +356,23 @@ async function main() {
     }
   }
 
+  validatePointers();
   summarizeAndExit();
+}
+
+function validatePointers() {
+  const result = spawnSync("python3", ["scripts/gerar-ponteiros.py", "--check"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  if (result.error) {
+    addError(`Pointer check could not run: ${result.error.message}`);
+    return;
+  }
+  if (result.status !== 0) {
+    const detail = `${result.stdout || ""}${result.stderr || ""}`.trim();
+    addError(detail || "template/skills pointers are out of date. Run: python3 scripts/gerar-ponteiros.py");
+  }
 }
 
 function summarizeAndExit() {
