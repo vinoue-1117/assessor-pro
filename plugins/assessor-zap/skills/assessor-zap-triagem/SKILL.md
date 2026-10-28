@@ -19,7 +19,7 @@ Só funciona se o dono configurou rotas. Nunca responde ninguém.
 4. Atualize `estado.json` após cada encaminhamento, para nunca encaminhar a mesma mensagem duas vezes.
 5. Ignore spam, mensagens automáticas e grupos sem menção ao dono.
 6. Nada novo: termine sem mensagem nenhuma.
-7. Respostas dos bots de destino voltam como pedidos de envio normais (`assessor-zap-enviar`, com a regra de permissão).
+7. Respostas dos bots de destino voltam como pedidos de envio normais (`assessor-zap-enviar`; o gate é do bot que pede).
 
 ## Rotina sugerida
 Pausada por padrão; o dono liga. Ex.: a cada 15 min em dias úteis, horário comercial. Cada execução abre o navegador, então custa mais que uma rotina comum.
