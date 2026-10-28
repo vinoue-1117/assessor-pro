@@ -7,8 +7,8 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 
 ## Antes de enviar
 1. Leia o pedido: destinatário (nome e/ou telefone), texto (inline ou caminho de `.txt`), arquivo (caminho). Leia o `.txt` exatamente, sem alterar nada.
-2. Confira a permissão (`assessor-zap-core`). Fora dela: pergunte ao dono e espere.
-3. Confira os "pare e pergunte" do core: nome no arquivo/texto vs destinatário, arquivo existe e não está vazio.
+2. Confira que o pedido veio de um bot do dono (`assessor-zap-core`). O gate de envio é dele; não pergunte ao dono.
+3. Faça as conferências do core: nome no arquivo/texto vs destinatário, contato único, arquivo existe e não está vazio. Falhou alguma: `falhou: <motivo>` ao bot, sem enviar.
 4. Legenda de arquivo tem limite de 1024 caracteres. Se o texto passar disso, não corte: `falhou: legenda com N caracteres`.
 
 ## Envio
@@ -21,4 +21,3 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 ## Conferir e reportar
 1. Espere a mensagem sair do relógio: ✓ enviado, ✓✓ entregue, ✓✓ azul lido.
 2. Responda ao bot que pediu (`SendToAgent`, `priority: true`): `enviado | <destinatário> | <HH:MM> | <tiques>` ou `falhou: <motivo>`.
-3. Se enviado sob a permissão, uma linha de log ao dono.
