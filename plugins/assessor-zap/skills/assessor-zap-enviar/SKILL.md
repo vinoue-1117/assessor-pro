@@ -12,7 +12,7 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 4. Legenda de arquivo tem limite de 1024 caracteres. Se o texto passar disso, não corte: `falhou: legenda com N caracteres`.
 
 ## Envio
-1. No WhatsApp Web, abra a conversa: pelo telefone use `https://web.whatsapp.com/send?phone=<só dígitos com DDI>`; pelo nome, busque e confira que há um único resultado exato. Chat "você"/"(você)" = mensagem para si mesmo.
+1. No WhatsApp Web, abra a conversa seguindo "Abrir e fechar conversas" do core: pelo telefone use `https://web.whatsapp.com/send?phone=<só dígitos com DDI>`; pelo nome, só um único resultado com o nome exato. Chat "você"/"(você)" = mensagem para si mesmo.
 2. Confira o nome/telefone no topo da conversa antes de digitar.
 3. **Só texto**: cole no campo de mensagem. Quebra de linha = `Shift+Enter`; `Enter` envia. Prefira colar o texto inteiro de uma vez (colar preserva quebras); nunca aperte `Enter` antes do fim.
 4. **Arquivo com legenda**: clipe/"+" → Documento → selecione o arquivo → na prévia, cole o texto no campo de legenda → confira nome do arquivo e legenda → `Enter` ou botão enviar.
@@ -20,4 +20,5 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 
 ## Conferir e reportar
 1. Espere a mensagem sair do relógio: ✓ enviado, ✓✓ entregue, ✓✓ azul lido.
-2. Responda ao bot que pediu (`SendToAgent`, `priority: true`): `enviado | <destinatário> | <HH:MM> | <tiques>` ou `falhou: <motivo>`.
+2. Feche a conversa (`Esc` ou voltar à lista).
+3. Responda ao bot que pediu (`SendToAgent`, `priority: true`): `enviado | <destinatário> | <HH:MM> | <tiques>` ou `falhou: <motivo>`.
