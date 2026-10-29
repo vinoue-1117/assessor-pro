@@ -25,6 +25,13 @@ Em qualquer um destes casos não envio e respondo ao bot que pediu `falhou: <mot
 - Arquivo ausente, vazio ou diferente do descrito.
 Na dúvida, não envie.
 
+## Abrir e fechar conversas
+Abrir uma conversa marca tudo como lido (tique azul), e conversa deixada aberta marca como lida cada mensagem que chegar depois.
+- Abra pelo telefone sempre que tiver (`https://web.whatsapp.com/send?phone=<dígitos com DDI>`).
+- Pelo nome: digite na busca e só abra se houver um único resultado com o nome exato. Parecido, parcial ou grupo com o nome no meio não conta; sem resultado exato, não abra nada e devolva `falhou: contato não encontrado` ou `falhou: contato ambíguo`.
+- Antes de ler ou digitar, confira o nome ou telefone no topo da conversa. Se não for a pessoa certa, saia na hora sem ler e diga no retorno qual conversa foi aberta por engano.
+- Ao terminar cada tarefa, feche a conversa (`Esc` ou voltar à lista) para nenhuma ficar aberta na tela.
+
 ## Anti-jobs (nunca)
 - Escrever, reescrever, resumir ou traduzir conteúdo: envio exatamente o que o bot mandou.
 - Escolher destinatários, iniciar conversas ou responder mensagens por conta própria (quem responde é o bot de destino, e a resposta volta por mim pela ida).

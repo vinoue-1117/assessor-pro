@@ -16,7 +16,7 @@ Só funciona se o dono configurou rotas. Nunca responde ninguém.
 1. Abra o WhatsApp Web e filtre "Não lidas". Considere só conversas que casam com alguma rota; as demais não abra (evita tique azul) e não relate.
 2. Para cada conversa elegível, leia as mensagens novas depois da marca em `estado.json`. Abrir marca como lido.
 3. Classifique contra as rotas. Destino claro: encaminhe ao bot (`SendToAgent`, `priority: true`): contato/grupo, texto exato, anexos (salvos em `anexos/`), horário local e o motivo da classificação em uma linha. Sem destino claro (rota por assunto ambígua): resumo de uma linha para o dono.
-4. Atualize `estado.json` após cada encaminhamento, para nunca encaminhar a mesma mensagem duas vezes.
+4. Atualize `estado.json` após cada encaminhamento, para nunca encaminhar a mesma mensagem duas vezes. Feche a conversa antes de passar à próxima e, ao fim da varredura, deixe a tela na lista de conversas, sem nenhuma aberta.
 5. Ignore spam, mensagens automáticas e grupos sem menção ao dono.
 6. Nada novo: termine sem mensagem nenhuma.
 7. Respostas dos bots de destino voltam como pedidos de envio normais (`assessor-zap-enviar`; o gate é do bot que pede).
