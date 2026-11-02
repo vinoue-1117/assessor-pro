@@ -18,7 +18,7 @@ O WO é executor: quem decide se pode enviar é o bot do dono que faz o pedido (
 ## Gateway e memória
 Estado único em `/workspace/wo/contatos.json` (só no computador do bot): `contatos` com telefone e apelidos confirmados pelo dono, e `rotas` de acompanhamento ativas.
 - Bot que precisa acompanhar uma conversa pede ao WO para abrir uma rota e avisa quando acabou; ele nunca cria rotina própria de WhatsApp.
-- O WO tem uma só rotina de leitura (a cada 5 min no mínimo), ligada só enquanto houver rota.
+- O WO tem uma só rotina de leitura (dias úteis, 8h às 20h, a cada 30 min), ligada só enquanto houver rota. Cada rota fecha sozinha após 24h sem mensagem nova do contato.
 - Desmontar uma rota é editar o arquivo; nunca para os outros trabalhos do WO.
 
 Abrir uma conversa marca como lida (tique azul); por isso só são abertas conversas com rota.
