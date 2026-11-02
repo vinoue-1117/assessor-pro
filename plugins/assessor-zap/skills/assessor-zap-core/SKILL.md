@@ -38,7 +38,7 @@ Abrir uma conversa marca tudo como lido (tique azul), e conversa deixada aberta 
 Arquivo único de estado. Fica só no meu computador, nunca em repositório. Crie com as listas vazias se faltar.
 ```json
 {"contatos": [{"nome_whatsapp": "<nome como aparece no WhatsApp>", "telefone": "+55...", "apelidos": [{"apelido": "<como o dono chama>", "confirmado_em": "AAAA-MM-DD HH:MM", "por": "<dono>"}]}],
- "rotas": [{"id": "<curto, único>", "contato": "<nome_whatsapp>", "dono_bot_id": "<id>", "dono_nome": "<nome do bot>", "escopo": "<assunto>", "autorizacao": "<palavras do dono, data/hora>", "criada_em": "AAAA-MM-DD HH:MM", "expira": "<data/hora ou 'até o dono avisar'>", "ultima_repassada": {"data_hora": "AAAA-MM-DD HH:MM", "texto": "<início do texto>"}}],
+ "rotas": [{"id": "<curto, único>", "contato": "<nome_whatsapp>", "dono_bot_id": "<id>", "dono_nome": "<nome do bot>", "escopo": "<assunto>", "autorizacao": "<palavras do dono, data/hora>", "criada_em": "AAAA-MM-DD HH:MM", "expira": "AAAA-MM-DD HH:MM (24h após a abertura ou a última mensagem do contato)", "ultima_repassada": {"data_hora": "AAAA-MM-DD HH:MM", "texto": "<início do texto>"}}],
  "regra_padrao": "Qualquer conversa sem rota: ignorar. Não abrir, não encaminhar, não resumir."}
 ```
 - **Contatos**: guarde `nome_whatsapp` e `telefone` de quem eu já abri com certeza (topo conferido).
@@ -47,8 +47,8 @@ Arquivo único de estado. Fica só no meu computador, nunca em repositório. Cri
 
 ## Gateway: rotas de acompanhamento
 Eu sou o único que lê o WhatsApp. Bot que precisa acompanhar uma conversa me pede uma rota; ele nunca cria rotina própria de WhatsApp.
-- **Abrir rota**: um bot do dono pede via `SendToAgent` com contato, escopo, autorização do dono e validade. Resolvo o contato (regras acima; ambíguo ou não encontrado → `falhou`, sem rota), gravo em `rotas` e respondo `rota <id> aberta | <contato> → <bot>`.
-- **Rotina única**: tenho uma só rotina de leitura (`assessor-zap-triagem`), a cada 5 min no mínimo. Ela fica ligada só enquanto `rotas` tiver algo: ao criar a primeira rota eu ligo, e quando a lista esvazia eu pauso.
+- **Abrir rota**: um bot do dono pede via `SendToAgent` com contato, escopo e autorização do dono. Toda rota vale 24h e se renova a cada mensagem nova do contato; sem mensagem por 24h, ela fecha sozinha. Resolvo o contato (regras acima; ambíguo ou não encontrado → `falhou`, sem rota), gravo em `rotas` e respondo `rota <id> aberta | <contato> → <bot>`.
+- **Rotina única**: tenho uma só rotina de leitura (`assessor-zap-triagem`), em dias úteis das 8h às 20h, a cada 30 min. Ela fica ligada só enquanto `rotas` tiver algo: ao criar a primeira rota eu ligo, e quando a lista esvazia eu pauso.
 - Cada mensagem nova numa rota vai para `dono_bot_id` e atualiza `ultima_repassada`.
 - **Desmontar** (o dono do bot avisa que acabou, ou a rota expirou): é uma edição do arquivo. Tiro a rota de `rotas`; se não sobrar nenhuma, pauso a rotina. Respondo `rota <id> removida`. O contato e os apelidos ficam.
 - Desmontar não é pedido de parada. Nunca uso parada geral (parar todos os subagentes/trabalhos) para desmontar; isso derruba o trabalho que encaminhei a outros bots. Parar tudo só quando o dono pede, no meu próprio chat, para eu parar todo o meu trabalho.
