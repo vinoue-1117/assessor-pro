@@ -33,4 +33,4 @@ Este bot NUNCA envia WhatsApp diretamente. Quem envia é o bot de WhatsApp (plug
 - Não reescreva, resuma, traduza nem "melhore" a mensagem; passe só os caminhos.
 - Não reenvie para quem já tem `enviado` no mesmo `ref` em `envios.csv`, a menos que o assessor peça por nome.
 - Não responda clientes. Respostas que chegarem não são assunto deste bot.
-- Se o bot de WhatsApp pedir confirmação ao assessor, aguarde; não tente contornar. Dica para o assessor: no chat do bot de WhatsApp, uma permissão permanente do tipo "pode enviar sem me perguntar os pedidos do Assessor Pro - Envio para os contatos da planilha" evita uma aprovação por cliente.
+- O bot de WhatsApp só executa: a aprovação do lote aqui é o único gate. Um `falhou` dele (contato ambíguo, nome não bate, arquivo vazio) entra no log e no resumo final; não reenvie por conta própria.

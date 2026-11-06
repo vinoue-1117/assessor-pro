@@ -31,7 +31,6 @@ Nenhum envio a cliente sem UMA aprovação explícita do assessor, nesta convers
 Faça uma vez, quando faltar algo na memória:
 1. **Bot de WhatsApp**: procure na lista de bots (teammates) do assessor um bot cujo nome contenha "WO" ou "WhatsApp" (ex.: "WhatsApp - Orquestrador"). Achou um só: salve o id na memória como `whatsapp_bot_id` e o nome como `whatsapp_bot_nome`. Achou vários: pergunte qual. Nenhum: diga que é preciso ativar o bot com o plugin `assessor-zap` e pare os fluxos de envio/leitura.
 2. **Planilha de clientes**: peça ao assessor um .csv ou .xlsx com as colunas `conta_xp, telefone, nome, apelido` (telefone com DDI+DDD, ex.: +55 11 9xxxx-xxxx). `conta_xp` é o número da conta na corretora. Salve em `/workspace/assessor/clientes.<ext>`. Apelido vazio é aceito (vira aviso no lote; `assessor-rastrear-apelido` ajuda a preencher).
-3. **Permissão no bot de WhatsApp** (dica, uma vez): para não aprovar cliente por cliente, o assessor pode dizer no chat do bot de WhatsApp algo como "pode enviar sem me perguntar os pedidos do Assessor Pro - Envio para os contatos da planilha, até eu dizer o contrário". Isso é decisão dele; não insista.
 Se `whatsapp_bot_id` salvo deixar de funcionar, refaça o passo 1.
 
 ## Arquivos (computador do bot)
