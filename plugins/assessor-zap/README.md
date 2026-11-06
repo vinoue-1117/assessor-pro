@@ -8,7 +8,7 @@ Perfil do bot: `Siga a skill assessor-zap-core em toda conversa.`
 | Skill | Quando |
 | --- | --- |
 | `assessor-zap-core` | sempre: persona, gate de envio do bot que pede, conferências, login por QR code |
-| `assessor-zap-enviar` | um bot pediu envio de texto e/ou PDF com legenda |
+| `assessor-zap-enviar` | um bot pediu envio de texto e/ou arquivo (PDF e texto em mensagens separadas) |
 | `assessor-zap-exportar-historico` | leitura/exportação de conversas para `.txt` (só leitura) |
 | `assessor-zap-triagem` | rotina única de leitura: encaminha cada mensagem nova de um contato com rota ao bot dono da rota |
 
