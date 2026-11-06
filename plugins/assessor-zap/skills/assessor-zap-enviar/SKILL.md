@@ -15,8 +15,8 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 2. Confira o nome/telefone no topo da conversa antes de digitar.
 3. **Só texto**: cole no campo de mensagem. Quebra de linha = `Shift+Enter`; `Enter` envia. Prefira colar o texto inteiro de uma vez (colar preserva quebras); nunca aperte `Enter` antes do fim.
 4. **Só arquivo**: clipe/"+" → Documento → selecione o arquivo → confira o nome do arquivo → `Enter` ou botão enviar. Sem legenda.
-5. **Texto e arquivo**: duas mensagens, nesta ordem. (a) Envie o texto como mensagem normal: cole o `.txt` inteiro de uma vez (`Shift+Enter` para quebras; `Enter` só no fim). (b) Em seguida envie o arquivo como Documento, sem legenda: clipe/"+" → Documento → selecione o arquivo → deixe a legenda vazia → confira o nome do arquivo → `Enter` ou botão enviar.
-6. Um pedido = um envio. Não reenvie se não tiver certeza de que falhou. Se o texto saiu e o arquivo não, não mande o texto de novo: responda `falhou: <motivo>`.
+5. **Texto e arquivo**: duas mensagens, nesta ordem. (a) Primeiro envie o arquivo como Documento, sem legenda: clipe/"+" → Documento → selecione o arquivo → deixe a legenda vazia → confira o nome do arquivo → `Enter` ou botão enviar. (b) Depois envie o texto completo como mensagem normal: cole o `.txt` inteiro de uma vez (`Shift+Enter` para quebras; `Enter` só no fim).
+6. Um pedido = um envio. Não reenvie se não tiver certeza de que falhou. Se o arquivo saiu e o texto não, não mande o arquivo de novo: responda `falhou: <motivo>`.
 
 ## Conferir e reportar
 1. Espere cada mensagem sair do relógio: ✓ enviado, ✓✓ entregue, ✓✓ azul lido.

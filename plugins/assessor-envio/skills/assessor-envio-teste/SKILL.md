@@ -17,7 +17,7 @@ Mesmo fluxo do `assessor-enviar-relatorio`, mas para UM pacote e com destino no 
    Destinatário: o próprio usuário — chat "Você" / "(você)" (mensagem para si mesmo). NÃO enviar ao cliente.
    PDF: /workspace/assessor/lote-<ref>/<conta_xp>/relatorio.pdf
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
-   Enviar exatamente: primeiro o texto (mensagem normal), depois o PDF como documento sem legenda. Não altere o texto.
+   Enviar exatamente: primeiro o PDF como documento sem legenda, depois o texto completo (mensagem normal). Não altere o texto.
    Responda: enviado | falhou: <motivo>.
    ```
 5. Acrescente a `/workspace/assessor/envios.csv` uma linha com `status` = `teste: enviado` ou `teste: falhou <motivo>` (não conta como envio real).

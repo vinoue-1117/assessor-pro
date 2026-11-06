@@ -20,7 +20,7 @@ Este bot NUNCA envia WhatsApp diretamente. Quem envia é o bot de WhatsApp (plug
    Destinatário: <nome> | WhatsApp <telefone>
    PDF: /workspace/assessor/lote-<ref>/<conta_xp>/relatorio.pdf
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
-   Enviar exatamente: primeiro o texto (mensagem normal), depois o PDF como documento sem legenda. Não altere o texto. Se o contato não bater com o telefone, não envie e me diga o motivo.
+   Enviar exatamente: primeiro o PDF como documento sem legenda, depois o texto completo (mensagem normal). Não altere o texto. Se o contato não bater com o telefone, não envie e me diga o motivo.
    Responda: enviado | falhou: <motivo>.
    ```
 3. Espere a confirmação do bot de WhatsApp de cada pedido antes do próximo (evita mensagens trocadas). Sem resposta em tempo razoável: registre `falhou: sem confirmação do bot de WhatsApp` e siga.
