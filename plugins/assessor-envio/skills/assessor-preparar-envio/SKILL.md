@@ -9,7 +9,7 @@ Monta, de forma determinística (sem IA no conteúdo), um pacote por cliente: `r
 
 ## Entradas
 - **Zip do lote** do relatório mensal de performance da corretora, exportado do portal da corretora (um PDF por conta). Vem anexado no chat; salve em `/workspace/assessor/entrada/`.
-- **Planilha de clientes** (.csv ou .xlsx, 1ª aba) com colunas de conta, telefone e nome; apelido é opcional. O script aceita variações de nome de coluna ("Conta XP", "Celular", "WhatsApp", "Nome do cliente"…), linhas de título acima do cabeçalho e telefone com ou sem 55. Não peça ao assessor para reformatar antes de rodar: só se o script recusar. `conta_xp` é o número da conta na corretora. Salve como `/workspace/assessor/clientes.<ext>`. Se não veio agora, use a ativa (`clientes.csv` ou `clientes.xlsx`; ignore `clientes.bak-*`; se as duas existirem, a mais recente). Se não houver nenhuma, peça.
+- **Planilha de clientes** (.csv ou .xlsx, 1ª aba) com colunas de conta, telefone e nome; apelido é opcional. O script aceita variações de nome de coluna ("Conta XP", "Celular", "WhatsApp", "Nome do cliente"…), linhas de título acima do cabeçalho e telefone com ou sem 55. Não peça ao assessor para reformatar antes de rodar: só se o script recusar. `conta_xp` é o número da conta na corretora. Se veio planilha agora, faça a limpeza de `assessor-envio-core` ("Planilha recebida"). Se não veio, use a ativa, `/workspace/assessor/clientes.csv`. Se não houver nenhuma, peça.
 - **Discurso macro**: baixe a cada execução, sempre da URL fixa: `mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discurso-macro.md -o /workspace/assessor/discurso.md`. Se falhar, vier vazio ou contiver "ainda não publicado", pare e avise (não invente cenário, não reaproveite o do mês anterior). O script também para se a linha `referência: MM/AAAA` do discurso não for o mês do lote: avise que o cenário deste mês ainda não foi publicado e que é só preparar de novo quando sair.
 
 ## Script
@@ -22,7 +22,7 @@ Confira que a 1ª linha de comentário começa com `# assessor.py v`. Se o downl
 ## Passos
 1. Garanta o `pdftotext` (`which pdftotext`; se faltar: `sudo apt-get install -y poppler-utils`).
 2. Obtenha o script (seção acima) e o discurso.
-3. Rode: `python3 /workspace/assessor/assessor.py <zip> <planilha> /workspace/assessor/discurso.md`. Se ele parar com mensagem, repasse ao assessor em palavras simples o que falta (ex.: a coluna de telefone não foi encontrada) e pare. A última linha da saída é `CODIGO <código>`: guarde.
+3. Rode: `python3 /workspace/assessor/assessor.py <zip> /workspace/assessor/clientes.csv /workspace/assessor/discurso.md`. Se ele parar com mensagem, repasse ao assessor em palavras simples o que falta (ex.: a coluna de telefone não foi encontrada) e pare. A última linha da saída é `CODIGO <código>`: guarde.
 4. Leia `/workspace/assessor/lote-<ref>/conferir-envios.csv`. Status:
    - `pronto`: pacote ok. Coluna `aviso` preenchida (sem apelido → usou o 1º nome) não muda o status.
    - `revisar`: pacote gerado, com problema (nome do arquivo ≠ planilha; conta repetida no zip). Só vai se o assessor aprovar explicitamente.

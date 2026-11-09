@@ -29,6 +29,25 @@ def test_planilha_baguncada_csv():
     assert assessor.ler_planilha(p) == [{'conta_xp': '123', 'telefone': '11 98765-4321', 'nome': 'MARIA SILVA', 'apelido': ''}]
 
 
+def test_importar_limpa_para_o_cliente_py():
+    import subprocess
+    (BASE / 'clientes.xlsx').write_bytes(b'versao anterior')  # ativa de versão anterior vira backup
+    p = BASE / 'entrada.csv'
+    p.write_text('Minha carteira\nConta XP;Celular;Nome do Cliente;Como chamar\n'
+                 '00123;11 98765-4321;  Maria   Silva ;Mari\n;11 90000-0000;Sem Conta;\n456;98765-4321;JOSE;\n', encoding='utf-8')
+    saida, cod = rodar(assessor.importar, p)
+    assert cod == 0 and 'IMPORTADO 2 clientes' in saida and '1 linhas sem conta' in saida and '456' in saida
+    ativa = BASE / 'clientes.csv'
+    assert ativa.read_text(encoding='utf-8').splitlines() == [
+        'conta_xp,telefone,nome,apelido', '00123,+5511987654321,Maria Silva,Mari', '456,98765-4321,JOSE,']
+    assert not (BASE / 'clientes.xlsx').exists() and list(BASE.glob('clientes.bak-*.xlsx'))
+    # o cliente.py (leitor estrito) trabalha sobre a planilha limpa
+    cli = Path(assessor.__file__).parents[2] / 'assessor-ajustar-cliente/scripts/cliente.py'
+    r = subprocess.run([sys.executable, str(cli), str(ativa), 'set', '456', 'telefone', '21 99876-5432'], capture_output=True, text=True, encoding='utf-8')
+    assert r.returncode == 0, r.stderr
+    assert '456,+5521998765432,JOSE,' in ativa.read_text(encoding='utf-8')
+
+
 def test_planilha_sem_coluna_obrigatoria_explica():
     p = BASE / 'ruim.csv'
     p.write_text('conta,nome\n1,Ana\n', encoding='utf-8')

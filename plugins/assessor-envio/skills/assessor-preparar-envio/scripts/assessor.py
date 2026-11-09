@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# assessor.py v4 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md  (requer pdftotext/poppler)
-#   python3 assessor.py aprovar REF CODIGO [CONTA_REVISAR ...] | checar [REF] | registrar REF CONTA STATUS [HH:MM]
+# assessor.py v5 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md  (requer pdftotext/poppler)
+#   python3 assessor.py importar PLANILHA | aprovar REF CODIGO [CONTA_REVISAR ...] | checar [REF] | registrar REF CONTA STATUS [HH:MM]
 import csv,io,os,re,sys,json,shutil,hashlib,zipfile,subprocess,unicodedata as U
 from datetime import datetime
 from pathlib import Path
@@ -192,6 +192,34 @@ def registrar(ref,conta,status,horario=None):
         if novo:w.writerow(CAB_ENVIOS)
         w.writerow([f'{datetime.now():%Y-%m-%d}',ref,conta,lote[conta][2],status,horario])
     print(f'REGISTRADO {conta} | {status}')
+def importar(planilha):
+    """Limpa a planilha do assessor e grava a ativa: BASE/clientes.csv com as 4 colunas canônicas.
+
+    Conta só com dígitos, telefone em +55 quando válido (inválido fica como veio, para o lote bloquear),
+    espaços colapsados. A planilha ativa anterior vira clientes.bak-AAAAMMDD-HHMM.<ext>.
+    """
+    linhas=ler_planilha(planilha);limpas,sem_conta,invalidos=[],0,[]
+    for l in linhas:
+        c=re.sub(r'\D','',l['conta_xp'])
+        if not c:sem_conta+=1;continue
+        tel,erro=tel_br(l['telefone'])
+        if erro:invalidos.append(f'{c} ({erro})')
+        limpas.append([c,tel or l['telefone'],' '.join(l['nome'].split()),' '.join(l['apelido'].split())])
+    if not limpas:sys.exit('a planilha nao tem nenhuma linha com conta: confira se e a planilha de clientes')
+    BASE.mkdir(parents=True,exist_ok=True);ativa=BASE/'clientes.csv'
+    for p in (ativa,BASE/'clientes.xlsx'):# já lida em memória: pode ser a própria planilha importada
+        if p.is_file():
+            bak=BASE/f'clientes.bak-{datetime.now():%Y%m%d-%H%M}{p.suffix}'
+            p.rename(bak if not bak.exists() else bak.with_name(f'clientes.bak-{datetime.now():%Y%m%d-%H%M%S}{p.suffix}'))
+    with open(ativa,'w',encoding='utf-8',newline='') as fh:
+        w=csv.writer(fh);w.writerow(list(COLUNAS));w.writerows(limpas)
+    rep=[c for c,n in Counter(r[0] for r in limpas).items() if n>1]
+    print(f'IMPORTADO {len(limpas)} clientes -> {ativa}')
+    if sem_conta:print(f'AVISO: {sem_conta} linhas sem conta ignoradas')
+    if invalidos:print(f'AVISO: {len(invalidos)} telefones invalidos (vao bloquear no lote): '+'; '.join(invalidos))
+    if rep:print('AVISO: contas repetidas (vao bloquear no lote): '+', '.join(rep))
+    sem=sum(1 for r in limpas if not r[3])
+    if sem:print(f'AVISO: {sem} sem apelido (o lote usa o 1o nome)')
 def main(zp,planilha,disc):
     discurso,mref=ler_discurso(disc)
     if not discurso:sys.exit('discurso macro vazio')
@@ -246,6 +274,6 @@ def main(zp,planilha,disc):
     if sem:print(f'AVISO: {len(sem)} sem apelido, usado o primeiro nome: '+'; '.join(f'{r[0]} {r[2]}' for r in sem))
     print(f'CODIGO {codigo(out)}')
 if __name__=='__main__':
-    cmd={'aprovar':aprovar,'checar':checar,'registrar':registrar}
+    cmd={'importar':importar,'aprovar':aprovar,'checar':checar,'registrar':registrar}
     if len(sys.argv)>1 and sys.argv[1] in cmd:cmd[sys.argv[1]](*sys.argv[2:])
     else:main(*sys.argv[1:4])

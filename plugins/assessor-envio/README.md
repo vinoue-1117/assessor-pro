@@ -20,6 +20,8 @@ Perfil do bot: `Siga a skill assessor-envio-core em toda conversa.`
 
 Uso: `python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md`. A planilha aceita variações de nome de coluna, linhas de título acima do cabeçalho e telefone com ou sem 55 (normalizado para `+55DDDNÚMERO`); apelido vazio usa o 1º nome sem mudar o status. O discurso precisa da linha `referência: MM/AAAA` igual ao mês do lote. A saída termina com `CODIGO <código>`, a impressão digital do conteúdo do lote.
 
+Limpeza da planilha, antes de qualquer uso: `importar PLANILHA` lê a planilha do assessor como veio e grava a ativa, `/workspace/assessor/clientes.csv`, com as 4 colunas canônicas (conta só com dígitos, telefone em +55 quando válido, espaços colapsados); a anterior vira `clientes.bak-*`. Preparo, `cliente.py` e rastreio de apelidos leem só esse arquivo.
+
 Estado do envio, sempre gravado pelo script (o bot não escreve CSV à mão):
 - `aprovar REF CODIGO [CONTAS_REVISAR…]`: grava `lote-<ref>/aprovacao.json`, só se o código for o do lote atual.
 - `checar [REF]`: confere `historico-envios.csv` (colunas, data, horário, status) e, com REF, o `conferir-envios.csv`, os pacotes e a aprovação; com tudo certo, imprime a fila (`ENVIAR` / `PULAR` / `JA_REGISTRADO`).
@@ -30,5 +32,5 @@ Checagem: `python tests/test_assessor.py` (sem PDFs reais; a leitura do PDF se c
 `skills/assessor-ajustar-cliente/scripts/cliente.py` (Python 3, sem dependências): `add`, `set` e `rm` na cópia salva. Grava `clientes.csv` e guarda a anterior como `clientes.bak-AAAAMMDD-HHMM.<ext>`.
 
 ## Entradas do assessor
-- Planilha `conta_xp, telefone, nome, apelido` (.csv ou .xlsx), enviada no chat. `conta_xp` é o número da conta na corretora.
+- Planilha de clientes (.csv ou .xlsx) com conta, telefone e nome (apelido opcional), do jeito que o assessor tem; o bot limpa com `importar`. `conta_xp` é o número da conta na corretora.
 - Zip do lote do relatório mensal de performance da corretora, enviado no chat todo mês.

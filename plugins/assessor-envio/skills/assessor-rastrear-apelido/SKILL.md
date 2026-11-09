@@ -8,7 +8,7 @@ description: 'Use quando o assessor pedir para preencher ou corrigir a coluna ap
 Descobre como o assessor chama cada cliente (ex.: "Fala, Zé" → `Zé`) e propõe a coluna `apelido`. Nada é enviado; a planilha só muda depois da aprovação.
 
 ## Passos
-1. Planilha: a ativa em `/workspace/assessor/` (`clientes.csv` ou `clientes.xlsx`; ignore `clientes.bak-*`; se as duas existirem, a mais recente). Colunas `conta_xp, telefone, nome, apelido`. `conta_xp` é o número da conta na corretora. Escopo: o que o assessor pedir (todos, só os sem apelido, ou contas específicas). Ignore linhas sem telefone (liste-as no fim).
+1. Planilha: a ativa, `/workspace/assessor/clientes.csv` (se só existir `clientes.xlsx`, faça antes a limpeza de `assessor-envio-core`, "Planilha recebida"). Colunas `conta_xp, telefone, nome, apelido`. `conta_xp` é o número da conta na corretora. Escopo: o que o assessor pedir (todos, só os sem apelido, ou contas específicas). Ignore linhas sem telefone (liste-as no fim).
 2. `whatsapp_bot_id` da memória (se faltar, setup em `assessor-envio-core`).
 3. UMA chamada `SendToAgent` (`priority: true`) para o bot de WhatsApp, com a lista `conta_xp | telefone | nome`:
    ```
