@@ -9,8 +9,8 @@ Monta, de forma determinística (sem IA no conteúdo), um pacote por cliente: `r
 
 ## Entradas
 - **Zip do lote** do relatório mensal de performance da corretora, exportado do portal da corretora (um PDF por conta). Vem anexado no chat; salve em `/workspace/assessor/entrada/`.
-- **Planilha de clientes** (.csv ou .xlsx, 1ª aba) com as colunas `conta_xp, telefone, nome, apelido`. `conta_xp` é o número da conta na corretora. Salve como `/workspace/assessor/clientes.<ext>`. Se não veio agora, use a ativa (`clientes.csv` ou `clientes.xlsx`; ignore `clientes.bak-*`; se as duas existirem, a mais recente). Se não houver nenhuma, peça.
-- **Discurso macro**: baixe a cada execução, sempre da URL fixa: `mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discurso-macro.md -o /workspace/assessor/discurso.md`. Se falhar, vier vazio ou contiver "ainda não publicado", pare e avise (não invente cenário, não reaproveite o do mês anterior sem o assessor autorizar).
+- **Planilha de clientes** (.csv ou .xlsx, 1ª aba) com colunas de conta, telefone e nome; apelido é opcional. O script aceita variações de nome de coluna ("Conta XP", "Celular", "WhatsApp", "Nome do cliente"…), linhas de título acima do cabeçalho e telefone com ou sem 55. Não peça ao assessor para reformatar antes de rodar: só se o script recusar. `conta_xp` é o número da conta na corretora. Salve como `/workspace/assessor/clientes.<ext>`. Se não veio agora, use a ativa (`clientes.csv` ou `clientes.xlsx`; ignore `clientes.bak-*`; se as duas existirem, a mais recente). Se não houver nenhuma, peça.
+- **Discurso macro**: baixe a cada execução, sempre da URL fixa: `mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discurso-macro.md -o /workspace/assessor/discurso.md`. Se falhar, vier vazio ou contiver "ainda não publicado", pare e avise (não invente cenário, não reaproveite o do mês anterior). O script também para se a linha `referência: MM/AAAA` do discurso não for o mês do lote: avise que o cenário deste mês ainda não foi publicado e que é só preparar de novo quando sair.
 
 ## Script
 Baixe o script a cada execução, da branch `stable`, para o caminho de trabalho. Não dependa de uma cópia que tenha vindo com o plugin: quando só existe o ponteiro, o arquivo não está ao lado desta skill.
@@ -22,18 +22,19 @@ Confira que a 1ª linha de comentário começa com `# assessor.py v`. Se o downl
 ## Passos
 1. Garanta o `pdftotext` (`which pdftotext`; se faltar: `sudo apt-get install -y poppler-utils`).
 2. Obtenha o script (seção acima) e o discurso.
-3. Rode: `python3 /workspace/assessor/assessor.py <zip> <planilha> /workspace/assessor/discurso.md`.
-4. Leia `/workspace/assessor/lote-<ref>/lote.csv`. Status:
-   - `pronto`: pacote ok.
-   - `revisar`: pacote gerado, com aviso (apelido ausente → usou 1º nome; nome do arquivo ≠ planilha; conta repetida no zip). Só vai se o assessor aprovar explicitamente.
+3. Rode: `python3 /workspace/assessor/assessor.py <zip> <planilha> /workspace/assessor/discurso.md`. Se ele parar com mensagem, repasse ao assessor em palavras simples o que falta (ex.: a coluna de telefone não foi encontrada) e pare. A última linha da saída é `CODIGO <código>`: guarde.
+4. Leia `/workspace/assessor/lote-<ref>/conferir-envios.csv`. Status:
+   - `pronto`: pacote ok. Coluna `aviso` preenchida (sem apelido → usou o 1º nome) não muda o status.
+   - `revisar`: pacote gerado, com problema (nome do arquivo ≠ planilha; conta repetida no zip). Só vai se o assessor aprovar explicitamente.
    - `bloqueado`: não vai (sem PDF, PDF sem linha na planilha, sem telefone/telefone inválido, métrica não lida, conta repetida na planilha, data diferente do lote).
 5. Abra 1 `mensagem.txt` de exemplo e confira, contra `pdftotext -raw -f 1 -l 2 relatorio.pdf -`, patrimônio, rentabilidade do mês e resultado. Se não bater, pare e reporte.
 6. Mande ao assessor UM resumo do lote:
-   - referência, total de PDFs, quantos `pronto` / `revisar` / `bloqueado`;
+   - referência, código do lote, total de PDFs, quantos `pronto` / `revisar` / `bloqueado`;
    - a mensagem de exemplo completa (de um cliente pronto);
+   - quantos clientes estão sem apelido e vão receber "Olá, <primeiro nome>!", com a lista;
    - a lista de `revisar` e `bloqueado` com o problema de cada um (conta, nome, problema);
-   - a pergunta única: "Aprovo o envio dos N prontos? (e quais dos `revisar` incluir)".
-7. Guarde na memória `assessor_lote_pendente = <ref>` e o que foi aprovado. O envio é com `assessor-enviar-relatorio`, só depois do "sim".
+   - a pergunta única: "Aprovo o envio dos N prontos do lote <código>? (e quais dos `revisar` incluir)".
+7. Guarde na memória `assessor_lote_pendente = <ref>` e o código. O envio é com `assessor-enviar-relatorio`, só depois do "sim", que registra a aprovação com esse código.
 
 ## Regras
 - Nunca edite `mensagem.txt` à mão nem reescreva o texto; para mudar, corrija planilha/discurso e rode de novo.

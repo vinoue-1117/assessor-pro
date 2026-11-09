@@ -36,7 +36,7 @@ O que é baixado em tempo de execução (o discurso e os scripts) vem sempre da 
 
 ## Manutenção
 - Mudou algo? Suba a `version` em `plugins/<nome>/.cursor-plugin/plugin.json` e registre a mudança no commit.
-- Valide antes de cada commit: `node scripts/validate-template.mjs`.
+- Valide antes de cada commit: `node scripts/validate-template.mjs` e, se mexeu no `assessor.py`, `python tests/test_assessor.py`.
 - Nunca coloque dado de cliente neste repositório (nomes, contas, telefones, PDFs, planilhas). Ele é público.
 
 Licença: MIT.

@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
-# assessor.py v3 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.txt  (requer pdftotext/poppler)
-import csv,io,re,sys,shutil,zipfile,subprocess,unicodedata as U
+# assessor.py v4 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md  (requer pdftotext/poppler)
+#   python3 assessor.py aprovar REF CODIGO [CONTA_REVISAR ...] | checar [REF] | registrar REF CONTA STATUS [HH:MM]
+import csv,io,os,re,sys,json,shutil,hashlib,zipfile,subprocess,unicodedata as U
+from datetime import datetime
 from pathlib import Path
 from collections import Counter
+BASE=Path(os.environ.get('ASSESSOR_BASE','/workspace/assessor'))
+CAB_LOTE=['conta_xp','nome','apelido','telefone','status','problema','aviso']
+CAB_ENVIOS=['data','ref','conta_xp','apelido','status','horario']
+STATUS_ENVIO=r'(enviado|(falhou|pulado|teste): .+)'
+COLUNAS={'conta_xp':{'contaxp','conta','numerodaconta','numeroconta','ndaconta','nconta','contacliente','codigodaconta'},
+ 'telefone':{'telefone','celular','whatsapp','whats','zap','fone','tel','telefonecelular','numerowhatsapp','numerodowhatsapp'},
+ 'nome':{'nome','cliente','nomedocliente','nomecliente','nomecompleto'},
+ 'apelido':{'apelido','comochamar','tratamento','vocativo','primeironome'}}
+DDD={11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,51,53,54,55,61,62,63,64,65,66,67,68,69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99}
 MESES='janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro'.split()
 P=r'-?\d{1,3}(?:\.\d{3})*,\d{2}%';R=r'-?R\$ ?\d{1,3}(?:\.\d{3})*,\d{2}'
 CAMPOS={'patrimonio':('PATRIMÔNIO TOTAL BRUTO:',R),'cart_mes':('RENTABILIDADE MÊS:',P),'resultado':('GANHO MÊS:',R),
@@ -54,8 +65,13 @@ def ler_planilha(p):
     if p.suffix.lower()=='.xlsx':
         z=zipfile.ZipFile(p);x=lambda n:z.read(n).decode()
         ss=[re.sub(r'<[^>]+>','',s) for s in re.findall(r'<si>(.*?)</si>',x('xl/sharedStrings.xml'),re.S)] if 'xl/sharedStrings.xml' in z.namelist() else []
-        rows=[]
-        for r in re.findall(r'<row[^>]*>(.*?)</row>',x('xl/worksheets/sheet1.xml'),re.S):
+        rows=[];aba='xl/worksheets/sheet1.xml'
+        try:# 1ª aba na ordem do arquivo, não necessariamente sheet1.xml
+            rid=re.search(r'<sheet\b[^>]*?\sr:id="([^"]+)"',x('xl/workbook.xml'))[1]
+            rel=re.search(r'<Relationship\b[^>]*\bId="'+re.escape(rid)+r'"[^>]*>',x('xl/_rels/workbook.xml.rels'))[0]
+            alvo=re.search(r'Target="([^"]+)"',rel)[1];aba=alvo.lstrip('/') if alvo.startswith('/') else 'xl/'+alvo
+        except (KeyError,TypeError):pass
+        for r in re.findall(r'<row[^>]*>(.*?)</row>',x(aba),re.S):
             d={}
             for ref,a,v in re.findall(r'<c r="([A-Z]+)\d+"([^>]*?)(?:/>|>(.*?)</c>)',r,re.S):
                 v=re.sub(r'<[^>]+>','',v or '');d[ref]=ss[int(v)] if 't="s"' in a and v else re.sub(r'\.0$','',v)
@@ -66,16 +82,120 @@ def ler_planilha(p):
         b=p.read_bytes()
         try:s=b.decode('utf-8-sig')
         except UnicodeDecodeError:s=b.decode('cp1252')
-        rows=list(csv.reader(io.StringIO(s),delimiter=';' if s.split('\n')[0].count(';')>s.split('\n')[0].count(',') else ','))
-    h=[c.strip().lower() for c in rows[0]]
-    falta=[c for c in ('conta_xp','telefone','nome','apelido') if c not in h]
-    if falta:sys.exit('planilha sem colunas: '+', '.join(falta))
-    return [{c:(r[h.index(c)] if h.index(c)<len(r) else '').strip() for c in ('conta_xp','telefone','nome','apelido')} for r in rows[1:] if any(r)]
+        rows=list(csv.reader(io.StringIO(s),delimiter=';' if s.count(';')>s.count(',') else ','))# arquivo todo: a 1ª linha pode ser título
+    def mapa(r):# coluna canônica -> índice, aceitando variações do nome da coluna
+        m={}
+        for i,h in enumerate(r):
+            k=re.sub(r'[^a-z0-9]','',norm(h))
+            for c,alias in COLUNAS.items():
+                if k in alias and c not in m:m[c]=i
+        return m
+    cab=max(range(min(10,len(rows))),key=lambda i:len(mapa(rows[i])),default=0)# cabeçalho pode vir depois de linhas de título
+    m=mapa(rows[cab]) if rows else {}
+    falta=[n for c,n in (('conta_xp','conta'),('telefone','telefone'),('nome','nome')) if c not in m]
+    if falta:sys.exit('nao achei na planilha a coluna de '+', '.join(falta)+'. A planilha precisa de uma coluna para conta, telefone e nome (apelido e opcional).')
+    return [{c:(r[m[c]] if c in m and m[c]<len(r) else '').strip() for c in COLUNAS} for r in rows[cab+1:] if any(x.strip() for x in r)]
+def tel_br(s):
+    """Telefone em +55DDDNUMERO, ou (None, motivo). Mesma regra de normalizar_telefone em cliente.py."""
+    d=re.sub(r'\D','',s or '')
+    if not d:return None,'sem telefone'
+    if d.startswith('00'):d=d[2:]
+    elif d.startswith('0'):d=d[1:]
+    if d.startswith('550') and len(d) in (13,14):d='55'+d[3:]
+    if d.startswith('55') and len(d) in (12,13):nac=d[2:]
+    elif len(d) in (10,11):nac=d
+    else:return None,f'telefone inválido "{s}": informe DDD + número'
+    ddd,num=nac[:2],nac[2:]
+    if int(ddd) not in DDD:return None,f'telefone inválido "{s}": DDD {ddd} não existe'
+    if len(num)==9 and num[0]!='9':return None,f'telefone inválido "{s}": celular deve começar com 9'
+    if len(num)==8 and num[0] not in '2345':return None,f'telefone inválido "{s}": não é fixo nem celular'
+    return '+55'+ddd+num,None
+def ler_discurso(disc):
+    """(texto, (mês, ano) da linha 'referência: MM/AAAA' ou None)."""
+    t=Path(disc).read_text(encoding='utf-8-sig')
+    r=re.search(r'refer\w+ncia:\s*(\d{1,2})/(\d{4})',t,re.I)
+    linhas=[l.rstrip() for l in t.splitlines() if not l.lstrip().startswith(('#','<!--'))]
+    return re.sub(r'\n{3,}','\n\n','\n'.join(linhas)).strip(),(r and (int(r[1]),r[2]))
+def codigo(out):
+    """Impressão digital do conteúdo do lote: muda se qualquer pacote ou o conferir-envios.csv mudar."""
+    h=hashlib.sha256()
+    for p in sorted(out.rglob('*')):
+        if p.is_file() and p.name!='aprovacao.json':h.update(p.relative_to(out).as_posix().encode());h.update(p.read_bytes())
+    return h.hexdigest()[:8]
+def ler_lote(ref):
+    out=BASE/f'lote-{ref}'
+    if not (out/'conferir-envios.csv').is_file():sys.exit(f'lote {ref} nao existe: prepare o envio antes')
+    with open(out/'conferir-envios.csv',encoding='utf-8',newline='') as fh:rows=list(csv.reader(fh))
+    return out,rows
+def aprovar(ref,cod,*revisar):
+    out,rows=ler_lote(ref);lote={r[0]:r for r in rows[1:] if r}
+    if cod!=codigo(out):sys.exit(f'o lote {ref} mudou depois do resumo (codigo {cod}, atual {codigo(out)}): mostre o resumo novo e peca nova aprovacao')
+    ruins=[c for c in revisar if c not in lote or lote[c][4]!='revisar']
+    if ruins:sys.exit('contas que nao estao como revisar neste lote: '+', '.join(ruins))
+    (out/'aprovacao.json').write_text(json.dumps({'codigo':cod,'revisar':list(revisar),'aprovado_em':f'{datetime.now():%Y-%m-%d %H:%M}'}),encoding='utf-8')
+    print(f'APROVADO lote {ref} | codigo {cod} | revisar incluidos: {len(revisar)}')
+def historico():
+    """Caminho do historico-envios.csv; renomeia o envios.csv de versões anteriores para não perder quem já recebeu."""
+    p,velho=BASE/'historico-envios.csv',BASE/'envios.csv'
+    if not p.exists() and velho.is_file():velho.rename(p)
+    return p
+def ler_envios():
+    p=historico()
+    if not p.is_file():return []
+    with open(p,encoding='utf-8',newline='') as fh:return list(csv.reader(fh))
+def checar(ref=None):
+    """Confere historico-envios.csv (e, com REF, conferir-envios.csv e aprovação). Com REF e tudo certo, imprime a fila de envio."""
+    err,avisos=[],[];env=ler_envios();ja={}
+    if env and env[0]!=CAB_ENVIOS:err.append('historico-envios.csv: cabecalho diferente de '+','.join(CAB_ENVIOS))
+    for i,r in enumerate(env[1:],2):
+        if len(r)!=6:err.append(f'historico-envios.csv linha {i}: {len(r)} colunas em vez de 6');continue
+        if not re.fullmatch(r'\d{4}-\d\d-\d\d',r[0]):err.append(f'historico-envios.csv linha {i}: data "{r[0]}" fora do formato AAAA-MM-DD')
+        if not re.fullmatch(r'\d\d:\d\d',r[5]):err.append(f'historico-envios.csv linha {i}: horario "{r[5]}" fora do formato HH:MM')
+        if not re.fullmatch(STATUS_ENVIO,r[4]):err.append(f'historico-envios.csv linha {i}: status "{r[4]}" desconhecido')
+        elif not r[4].startswith('teste'):ja.setdefault((r[1],r[2]),[]).append(r[4])
+    for (rf,c),st in ja.items():
+        if st.count('enviado')>1:avisos.append(f'conta {c} tem {st.count("enviado")} envios registrados no lote {rf}')
+    fila=[]
+    if ref:
+        out,rows=ler_lote(ref)
+        if rows[0]!=CAB_LOTE:err.append('conferir-envios.csv: cabecalho diferente de '+','.join(CAB_LOTE))
+        for r in rows[1:]:
+            if len(r)!=len(CAB_LOTE) or r[4] not in ('pronto','revisar','bloqueado'):err.append(f'conferir-envios.csv: linha invalida {r}');continue
+            if r[4]!='bloqueado' and not all((out/r[0]/f).is_file() for f in ('relatorio.pdf','mensagem.txt')):err.append(f'conta {r[0]}: pacote incompleto (falta PDF ou mensagem)')
+        ap=out/'aprovacao.json'
+        if not ap.is_file():err.append(f'lote {ref} sem aprovacao registrada (rode aprovar depois do sim do assessor)')
+        else:
+            ap=json.loads(ap.read_text(encoding='utf-8'))
+            if ap['codigo']!=codigo(out):err.append(f'lote {ref} mudou depois da aprovacao: prepare o resumo de novo e peca nova aprovacao')
+        if not err:
+            for r in rows[1:]:
+                feito=ja.get((ref,r[0]))
+                if feito:fila.append(f'JA_REGISTRADO {r[0]} | {feito[-1]}')
+                elif r[4]=='pronto' or (r[4]=='revisar' and r[0] in ap['revisar']):fila.append(f'ENVIAR {r[0]} | {r[1]} | {r[3]}')
+                else:fila.append(f'PULAR {r[0]} | '+(r[5] if r[4]=='bloqueado' else 'revisar nao aprovado: '+r[5]))
+    for a in avisos:print('AVISO: '+a)
+    if err:
+        for e in err:print('ERRO: '+e)
+        sys.exit(1)
+    print('OK'+(f' lote {ref}' if ref else ''))
+    if fila:print('\n'.join(fila))
+def registrar(ref,conta,status,horario=None):
+    """Acrescenta uma linha a historico-envios.csv (o csv cuida de vírgulas e aspas no motivo)."""
+    if not re.fullmatch(STATUS_ENVIO,status):sys.exit(f'status "{status}" invalido: use enviado, falhou: <motivo>, pulado: <motivo> ou teste: <resultado>')
+    horario=horario or f'{datetime.now():%H:%M}'
+    if not re.fullmatch(r'\d\d:\d\d',horario):sys.exit(f'horario "{horario}" invalido: use HH:MM')
+    _,rows=ler_lote(ref);lote={r[0]:r for r in rows[1:] if r}
+    if conta not in lote:sys.exit(f'conta {conta} nao esta no lote {ref}')
+    p=historico();novo=not p.is_file()
+    with open(p,'a',encoding='utf-8',newline='') as fh:
+        w=csv.writer(fh)
+        if novo:w.writerow(CAB_ENVIOS)
+        w.writerow([f'{datetime.now():%Y-%m-%d}',ref,conta,lote[conta][2],status,horario])
+    print(f'REGISTRADO {conta} | {status}')
 def main(zp,planilha,disc):
-    linhas=[l.rstrip() for l in Path(disc).read_text(encoding='utf-8-sig').splitlines() if not l.lstrip().startswith(('#','<!--'))]
-    discurso=re.sub(r'\n{3,}','\n\n','\n'.join(linhas)).strip()
+    discurso,mref=ler_discurso(disc)
     if not discurso:sys.exit('discurso macro vazio')
-    base=Path('/workspace/assessor');tmp=base/'_pdfs';shutil.rmtree(tmp,ignore_errors=True)
+    tmp=BASE/'_pdfs';shutil.rmtree(tmp,ignore_errors=True)
     pdfs={};dup=[];nomes={}
     with zipfile.ZipFile(zp) as z:
         for n in z.namelist():
@@ -88,17 +208,21 @@ def main(zp,planilha,disc):
             pdfs[c]=(d,f,err);nomes[c]=m[2] if m else ''
     datas=Counter(f['data'] for _,f,_ in pdfs.values() if 'data' in f)
     if not datas:sys.exit('nenhum PDF do relatório mensal de performance da corretora legível no zip')
-    a,me,di=datas.most_common(1)[0][0];ref=f'{a}-{me}-{di}';out=base/f'lote-{ref}'
+    a,me,di=datas.most_common(1)[0][0];ref=f'{a}-{me}-{di}';out=BASE/f'lote-{ref}'
+    if mref!=(int(me),a):
+        shutil.rmtree(tmp,ignore_errors=True)
+        sys.exit(f'discurso do mes {mref[0]:02d}/{mref[1]} e lote do mes {me}/{a}: publique o discurso do mes antes de preparar' if mref else 'discurso sem a linha "referencia: MM/AAAA": nao da para saber o mes dele')
     shutil.rmtree(out,ignore_errors=True);out.mkdir(parents=True)
     linhas=ler_planilha(planilha);cont=Counter(re.sub(r'\D','',l['conta_xp']) for l in linhas);res=[]
     for l in linhas:
-        c=re.sub(r'\D','',l['conta_xp']);bloq,rev=[],[]
+        c=re.sub(r'\D','',l['conta_xp']);bloq,rev,aviso=[],[],''
         if cont[c]>1:bloq.append('conta repetida na planilha')
-        tel=re.sub(r'\D','',l['telefone'])
-        if not tel:bloq.append('sem telefone')
-        elif len(tel)<10:bloq.append('telefone inválido')
+        tel,erro=tel_br(l['telefone'])
+        if erro:bloq.append(erro)
         ap=l['apelido']
-        if not ap:ap=(l['nome'].split() or [''])[0];rev.append(f'sem apelido, usado "{ap}"')
+        if not ap:
+            ap=(l['nome'].split() or [''])[0];ap=ap.capitalize() if ap.isupper() else ap
+            aviso=f'sem apelido, usado "{ap}"'
         if c not in pdfs:bloq.append('sem PDF no lote')
         else:
             d,f,err=pdfs.pop(c)
@@ -110,12 +234,18 @@ def main(zp,planilha,disc):
             if not err:
                 msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,**f)
                 p=out/c;p.mkdir();shutil.copy(d,p/'relatorio.pdf');(p/'mensagem.txt').write_text(msg,encoding='utf-8')
-        res.append([c,l['nome'],ap,'+'+tel if tel else '','bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev)])
-    for c,(d,f,err) in pdfs.items():res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha'])
-    with open(out/'lote.csv','w',newline='',encoding='utf-8') as fh:
-        w=csv.writer(fh);w.writerow(['conta_xp','nome','apelido','telefone','status','problema']);w.writerows(res)
+        res.append([c,l['nome'],ap,tel or l['telefone'],'bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev),aviso])
+    for c,(d,f,err) in pdfs.items():res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha',''])
+    with open(out/'conferir-envios.csv','w',newline='',encoding='utf-8') as fh:
+        w=csv.writer(fh);w.writerow(CAB_LOTE);w.writerows(res)
     shutil.rmtree(tmp,ignore_errors=True)
     print(f'LOTE {ref} -> {out}');print(dict(Counter(r[4] for r in res)))
     for r in res:
         if r[5]:print(f'{r[0]} {r[1]}: {r[4]} - {r[5]}')
-if __name__=='__main__':main(*sys.argv[1:4])
+    sem=[r for r in res if r[6]]
+    if sem:print(f'AVISO: {len(sem)} sem apelido, usado o primeiro nome: '+'; '.join(f'{r[0]} {r[2]}' for r in sem))
+    print(f'CODIGO {codigo(out)}')
+if __name__=='__main__':
+    cmd={'aprovar':aprovar,'checar':checar,'registrar':registrar}
+    if len(sys.argv)>1 and sys.argv[1] in cmd:cmd[sys.argv[1]](*sys.argv[2:])
+    else:main(*sys.argv[1:4])

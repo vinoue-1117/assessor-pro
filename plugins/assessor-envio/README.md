@@ -16,9 +16,16 @@ Perfil do bot: `Siga a skill assessor-envio-core em toda conversa.`
 | `assessor-resumo-ultimo-envio` | resumo do último lote a partir do log |
 
 ## Script
-`skills/assessor-preparar-envio/scripts/assessor.py` (Python 3 + `pdftotext`): descompacta o zip, lê cada PDF, cruza com a planilha e grava `/workspace/assessor/lote-<ref>/` com `relatorio.pdf` + `mensagem.txt` por conta e um `lote.csv` com status `pronto` / `revisar` / `bloqueado`. Sem IA no conteúdo.
+`skills/assessor-preparar-envio/scripts/assessor.py` (Python 3 + `pdftotext`): descompacta o zip, lê cada PDF, cruza com a planilha e grava `/workspace/assessor/lote-<ref>/` com `relatorio.pdf` + `mensagem.txt` por conta e um `conferir-envios.csv` com status `pronto` / `revisar` / `bloqueado`. Sem IA no conteúdo.
 
-Uso: `python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md`
+Uso: `python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md`. A planilha aceita variações de nome de coluna, linhas de título acima do cabeçalho e telefone com ou sem 55 (normalizado para `+55DDDNÚMERO`); apelido vazio usa o 1º nome sem mudar o status. O discurso precisa da linha `referência: MM/AAAA` igual ao mês do lote. A saída termina com `CODIGO <código>`, a impressão digital do conteúdo do lote.
+
+Estado do envio, sempre gravado pelo script (o bot não escreve CSV à mão):
+- `aprovar REF CODIGO [CONTAS_REVISAR…]`: grava `lote-<ref>/aprovacao.json`, só se o código for o do lote atual.
+- `checar [REF]`: confere `historico-envios.csv` (colunas, data, horário, status) e, com REF, o `conferir-envios.csv`, os pacotes e a aprovação; com tudo certo, imprime a fila (`ENVIAR` / `PULAR` / `JA_REGISTRADO`).
+- `registrar REF CONTA STATUS [HH:MM]`: acrescenta a linha em `historico-envios.csv` (status `enviado`, `falhou: …`, `pulado: …` ou `teste: …`).
+
+Checagem: `python tests/test_assessor.py` (sem PDFs reais; a leitura do PDF se confere com um lote real).
 
 `skills/assessor-ajustar-cliente/scripts/cliente.py` (Python 3, sem dependências): `add`, `set` e `rm` na cópia salva. Grava `clientes.csv` e guarda a anterior como `clientes.bak-AAAAMMDD-HHMM.<ext>`.
 

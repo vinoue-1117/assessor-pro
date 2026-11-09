@@ -11,7 +11,7 @@ Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cli
 
 ## Passos
 1. Lote: o `assessor_lote_pendente` da memória (ou o `lote-<ref>` mais recente em `/workspace/assessor/`). Se não há lote, rode antes o `assessor-preparar-envio`.
-2. Cliente: o que o assessor indicar (conta ou nome); se não indicou, o primeiro `pronto` do `lote.csv`. Precisa existir `relatorio.pdf` e `mensagem.txt` na pasta da conta.
+2. Cliente: o que o assessor indicar (conta ou nome); se não indicou, o primeiro `pronto` do `conferir-envios.csv`. Precisa existir `relatorio.pdf` e `mensagem.txt` na pasta da conta.
 3. `whatsapp_bot_id` da memória (se faltar, setup em `assessor-envio-core`).
 4. UMA chamada `SendToAgent` com `priority: true` para o bot de WhatsApp:
    ```
@@ -24,7 +24,7 @@ Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cli
    Só envie o texto se a caixa tiver o texto integral (role a caixa: primeira linha, última linha e quantidade de linhas iguais às do .txt). Clipboard não prova isso. Sem pacote parcial e sem retry.
    Responda: enviado | <destinatário> | <HH:MM> | pdf <tiques> | texto <tiques>, ou falhou: <motivo> | pdf enviado|não enviado | texto enviado|não enviado.
    ```
-5. Acrescente a `/workspace/assessor/envios.csv` uma linha com `status` = `teste: enviado` só se PDF e texto tiverem saído no chat "Você". Se um faltar: `teste: falhou <motivo>` dizendo qual saiu e qual não saiu (não conta como envio real).
+5. Registre com o script (baixado como em `assessor-enviar-relatorio`; nunca escreva `historico-envios.csv` à mão): `python3 /workspace/assessor/assessor.py registrar <ref> <conta_xp> "teste: enviado" <HH:MM>` só se PDF e texto tiverem saído no chat "Você". Se um faltar: `"teste: falhou <motivo>"` dizendo qual saiu e qual não saiu (não conta como envio real).
 6. Relate ao assessor os dois resultados em separado: PDF sem legenda no chat "Você", e texto integral no chat "Você". Não diga que o teste chegou se um dos dois faltou. Só então pergunte se quer ajustar algo (planilha/discurso) e preparar de novo, ou aprovar o lote.
 
 ## Regras
