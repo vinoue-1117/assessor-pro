@@ -25,7 +25,7 @@ Confira que a 1ª linha de comentário começa com `# assessor.py v`. Se o downl
 3. Rode: `python3 /workspace/assessor/assessor.py <zip> <planilha> /workspace/assessor/discurso.md`.
 4. Leia `/workspace/assessor/lote-<ref>/lote.csv`. Status:
    - `pronto`: pacote ok.
-   - `revisar`: pacote gerado, com aviso (apelido ausente → usou 1º nome; nome do arquivo ≠ planilha; mensagem > 1024 caracteres; conta repetida no zip). Só vai se o assessor aprovar explicitamente.
+   - `revisar`: pacote gerado, com aviso (apelido ausente → usou 1º nome; nome do arquivo ≠ planilha; conta repetida no zip). Só vai se o assessor aprovar explicitamente.
    - `bloqueado`: não vai (sem PDF, PDF sem linha na planilha, sem telefone/telefone inválido, métrica não lida, conta repetida na planilha, data diferente do lote).
 5. Abra 1 `mensagem.txt` de exemplo e confira, contra `pdftotext -raw -f 1 -l 2 relatorio.pdf -`, patrimônio, rentabilidade do mês e resultado. Se não bater, pare e reporte.
 6. Mande ao assessor UM resumo do lote:

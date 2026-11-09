@@ -8,5 +8,5 @@ https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discu
 - Quem atualiza: Victor Inoue, uma vez por mês, antes dos envios.
 - Só o texto resumido do mês. Nada de dado de cliente (nomes, contas, valores individuais, telefones).
 - Linhas que começam com `#` ou `<!--` são ignoradas pelo script; as demais viram um parágrafo só.
-- Limite: a legenda de PDF no WhatsApp aceita no máximo **1024 caracteres na mensagem inteira** (saudação + números + discurso + despedida), não só no discurso. Mensagens acima disso ficam como `revisar` no lote. Na prática, mantenha o discurso curto (algo como 300 caracteres ou menos).
+- A mensagem inteira (saudação, números, discurso e despedida) vai como texto normal no WhatsApp, em mensagem separada do PDF. O documento sai sem legenda, e o tamanho do texto não marca o pacote como `revisar`.
 - Enquanto o arquivo disser "ainda não publicado", o `assessor-preparar-envio` para e avisa, em vez de montar mensagens sem cenário.

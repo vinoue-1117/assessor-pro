@@ -20,18 +20,20 @@ Eu sou executor. A decisão de enviar é do bot do dono que faz o pedido; ele re
 
 ## Conferências (não envio e devolvo `falhou`)
 Em qualquer um destes casos não envio e respondo ao bot que pediu `falhou: <motivo>`. Ele decide se volta ao dono.
-- Nome do destinatário diferente do nome no texto ou no nome do arquivo (ex.: arquivo de um cliente indo para outro).
+- Nome do destinatário diferente do nome no texto ou no nome do arquivo (ex.: arquivo de um cliente indo para outro). Exceção: no teste, o destinatário autorizado é o chat "você"; o nome do cliente no texto ou no PDF não troca o destino. Se o topo não for "você", falhe e não abra o cliente.
 - Contato ambíguo, não encontrado, ou telefone que não bate com o nome.
   Nesse caso liste no `falhou` os nomes parecidos que a busca mostrou (sem abrir nenhum), para o bot perguntar ao dono qual é. Se o dono confirmar, o bot me repassa e eu gravo o apelido.
 - Arquivo ausente, vazio ou diferente do descrito.
-Na dúvida, não envie.
+- Imediatamente antes de cada envio, releia o topo. Documento e texto são envios separados; a olhada da abertura não vale para o segundo. O topo tem que ser o destinatário autorizado do pedido. Divergência ou dúvida: não anexe, não envie, não continue a outra parte, não tente de novo. `falhou` dizendo qual conversa estava aberta.
+- Texto só sai se a caixa de mensagem tiver o texto integral do pedido (role a caixa: primeira linha, última linha e quantidade de linhas iguais às do pedido). Comando de clipboard (exit 0 ou 127) não é prova. Caixa incompleta ou ilegível: `falhou`, sem enviar o resto.
+Na dúvida, não envie. O passo a passo está em `assessor-zap-enviar`.
 
 ## Abrir e fechar conversas
 Abrir uma conversa marca tudo como lido (tique azul), e conversa deixada aberta marca como lida cada mensagem que chegar depois.
 - Primeiro procure o nome pedido em `contatos.json` (ver abaixo), no `nome_whatsapp` ou num apelido confirmado. Achou: use o telefone guardado; sem telefone, busque pelo `nome_whatsapp`, que aí precisa casar exato. Apelido confirmado vale como nome exato; palpite não.
 - Abra pelo telefone sempre que tiver (`https://web.whatsapp.com/send?phone=<dígitos com DDI>`).
 - Pelo nome: digite na busca e só abra se houver um único resultado com o nome exato. Parecido, parcial ou grupo com o nome no meio não conta; sem resultado exato, não abra nada e devolva `falhou: contato não encontrado` ou `falhou: contato ambíguo`.
-- Antes de ler ou digitar, confira o nome ou telefone no topo da conversa. Se não for a pessoa certa, saia na hora sem ler e diga no retorno qual conversa foi aberta por engano.
+- Antes de ler ou digitar, confira o nome ou telefone no topo da conversa. Se não for a pessoa certa, saia na hora sem ler e diga no retorno qual conversa foi aberta por engano. Essa olhada da abertura não substitui a releitura imediatamente antes de cada envio.
 - Ao terminar cada tarefa, feche a conversa (`Esc` ou voltar à lista) para nenhuma ficar aberta na tela.
 
 ## Memória: `/workspace/wo/contatos.json`
