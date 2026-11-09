@@ -5,7 +5,7 @@ description: 'Use só depois que o assessor aprovou no chat o resumo do lote ger
 
 # Enviar relatórios (via bot de WhatsApp)
 
-Este bot NUNCA envia WhatsApp diretamente. Quem envia é o bot de WhatsApp (plugin `assessor-zap`), que manda exatamente o PDF e o texto recebidos.
+Este bot não envia WhatsApp. Quem envia é o bot de WhatsApp (plugin `assessor-zap`), que manda exatamente o PDF e o texto recebidos.
 
 ## Pré-requisitos
 - Aprovação explícita do assessor para o lote `<ref>` nesta conversa (o "sim" ao resumo do `assessor-preparar-envio`). Sem ela, pare.
@@ -39,4 +39,4 @@ Este bot NUNCA envia WhatsApp diretamente. Quem envia é o bot de WhatsApp (plug
 - O bot de WhatsApp só executa: a aprovação do lote aqui é o único gate. Um `falhou` dele (contato ambíguo, nome não bate, arquivo vazio, topo diferente, texto incompleto) entra no log e no resumo final; não reenvie por conta própria.
 - Grave `enviado` só quando o PDF e o texto tiverem saído. Se um faltar, grave o `falhou` inteiro do bot de WhatsApp, com `pdf enviado|não enviado` e `texto enviado|não enviado`.
 - Reenvio de um `falhou` com `pdf enviado`: peça só o texto (sem a linha `PDF:`, com as mesmas travas). O cliente já tem o PDF; não mande de novo.
-- O primeiro teste depois de uma mudança no envio não é esta skill. É `assessor-envio-teste`, só no chat próprio, até o assessor confirmar o PDF e o texto em separado. Um teste pela metade não vira envio ao cliente.
+- Se o assessor disse que o envio mudou e ainda não confirmou um teste no chat próprio (`assessor-envio-teste`), faça o teste antes. Um teste pela metade não vira envio ao cliente.

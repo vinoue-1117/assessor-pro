@@ -1,6 +1,6 @@
 ---
 name: assessor-zap-enviar
-description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou um arquivo (ex.: PDF e texto em mensagens separadas) para um contato. Antes de cada envio confere o topo; só manda o texto se a caixa tiver o texto integral. Envia exatamente o que recebeu e devolve o status.'
+description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou um arquivo (ex.: PDF e texto em mensagens separadas) para um contato. Envia exatamente o que recebeu e devolve o status.'
 ---
 
 # Enviar no WhatsApp Web
@@ -14,7 +14,7 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 Valem imediatamente antes de cada envio. PDF e texto são envios separados. A olhada na abertura não substitui estas.
 
 1. **Destinatário.** Antes de anexar e antes de apertar enviar, leia o topo de novo. Tem que ser o destinatário autorizado: nome ou telefone do pedido; no teste, "Você" ou "(você)". Parecido, parcial, grupo ou outro contato não conta. Divergência ou dúvida: não anexe, não envie, não mande a outra parte e não tente de novo. Feche a conversa. `falhou: topo é <o que está no topo>, não <destinatário autorizado>`.
-2. **Texto.** Antes de enviar texto, leia a caixa de mensagem e compare com o texto integral do pedido. Texto longo não cabe visível de uma vez: a caixa rola. Role até o topo e até o fim e confira que a primeira linha, a última linha e a quantidade de linhas batem com o pedido. Um trecho (uma saudação não basta) ou fragmentos soltos não contam. Clipboard não é prova: comando disparado, exit 0 ou exit 127 (`xclip` ausente ou qualquer outro) não significa que o texto entrou. Se a caixa não tiver o texto integral, ou se você não conseguir lê-la: não aperte `Enter`. `falhou: texto na caixa incompleto`. Não envie o que vem depois e não repita o que já saiu.
+2. **Texto.** Antes de enviar texto, leia a caixa de mensagem e compare com o texto integral do pedido. Texto longo não cabe visível de uma vez: a caixa rola. Role até o topo e até o fim e confira que a primeira linha, a última linha e a quantidade de linhas batem com o pedido. Um trecho (uma saudação não basta) ou fragmentos soltos não contam. Clipboard não é prova: o comando de cópia ter rodado não mostra que o texto entrou. Se a caixa não tiver o texto integral, ou se você não conseguir lê-la: não aperte `Enter`. `falhou: texto na caixa incompleto`. Não envie o que vem depois e não repita o que já saiu.
 
 ## Envio
 1. No WhatsApp Web, abra a conversa seguindo "Abrir e fechar conversas" do core: pelo telefone use `https://web.whatsapp.com/send?phone=<só dígitos com DDI>`; pelo nome, só um único resultado com o nome exato. Chat "você"/"(você)" = mensagem para si mesmo. No teste, abra só esse chat.
@@ -22,7 +22,7 @@ Valem imediatamente antes de cada envio. PDF e texto são envios separados. A ol
 3. **Só texto**: trava de destinatário; coloque o texto na caixa (colar o `.txt` inteiro de uma vez; quebra de linha = `Shift+Enter`); trava de texto; só então `Enter`.
 4. **Só arquivo**: trava de destinatário; clipe/"+" → Documento → selecione o arquivo → confira o nome → sem legenda → envie. Se o topo na prévia não for o destinatário autorizado, cancele sem enviar.
 5. **Texto e arquivo**: duas mensagens, nesta ordem. (a) Trava de destinatário e envie o arquivo como Documento, sem legenda. Se a trava falhar, pare: não anexe e não envie o texto. (b) Trava de destinatário de novo, coloque o texto completo na caixa, trava de texto, aí `Enter`. Se a caixa não tiver o texto integral, pare: não envie o texto e não reenvie o arquivo.
-6. Um pedido = um envio. Pacote pela metade não segue e não tem retry automático. `falhou` diz o que saiu e o que não saiu.
+6. Cada pedido é atendido uma vez. Pacote pela metade não segue e não tem retry automático. `falhou` diz o que saiu e o que não saiu.
 
 ## Conferir e reportar
 1. Espere cada mensagem que saiu deixar o relógio: ✓ enviado, ✓✓ entregue, ✓✓ azul lido. Não marque como enviada uma parte que você não viu sair.

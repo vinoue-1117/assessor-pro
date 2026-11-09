@@ -7,7 +7,7 @@ description: 'Use quando o assessor quiser ver como um relatório chega no Whats
 
 Mesmo fluxo do `assessor-enviar-relatorio`, mas para UM pacote e com destino no próprio assessor. Nenhum cliente recebe nada.
 
-O primeiro teste depois de uma mudança no envio é só este chat próprio. Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cliente enquanto ele não confirmar que viu os dois.
+Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cliente enquanto ele não confirmar que viu os dois.
 
 ## Passos
 1. Lote: o `assessor_lote_pendente` da memória (ou o `lote-<ref>` mais recente em `/workspace/assessor/`). Se não há lote, rode antes o `assessor-preparar-envio`.
