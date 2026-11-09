@@ -6,7 +6,7 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 # Enviar no WhatsApp Web
 
 ## Antes de enviar
-1. Leia o pedido: destinatário autorizado (nome e/ou telefone, ou o chat "você"), texto (inline ou caminho de `.txt`), arquivo (caminho). Leia o `.txt` exatamente, sem alterar nada. Esse texto é a referência da trava de texto.
+1. Leia o pedido: destinatário autorizado (nome e/ou telefone, ou o chat "você"), texto (inline ou caminho de `.txt`), arquivo (caminho) e, se vierem, `PRIMEIRA`, `ULTIMA` e `PARAGRAFOS`. Leia o `.txt` exatamente, sem alterar nada. Esse texto é a referência da trava de texto. Os três valores, se vierem, têm que ser os desse arquivo.
 2. Confira que o pedido veio de um bot do dono (`assessor-zap-core`). O gate de envio é dele; não pergunte ao dono.
 3. Faça as conferências do core: contato único, arquivo existe e não está vazio, e nome no arquivo/texto vs destinatário. Falhou alguma: `falhou: <motivo>` ao bot, sem enviar. Exceção: se o pedido manda para o chat "você"/"(você)", esse é o destinatário autorizado. O nome do cliente dentro da mensagem ou do arquivo não muda o destino e não faz esta conferência falhar. Não abra o cliente por causa desse nome.
 
@@ -14,7 +14,12 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 Valem imediatamente antes de cada envio. PDF e texto são envios separados. A olhada na abertura não substitui estas.
 
 1. **Destinatário.** Antes de anexar e antes de apertar enviar, leia o topo de novo. Tem que ser o destinatário autorizado: nome ou telefone do pedido; no teste, "Você" ou "(você)". Parecido, parcial, grupo ou outro contato não conta. Divergência ou dúvida: não anexe, não envie, não mande a outra parte e não tente de novo. Feche a conversa. `falhou: topo é <o que está no topo>, não <destinatário autorizado>`.
-2. **Texto.** Antes de enviar texto, leia a caixa de mensagem e compare com o texto integral do pedido. Texto longo não cabe visível de uma vez: a caixa rola. Role até o topo e até o fim e confira que a primeira linha, a última linha e a quantidade de linhas batem com o pedido. Um trecho (uma saudação não basta) ou fragmentos soltos não contam. Clipboard não é prova: o comando de cópia ter rodado não mostra que o texto entrou. Se a caixa não tiver o texto integral, ou se você não conseguir lê-la: não aperte `Enter`. `falhou: texto na caixa incompleto`. Não envie o que vem depois e não repita o que já saiu.
+2. **Texto.** Antes de apertar `Enter`, leia a caixa e compare com o texto integral do `.txt`. Texto longo não cabe visível de uma vez: a caixa rola, e o WhatsApp quebra na tela as linhas longas. Quebra visual não é linha e não entra na conta. A quebra que vale é a real (a do `.txt`, `Shift+Enter`). Linha = o texto inteiro entre duas quebras reais, mesmo que a tela o desenhe em várias. Linha não vazia = o que sobra depois de tirar espaços das pontas; se não sobra nada, não conta. Parágrafo = cada linha não vazia. Role até o topo e até o fim e confira:
+   - a primeira linha não vazia da caixa é o texto inteiro da primeira linha não vazia do `.txt`;
+   - a última linha não vazia da caixa é o texto inteiro da última linha não vazia do `.txt`;
+   - o número de parágrafos da caixa é o do `.txt`;
+   - nenhum parágrafo duplicado, faltando ou fora de ordem.
+   Se o pedido trouxer `PRIMEIRA`, `ULTIMA` e `PARAGRAFOS`, eles têm que ser os do `.txt` e a caixa tem que bater com os três. Um trecho (uma saudação não basta) ou fragmentos soltos não contam. Clipboard não é prova: o comando de cópia ter rodado não mostra que o texto entrou. Divergência, dúvida ou caixa ilegível: não aperte `Enter`. `falhou: texto na caixa incompleto`. Não envie o que vem depois, não repita o que já saiu e não tente de novo.
 
 ## Envio
 1. No WhatsApp Web, abra a conversa seguindo "Abrir e fechar conversas" do core: pelo telefone use `https://web.whatsapp.com/send?phone=<só dígitos com DDI>`; pelo nome, só um único resultado com o nome exato. Chat "você"/"(você)" = mensagem para si mesmo. No teste, abra só esse chat.
