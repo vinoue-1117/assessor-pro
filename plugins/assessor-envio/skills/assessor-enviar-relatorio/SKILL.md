@@ -20,8 +20,11 @@ Este bot NUNCA envia WhatsApp diretamente. Quem envia é o bot de WhatsApp (plug
    Destinatário: <nome> | WhatsApp <telefone>
    PDF: /workspace/assessor/lote-<ref>/<conta_xp>/relatorio.pdf
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
-   Enviar exatamente: primeiro o PDF como documento sem legenda, depois o texto completo (mensagem normal). Não altere o texto. Se o contato não bater com o telefone, não envie e me diga o motivo.
-   Responda: enviado | falhou: <motivo>.
+   Enviar exatamente: primeiro o PDF como documento sem legenda, depois o texto completo (mensagem normal). Não altere o texto.
+   Imediatamente antes de cada um (PDF e texto), confira o topo: tem que ser este destinatário. Divergência ou dúvida: não anexe e não envie.
+   Só envie o texto se a caixa mostrar o texto integral. Clipboard não prova isso. Sem pacote parcial e sem retry.
+   Se o contato não bater com o telefone, não envie e me diga o motivo.
+   Responda em separado: pdf enviado|falhou: <motivo> e texto enviado|falhou: <motivo>.
    ```
 3. Espere a confirmação do bot de WhatsApp de cada pedido antes do próximo (evita mensagens trocadas). Sem resposta em tempo razoável: registre `falhou: sem confirmação do bot de WhatsApp` e siga.
 4. Após cada resposta, acrescente uma linha a `/workspace/assessor/envios.csv` (crie com cabeçalho se não existir):
@@ -33,4 +36,6 @@ Este bot NUNCA envia WhatsApp diretamente. Quem envia é o bot de WhatsApp (plug
 - Não reescreva, resuma, traduza nem "melhore" a mensagem; passe só os caminhos.
 - Não reenvie para quem já tem `enviado` no mesmo `ref` em `envios.csv`, a menos que o assessor peça por nome.
 - Não responda clientes. Respostas que chegarem não são assunto deste bot.
-- O bot de WhatsApp só executa: a aprovação do lote aqui é o único gate. Um `falhou` dele (contato ambíguo, nome não bate, arquivo vazio) entra no log e no resumo final; não reenvie por conta própria.
+- O bot de WhatsApp só executa: a aprovação do lote aqui é o único gate. Um `falhou` dele (contato ambíguo, nome não bate, arquivo vazio, topo diferente, texto incompleto) entra no log e no resumo final; não reenvie por conta própria.
+- Grave `enviado` só quando o PDF e o texto tiverem saído. Se um faltar, `falhou: <motivo>` diz o que saiu e o que não saiu.
+- O primeiro teste depois de uma mudança no envio não é esta skill. É `assessor-envio-teste`, só no chat próprio, até o assessor confirmar o PDF e o texto em separado. Um teste pela metade não vira envio ao cliente.
