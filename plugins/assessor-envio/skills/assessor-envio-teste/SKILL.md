@@ -21,8 +21,8 @@ O primeiro teste depois de uma mudança no envio é só este chat próprio. Conf
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
    Enviar exatamente: primeiro o PDF como documento sem legenda, depois o texto completo (mensagem normal). Não altere o texto.
    Imediatamente antes de cada um (PDF e texto), confira o topo. Se não for o chat "Você", não anexe e não envie.
-   Só envie o texto se a caixa mostrar o texto integral. Clipboard não prova isso. Sem pacote parcial e sem retry.
-   Responda em separado: pdf enviado|falhou: <motivo> e texto enviado|falhou: <motivo>.
+   Só envie o texto se a caixa tiver o texto integral (role a caixa: primeira linha, última linha e quantidade de linhas iguais às do .txt). Clipboard não prova isso. Sem pacote parcial e sem retry.
+   Responda: enviado | <destinatário> | <HH:MM> | pdf <tiques> | texto <tiques>, ou falhou: <motivo> | pdf enviado|não enviado | texto enviado|não enviado.
    ```
 5. Acrescente a `/workspace/assessor/envios.csv` uma linha com `status` = `teste: enviado` só se PDF e texto tiverem saído no chat "Você". Se um faltar: `teste: falhou <motivo>` dizendo qual saiu e qual não saiu (não conta como envio real).
 6. Relate ao assessor os dois resultados em separado: PDF sem legenda no chat "Você", e texto integral no chat "Você". Não diga que o teste chegou se um dos dois faltou. Só então pergunte se quer ajustar algo (planilha/discurso) e preparar de novo, ou aprovar o lote.

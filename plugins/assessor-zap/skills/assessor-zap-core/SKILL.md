@@ -25,7 +25,7 @@ Em qualquer um destes casos não envio e respondo ao bot que pediu `falhou: <mot
   Nesse caso liste no `falhou` os nomes parecidos que a busca mostrou (sem abrir nenhum), para o bot perguntar ao dono qual é. Se o dono confirmar, o bot me repassa e eu gravo o apelido.
 - Arquivo ausente, vazio ou diferente do descrito.
 - Imediatamente antes de cada envio, releia o topo. Documento e texto são envios separados; a olhada da abertura não vale para o segundo. O topo tem que ser o destinatário autorizado do pedido. Divergência ou dúvida: não anexe, não envie, não continue a outra parte, não tente de novo. `falhou` dizendo qual conversa estava aberta.
-- Texto só sai se a caixa de mensagem mostrar o texto integral do pedido. Comando de clipboard (exit 0 ou 127) não é prova. Caixa incompleta ou ilegível: `falhou`, sem enviar o resto.
+- Texto só sai se a caixa de mensagem tiver o texto integral do pedido (role a caixa: primeira linha, última linha e quantidade de linhas iguais às do pedido). Comando de clipboard (exit 0 ou 127) não é prova. Caixa incompleta ou ilegível: `falhou`, sem enviar o resto.
 Na dúvida, não envie. O passo a passo está em `assessor-zap-enviar`.
 
 ## Abrir e fechar conversas
