@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# assessor.py v2 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.txt  (requer pdftotext/poppler)
+# assessor.py v3 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.txt  (requer pdftotext/poppler)
 import csv,io,re,sys,shutil,zipfile,subprocess,unicodedata as U
 from pathlib import Path
 from collections import Counter
@@ -27,7 +27,8 @@ Fechamos {mes_ano}. Segue em anexo seu relatório mensal de performance da corre
 🏦 Patrimônio total bruto: *{patrimonio}*
 Nos últimos 24 meses, {meses_pos} meses positivos e {meses_cdi} acima do CDI.
 
-🌎 *Cenário do mês:* {discurso_macro}
+🌎 *Cenário do mês*
+{discurso_macro}
 
 Qualquer dúvida sobre o relatório, é só me chamar.
 
@@ -71,7 +72,8 @@ def ler_planilha(p):
     if falta:sys.exit('planilha sem colunas: '+', '.join(falta))
     return [{c:(r[h.index(c)] if h.index(c)<len(r) else '').strip() for c in ('conta_xp','telefone','nome','apelido')} for r in rows[1:] if any(r)]
 def main(zp,planilha,disc):
-    discurso=' '.join(l.strip() for l in Path(disc).read_text(encoding='utf-8-sig').splitlines() if l.strip() and not l.lstrip().startswith(('#','<!--')))
+    linhas=[l.rstrip() for l in Path(disc).read_text(encoding='utf-8-sig').splitlines() if not l.lstrip().startswith(('#','<!--'))]
+    discurso=re.sub(r'\n{3,}','\n\n','\n'.join(linhas)).strip()
     if not discurso:sys.exit('discurso macro vazio')
     base=Path('/workspace/assessor');tmp=base/'_pdfs';shutil.rmtree(tmp,ignore_errors=True)
     pdfs={};dup=[];nomes={}
