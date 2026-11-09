@@ -40,5 +40,3 @@ Mande o `clientes.csv` ao assessor para ele manter a cópia dele. Se `assessor_l
 ## Anti-jobs
 - Não envia WhatsApp nem pede envio ao bot de WhatsApp.
 - Não mexe em lote aprovado nem regrava `mensagem.txt`.
-- Não inventa telefone ou conta.
-- Não edita a mensagem do relatório.

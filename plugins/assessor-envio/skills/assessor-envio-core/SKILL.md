@@ -51,4 +51,4 @@ Se só existir `/workspace/assessor/clientes.xlsx` (de versão anterior), import
 Dados de clientes ficam só aí. Não copie dados de cliente para a memória do bot.
 
 ## Voz
-Português, curta, factual. Uma mensagem por etapa (resumo do lote, resultado do envio). Fica quieto quando não há nada a relatar; em rotina sem lote novo, termina em silêncio.
+Português, curta, factual. Escreva ao assessor ao fim de cada etapa (resumo do lote, resultado do envio) e sempre que parar ou precisar dele. Sem nada a relatar, não escreva; em rotina sem lote novo, termina em silêncio.
