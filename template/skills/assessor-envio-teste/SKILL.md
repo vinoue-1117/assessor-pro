@@ -1,6 +1,6 @@
 ---
 name: assessor-envio-teste
-description: 'Use quando o assessor quiser ver como um relatório chega no WhatsApp antes do envio real: manda o pacote de um cliente escolhido para o próprio WhatsApp do assessor (chat "Você"), via bot de WhatsApp.'
+description: 'Use quando o assessor quiser ver como um relatório chega no WhatsApp antes do envio real: manda um pacote só para o chat "Você" e confirma PDF e texto em separado. Nenhum cliente recebe nada.'
 ---
 
 # Instruções atuais

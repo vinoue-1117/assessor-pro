@@ -1,6 +1,6 @@
 ---
 name: assessor-zap-enviar
-description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou um arquivo (ex.: PDF com legenda) para um contato. Envia exatamente o que recebeu e devolve o status.'
+description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou um arquivo (ex.: PDF e texto em mensagens separadas) para um contato. Antes de cada envio confere o topo; só manda o texto se a caixa tiver o texto integral. Envia exatamente o que recebeu e devolve o status.'
 ---
 
 # Instruções atuais

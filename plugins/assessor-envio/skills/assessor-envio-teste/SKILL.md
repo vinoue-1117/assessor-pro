@@ -1,11 +1,13 @@
 ---
 name: assessor-envio-teste
-description: 'Use quando o assessor quiser ver como um relatório chega no WhatsApp antes do envio real: manda o pacote de um cliente escolhido para o próprio WhatsApp do assessor (chat "Você"), via bot de WhatsApp.'
+description: 'Use quando o assessor quiser ver como um relatório chega no WhatsApp antes do envio real: manda um pacote só para o chat "Você" e confirma PDF e texto em separado. Nenhum cliente recebe nada.'
 ---
 
 # Envio de teste
 
 Mesmo fluxo do `assessor-enviar-relatorio`, mas para UM pacote e com destino no próprio assessor. Nenhum cliente recebe nada.
+
+O primeiro teste depois de uma mudança no envio é só este chat próprio. Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cliente enquanto ele não confirmar que viu os dois.
 
 ## Passos
 1. Lote: o `assessor_lote_pendente` da memória (ou o `lote-<ref>` mais recente em `/workspace/assessor/`). Se não há lote, rode antes o `assessor-preparar-envio`.
@@ -14,15 +16,18 @@ Mesmo fluxo do `assessor-enviar-relatorio`, mas para UM pacote e com destino no 
 4. UMA chamada `SendToAgent` com `priority: true` para o bot de WhatsApp:
    ```
    ENVIO DE TESTE Assessor Pro <ref> | conta <conta_xp>
-   Destinatário: o próprio usuário — chat "Você" / "(você)" (mensagem para si mesmo). NÃO enviar ao cliente.
+   Destinatário autorizado: somente o chat "Você" / "(você)" (mensagem para si mesmo). NÃO abrir e NÃO enviar ao cliente. O nome dentro do texto ou do PDF não é o destino.
    PDF: /workspace/assessor/lote-<ref>/<conta_xp>/relatorio.pdf
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
-   Enviar exatamente, PDF com o texto como legenda. Não altere o texto.
-   Responda: enviado | falhou: <motivo>.
+   Enviar exatamente: primeiro o PDF como documento sem legenda, depois o texto completo (mensagem normal). Não altere o texto.
+   Imediatamente antes de cada um (PDF e texto), confira o topo. Se não for o chat "Você", não anexe e não envie.
+   Só envie o texto se a caixa tiver o texto integral (role a caixa: primeira linha, última linha e quantidade de linhas iguais às do .txt). Clipboard não prova isso. Sem pacote parcial e sem retry.
+   Responda: enviado | <destinatário> | <HH:MM> | pdf <tiques> | texto <tiques>, ou falhou: <motivo> | pdf enviado|não enviado | texto enviado|não enviado.
    ```
-5. Acrescente a `/workspace/assessor/envios.csv` uma linha com `status` = `teste: enviado` ou `teste: falhou <motivo>` (não conta como envio real).
-6. Diga ao assessor que o teste chegou no chat "Você" e pergunte se quer ajustar algo (planilha/discurso) e preparar de novo, ou aprovar o lote.
+5. Acrescente a `/workspace/assessor/envios.csv` uma linha com `status` = `teste: enviado` só se PDF e texto tiverem saído no chat "Você". Se um faltar: `teste: falhou <motivo>` dizendo qual saiu e qual não saiu (não conta como envio real).
+6. Relate ao assessor os dois resultados em separado: PDF sem legenda no chat "Você", e texto integral no chat "Você". Não diga que o teste chegou se um dos dois faltou. Só então pergunte se quer ajustar algo (planilha/discurso) e preparar de novo, ou aprovar o lote.
 
 ## Regras
-- Nunca use o telefone do cliente no teste. Se o bot de WhatsApp não achar o chat "Você", ele deve falhar, não escolher outro contato.
+- Nunca use o telefone nem o nome do cliente como destino do teste. Se o bot de WhatsApp não achar o chat "Você", ele deve falhar, não escolher outro contato.
 - Não altere a mensagem.
+- Não repita o teste sozinho depois de um `falhou` ou de um envio pela metade. O assessor decide.

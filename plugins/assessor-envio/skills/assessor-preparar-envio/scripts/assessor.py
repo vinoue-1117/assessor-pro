@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# assessor.py v1 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.txt  (requer pdftotext/poppler)
+# assessor.py v2 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.txt  (requer pdftotext/poppler)
 import csv,io,re,sys,shutil,zipfile,subprocess,unicodedata as U
 from pathlib import Path
 from collections import Counter
@@ -107,7 +107,6 @@ def main(zp,planilha,disc):
             if nomes[c] and (not nn or norm(nomes[c]).split()[0]!=nn[0]):rev.append(f'nome no PDF "{nomes[c]}" ≠ planilha "{l["nome"]}"')
             if not err:
                 msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,**f)
-                if len(msg)>1024:rev.append(f'mensagem com {len(msg)} caracteres (legenda do WhatsApp aceita 1024)')
                 p=out/c;p.mkdir();shutil.copy(d,p/'relatorio.pdf');(p/'mensagem.txt').write_text(msg,encoding='utf-8')
         res.append([c,l['nome'],ap,'+'+tel if tel else '','bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev)])
     for c,(d,f,err) in pdfs.items():res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha'])
