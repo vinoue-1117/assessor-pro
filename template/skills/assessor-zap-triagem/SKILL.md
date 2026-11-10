@@ -1,6 +1,6 @@
 ---
 name: assessor-zap-triagem
-description: 'Use na rotina de leitura do WhatsApp para ler as conversas que têm rota em /workspace/wo/contatos.json e encaminhar cada mensagem nova ao bot dono da rota. Silenciosa quando não há nada novo.'
+description: 'Use na rotina de leitura do WhatsApp para ler as conversas que têm rota e encaminhar cada mensagem nova ao bot dono da rota.'
 ---
 
 # Instruções atuais

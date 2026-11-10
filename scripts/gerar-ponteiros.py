@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Gera os ponteiros em template/skills a partir das skills completas.
 
+A description de cada ponteiro fica no mapa DESCRICOES: uma frase fixa
+sobre quando usar a skill. Ela não é copiada da skill completa, então
+editar essa description em plugins/ não altera o ponteiro.
+
 Uso:
   python3 scripts/gerar-ponteiros.py
   python3 scripts/gerar-ponteiros.py --check
@@ -16,6 +20,32 @@ FALHA = (
     "Não consegui baixar as instruções atuais do Assessor Pro. "
     "Tente de novo em alguns minutos."
 )
+
+# Quando usar cada skill. Texto estável, mantido só aqui: não acompanhe
+# a description da skill completa (ela muda com implementação, arquivo,
+# versão e regra de trava). Comece pelas palavras-gatilho já em uso.
+DESCRICOES = {
+    "assessor-ajustar-cliente": "Use quando o assessor pedir por mensagem para adicionar, alterar ou remover um cliente da planilha salva (conta, telefone, nome ou apelido), sem mandar a planilha inteira.",
+    "assessor-enviar-relatorio": "Use só depois que o assessor aprovou no chat o resumo do lote gerado por assessor-preparar-envio, para enviar os relatórios aos clientes pelo bot de WhatsApp.",
+    "assessor-envio-core": "Persona e regras do bot Assessor Pro - Envio: siga em toda conversa deste bot.",
+    "assessor-envio-teste": "Use quando o assessor quiser ver como um relatório chega no WhatsApp antes do envio real, sem enviar a nenhum cliente.",
+    "assessor-preparar-envio": "Use quando o assessor mandar no chat o zip do lote do relatório mensal de performance da corretora e/ou a planilha de clientes, ou pedir para preparar o envio mensal dos relatórios por WhatsApp.",
+    "assessor-rastrear-apelido": "Use quando o assessor pedir para preencher ou corrigir a coluna apelido da planilha de clientes a partir de como ele chama cada cliente no WhatsApp.",
+    "assessor-resumo-ultimo-envio": "Use quando o assessor perguntar como foi o último envio de relatórios (quantos foram, quais falharam e por quê).",
+    "assessor-zap-core": "Persona e regras do bot de WhatsApp (ex.: WO): siga em toda conversa deste bot.",
+    "assessor-zap-enviar": "Use quando outro bot pedir para enviar no WhatsApp um texto e/ou um arquivo para um contato.",
+    "assessor-zap-exportar-historico": "Use quando outro bot ou o dono pedir para ler ou exportar mensagens de uma ou mais conversas do WhatsApp.",
+    "assessor-zap-triagem": "Use na rotina de leitura do WhatsApp para ler as conversas que têm rota e encaminhar cada mensagem nova ao bot dono da rota.",
+}
+
+
+def linha_description(nome):
+    if nome not in DESCRICOES:
+        sys.exit(f"sem description de ponteiro: {nome}")
+    texto = DESCRICOES[nome]
+    if not texto.strip() or "\n" in texto:
+        sys.exit(f"description de ponteiro inválida: {nome}")
+    return "description: '" + texto.replace("'", "''") + "'"
 
 
 def frontmatter(text, path):
@@ -37,26 +67,30 @@ def frontmatter(text, path):
     return nome, descricao
 
 
-def skills():
-    achadas = {}
+def carregar():
+    ponteiros = {}
     for path in sorted(PLUGINS.glob("*/skills/*/SKILL.md")):
         texto = path.read_text(encoding="utf-8")
-        nome_linha, desc_linha = frontmatter(texto, path)
+        nome_linha, _ = frontmatter(texto, path)
         nome = nome_linha.split(":", 1)[1].strip().strip("'\"")
         if not nome:
             sys.exit(f"name vazio: {path}")
-        if nome in achadas:
+        if nome in ponteiros:
             sys.exit(f"nome de skill repetido: {nome}")
         rel = path.relative_to(ROOT).as_posix()
-        achadas[nome] = ponteiro(nome, nome_linha, desc_linha, rel)
-    if not achadas:
+        ponteiros[nome] = ponteiro(nome, nome_linha, rel)
+    if not ponteiros:
         sys.exit(f"nenhuma skill em {PLUGINS}")
-    return achadas
+    extras = sorted(set(DESCRICOES) - set(ponteiros))
+    if extras:
+        sys.exit("description de ponteiro sem skill: " + ", ".join(extras))
+    return ponteiros
 
 
-def ponteiro(nome, nome_linha, desc_linha, rel):
+def ponteiro(nome, nome_linha, rel):
     url = f"{RAW}/{rel}"
     destino = f"/workspace/assessor-pro/{nome}.md"
+    desc_linha = linha_description(nome)
     return (
         "---\n"
         f"{nome_linha}\n"
@@ -81,7 +115,8 @@ def refs_main():
     for pasta in (PLUGINS, OUT):
         if not pasta.exists():
             continue
-        for path in sorted(pasta.glob("*/skills/*/SKILL.md")) if pasta == PLUGINS else sorted(pasta.glob("*/SKILL.md")):
+        glob = "*/skills/*/SKILL.md" if pasta == PLUGINS else "*/SKILL.md"
+        for path in sorted(pasta.glob(glob)):
             if "/main/" in path.read_text(encoding="utf-8"):
                 ruins.append(path.relative_to(ROOT).as_posix())
     return ruins
@@ -131,7 +166,7 @@ def conferir(esperado):
 
 
 def main():
-    esperado = skills()
+    esperado = carregar()
     if "--check" in sys.argv:
         conferir(esperado)
     else:

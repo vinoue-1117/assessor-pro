@@ -1,6 +1,6 @@
 ---
 name: assessor-zap-exportar-historico
-description: 'Use quando outro bot ou o dono pedir para ler ou exportar mensagens de uma ou mais conversas do WhatsApp para arquivo de texto. Só leitura, nunca envia.'
+description: 'Use quando outro bot ou o dono pedir para ler ou exportar mensagens de uma ou mais conversas do WhatsApp.'
 ---
 
 # Instruções atuais
