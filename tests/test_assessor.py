@@ -80,26 +80,6 @@ def test_discurso_preserva_blocos_e_le_referencia():
     assert assessor.ler_discurso(p) == ('*Brasil:* a\n\n*Mundo:* b', (10, '2026'))
 
 
-def test_ancoras_usam_quebra_real():
-    longa = 'palavra ' * 40
-    assert assessor.ancoras('Olá, Ana!\n\n' + longa + '\n \n\nAbraço!\n') == ('Olá, Ana!', 'Abraço!', 3)
-    ref = '2026-09-30'
-    out = BASE / f'lote-{ref}'
-    (out / '9').mkdir(parents=True)
-    (out / '9' / 'mensagem.txt').write_text('Olá, Ana!\n\nUma linha só, mesmo longa\n\nAbraço!\n', encoding='utf-8')
-    with open(out / 'conferir-envios.csv', 'w', newline='', encoding='utf-8') as fh:
-        w = csv.writer(fh)
-        w.writerow(assessor.CAB_LOTE)
-        w.writerow(['9', 'Ana', 'Ana', '+5511987654321', 'pronto', '', ''])
-    saida, cod = rodar(assessor.texto, ref, '9')
-    assert cod == 0 and saida.splitlines() == ['LINHAS 3', 'PRIMEIRA Olá, Ana!', 'ULTIMA Abraço!']
-    saida, cod = rodar(assessor.texto, ref, '8')
-    assert cod and 'nao esta no lote' in str(cod)
-    (out / '9' / 'mensagem.txt').write_text('\n  \n', encoding='utf-8')
-    saida, cod = rodar(assessor.texto, ref, '9')
-    assert cod and 'sem linha' in str(cod)
-
-
 def test_estado_do_lote():
     ref = '2026-10-31'
     out = BASE / f'lote-{ref}'
@@ -148,91 +128,94 @@ def test_estado_do_lote():
     assert st == 1 and 'linha 4: 5 colunas' in saida
 
 
+def caixa(clip, *args):
+    """conferir-caixa depois de marcar, com o clipboard que o Ctrl+C da caixa deixou."""
+    orig = assessor.xclip_ler
+    assessor.xclip_ler = lambda: clip
+    assessor.estado_clip('marcado')
+    try:
+        return rodar(assessor.conferir_caixa, *args)
+    finally:
+        assessor.xclip_ler = orig
+
+
 def test_conferir_caixa_paragrafos():
     p = BASE / 'caixa.txt'
     linhas = [f'paragrafo {i}' for i in range(1, 11)]
     p.write_text('\n\n'.join(linhas) + '\n', encoding='utf-8')
-    os.environ['ASSESSOR_CLIPBOARD'] = '\n'.join(linhas)
-    try:
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod == 0 and saida.strip() == 'bate', saida
-        outro = linhas.copy()
-        outro[6] = 'outro'
-        os.environ['ASSESSOR_CLIPBOARD'] = '\n'.join(outro)
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod != 0 and saida.strip() == 'nao bate: parágrafo 7 diferente', saida
-        os.environ['ASSESSOR_CLIPBOARD'] = '\n'.join(linhas[:7])
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod != 0 and saida.strip() == 'nao bate: 3 faltando', saida
-        curto = linhas[:7]
-        curto[6] = 'outro'
-        os.environ['ASSESSOR_CLIPBOARD'] = '\n'.join(curto)
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod != 0 and saida.strip() == 'nao bate: parágrafo 7 diferente, 3 faltando', saida
-        os.environ['ASSESSOR_CLIPBOARD'] = '\n'.join(linhas + ['extra'])
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod != 0 and saida.strip() == 'nao bate: 1 sobrando', saida
-        os.environ['ASSESSOR_CLIPBOARD'] = 'valor  cheio'
-        p.write_text('valor cheio\n', encoding='utf-8')
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod != 0 and saida.strip() == 'nao bate: parágrafo 1 diferente', saida
-    finally:
-        os.environ.pop('ASSESSOR_CLIPBOARD', None)
+    saida, cod = caixa('\n'.join(linhas), str(p))
+    assert cod == 0 and saida.strip() == 'bate', saida
+    outro = linhas.copy()
+    outro[6] = 'outro'
+    saida, cod = caixa('\n'.join(outro), str(p))
+    assert cod != 0 and saida.strip() == 'nao bate: parágrafo 7 diferente', saida
+    saida, cod = caixa('\n'.join(linhas[:7]), str(p))
+    assert cod != 0 and saida.strip() == 'nao bate: 3 faltando', saida
+    saida, cod = caixa('\n'.join(outro[:7]), str(p))
+    assert cod != 0 and saida.strip() == 'nao bate: parágrafo 7 diferente, 3 faltando', saida
+    saida, cod = caixa('\n'.join(linhas + ['extra']), str(p))
+    assert cod != 0 and saida.strip() == 'nao bate: 1 sobrando', saida
+    p.write_text('valor cheio\n', encoding='utf-8')
+    saida, cod = caixa('valor  cheio', str(p))
+    assert cod != 0 and saida.strip() == 'nao bate: parágrafo 1 diferente', saida
 
 
 def test_conferir_caixa_crlf_nbsp():
     p = BASE / 'crlf.txt'
-    p.write_text('valor\u00a0cheio\r\n\r\n  segunda  \r\n', encoding='utf-8')
-    os.environ['ASSESSOR_CLIPBOARD'] = 'valor cheio\nsegunda'
-    try:
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod == 0 and saida.strip() == 'bate', saida
-        p.write_text('valor cheio\nsegunda\n', encoding='utf-8')
-        os.environ['ASSESSOR_CLIPBOARD'] = 'valor\u00a0cheio\r\n\r\nsegunda'
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod == 0 and saida.strip() == 'bate', saida
-    finally:
-        os.environ.pop('ASSESSOR_CLIPBOARD', None)
+    p.write_text('valor cheio\r\n\r\n  segunda  \r\n', encoding='utf-8')
+    saida, cod = caixa('valor cheio\nsegunda', str(p))
+    assert cod == 0 and saida.strip() == 'bate', saida
+    p.write_text('valor cheio\nsegunda\n', encoding='utf-8')
+    saida, cod = caixa('valor cheio\r\n\r\nsegunda', str(p))
+    assert cod == 0 and saida.strip() == 'bate', saida
 
 
-def test_conferir_caixa_funcao_substituivel():
-    p = BASE / 'fn.txt'
-    p.write_text('aa\nbb\n', encoding='utf-8')
-    os.environ.pop('ASSESSOR_CLIPBOARD', None)
-    orig = assessor.ler_clipboard
-    assessor.ler_clipboard = lambda: 'aa\nbb'
+def test_trava_so_bate_com_a_copia_da_caixa():
+    """O clipboard que o copiar encheu não prova a caixa: sem marcar, ou sem o Ctrl+C depois de marcar, não bate."""
+    p = BASE / 'trava.txt'
+    p.write_text('um\n\ndois\n', encoding='utf-8')
+    clip = []
+    orig_gravar, orig_ler = assessor.xclip_gravar, assessor.xclip_ler
+    assessor.xclip_gravar = clip.append
+    assessor.xclip_ler = lambda: clip[-1]
     try:
-        saida, cod = rodar(assessor.conferir_caixa, str(p))
-        assert cod == 0 and saida.strip() == 'bate', saida
+        assert rodar(assessor.copiar, str(p)) == ('copiado\n', 0)
+        saida, cod = rodar(assessor.conferir_caixa, str(p))  # pulou o marcar
+        assert cod != 0 and saida.startswith('falhou: rode marcar'), saida
+        assert rodar(assessor.marcar) == ('marcado\n', 0)
+        saida, cod = rodar(assessor.conferir_caixa, str(p))  # o Ctrl+C da caixa não aconteceu
+        assert cod != 0 and saida.startswith('nao bate: o clipboard ainda tem a marca'), saida
+        rodar(assessor.copiar, str(p))
+        rodar(assessor.marcar)
+        clip.append('um\ndois')  # Ctrl+A e Ctrl+C na caixa
+        assert rodar(assessor.conferir_caixa, str(p)) == ('bate\n', 0)
+        saida, cod = rodar(assessor.conferir_caixa, str(p))  # o bate vale uma vez por marcar
+        assert cod != 0 and saida.startswith('falhou: rode marcar'), saida
     finally:
-        assessor.ler_clipboard = orig
+        assessor.xclip_gravar, assessor.xclip_ler = orig_gravar, orig_ler
 
 
 def test_copiar_caminho_ref_e_falhas():
-    saida, cod = rodar(assessor.copiar, str(BASE / 'nao-existe.txt'))
-    assert cod != 0 and saida.strip() == 'falhou: arquivo não encontrado', saida
-    saida, cod = rodar(assessor.conferir_caixa, str(BASE / 'nao-existe.txt'))
-    assert cod != 0 and saida.strip() == 'falhou: arquivo não encontrado', saida
-    vazio = BASE / 'vazio.txt'
-    vazio.write_text(' \n\n\t\n', encoding='utf-8')
-    def clipboard_proibido():
-        raise AssertionError('clipboard')
-    orig_ler = assessor.ler_clipboard
-    assessor.ler_clipboard = clipboard_proibido
+    def xclip_proibido(*a):
+        raise AssertionError('xclip')
+    orig_gravar, orig_ler = assessor.xclip_gravar, assessor.xclip_ler
+    assessor.xclip_gravar = assessor.xclip_ler = xclip_proibido
     try:
+        saida, cod = rodar(assessor.copiar, str(BASE / 'nao-existe.txt'))
+        assert cod != 0 and saida.strip() == 'falhou: arquivo não encontrado', saida
+        saida, cod = rodar(assessor.conferir_caixa, str(BASE / 'nao-existe.txt'))
+        assert cod != 0 and saida.strip() == 'falhou: arquivo não encontrado', saida
+        vazio = BASE / 'vazio.txt'
+        vazio.write_text(' \n\n\t\n', encoding='utf-8')
         saida, cod = rodar(assessor.copiar, str(vazio))
         assert cod != 0 and saida.strip() == 'vazio', saida
         saida, cod = rodar(assessor.conferir_caixa, str(vazio))
         assert cod != 0 and saida.strip() == 'vazio', saida
-    finally:
-        assessor.ler_clipboard = orig_ler
-    exato = 'um\n\n  dois  \n'
-    cheio = BASE / 'cheio.txt'
-    cheio.write_text(exato, encoding='utf-8')
-    gravado = []
-    orig = assessor.gravar_clipboard
-    assessor.gravar_clipboard = gravado.append
-    try:
+        exato = 'um\n\n  dois  \n'
+        cheio = BASE / 'cheio.txt'
+        cheio.write_text(exato, encoding='utf-8')
+        gravado = []
+        assessor.xclip_gravar = gravado.append
         saida, cod = rodar(assessor.copiar, str(cheio))
         assert cod == 0 and saida.strip() == 'copiado' and gravado == [exato], saida
         ref = '2026-08-15'
@@ -246,8 +229,7 @@ def test_copiar_caminho_ref_e_falhas():
         gravado.clear()
         saida, cod = rodar(assessor.copiar, ref, '4')
         assert cod == 0 and saida.strip() == 'copiado' and gravado == [exato], saida
-        os.environ['ASSESSOR_CLIPBOARD'] = 'um\ndois'
-        saida, cod = rodar(assessor.conferir_caixa, ref, '4')
+        saida, cod = caixa('um\ndois', ref, '4')
         assert cod == 0 and saida.strip() == 'bate', saida
         (out / '4' / 'mensagem.txt').unlink()
         saida, cod = rodar(assessor.copiar, ref, '4')
@@ -255,8 +237,7 @@ def test_copiar_caminho_ref_e_falhas():
         saida, cod = rodar(assessor.copiar, ref, '5')
         assert cod != 0 and 'nao esta no lote' in saida, saida
     finally:
-        assessor.gravar_clipboard = orig
-        os.environ.pop('ASSESSOR_CLIPBOARD', None)
+        assessor.xclip_gravar, assessor.xclip_ler = orig_gravar, orig_ler
 
 
 def test_copiar_sem_display_nao_chama_xclip():

@@ -20,7 +20,7 @@ O estado do envio fica em arquivo, gravado pelo script: nunca escreva `historico
    - `ENVIAR <conta> | <nome> | <telefone>`: envie (passo 3);
    - `PULAR <conta> | <motivo>`: `S registrar <ref> <conta> "pulado: <motivo>"`, sem enviar;
    - `JA_REGISTRADO <conta> | <status>`: já foi tratado neste lote; não envie de novo.
-3. Para cada `ENVIAR`, em ordem, UMA chamada `SendToAgent` com `priority: true` para `whatsapp_bot_id`. Não conte linhas e não mande `PRIMEIRA`, `ULTIMA` nem `LINHAS`: a trava de texto é do bot de WhatsApp (`copiar` e `conferir-caixa` no caminho abaixo).
+3. Para cada `ENVIAR`, em ordem, UMA chamada `SendToAgent` com `priority: true` para `whatsapp_bot_id`. Quem confere o texto é o bot de WhatsApp, a partir do caminho abaixo.
    ```
    Envio Assessor Pro <ref> | conta <conta_xp>
    Destinatário: <nome> | WhatsApp <telefone>
@@ -37,7 +37,7 @@ O estado do envio fica em arquivo, gravado pelo script: nunca escreva `historico
 6. No fim, mande ao assessor: enviados X, falhas Y (conta, nome, motivo), pulados Z. Apague `assessor_lote_pendente` da memória.
 
 ## Regras
-- Não reescreva, resuma, traduza nem "melhore" a mensagem. No pedido vão os caminhos. O texto que o cliente recebe é o arquivo. Não inclua `PRIMEIRA`, `ULTIMA` nem `LINHAS`.
+- Não reescreva, resuma, traduza nem "melhore" a mensagem. No pedido vão os caminhos. O texto que o cliente recebe é o arquivo.
 - Envie só o que o `checar` pôs em `ENVIAR`. Reenvio a quem está em `JA_REGISTRADO` só se o assessor pedir pelo nome: mande o pedido daquela conta e registre o resultado do mesmo jeito.
 - Não responda clientes. Respostas que chegarem não são assunto deste bot.
 - O bot de WhatsApp só executa: a aprovação do lote aqui é o único gate. Um `falhou` dele (contato ambíguo, nome não bate, arquivo vazio, topo diferente, texto incompleto) entra no log e no resumo final; não reenvie por conta própria.
