@@ -12,18 +12,18 @@ Instalação: https://github.com/vinoue-1117/assessor-pro
 
 | Plugin | Bot | Faz | Não faz |
 | --- | --- | --- | --- |
-| [`assessor-envio`](plugins/assessor-envio) | Assessor Pro - Envio | recebe o zip do lote e a planilha de clientes, monta um pacote por cliente com script determinístico, confere, pede UMA aprovação do lote e entrega cada envio ao bot de WhatsApp | enviar direto, reescrever texto, responder cliente, inventar número |
-| [`assessor-zap`](plugins/assessor-zap) | WO (bot de WhatsApp) | lê e envia no WhatsApp Web exatamente o que outro bot do dono pediu (o gate é de quem pede); exporta conversas; acompanha conversas por rotas pedidas pelos bots e encaminha as respostas | escrever conteúdo, escolher destinatário, responder por conta própria |
+| [`assessor-envio`](plugins/assessor-envio) | Relatórios - Assessor Pro | recebe o zip do lote e a planilha de clientes, monta um pacote por cliente com script determinístico, confere, pede UMA aprovação do lote e entrega cada envio ao bot de WhatsApp | enviar direto, reescrever texto, responder cliente, inventar número |
+| [`assessor-zap`](plugins/assessor-zap) | Whatsapp - Assessor Pro | lê e envia no WhatsApp Web exatamente o que outro bot do dono pediu (o gate é de quem pede); exporta conversas; acompanha conversas por rotas pedidas pelos bots e encaminha as respostas | escrever conteúdo, escolher destinatário, responder por conta própria |
 
-Fluxo: assessor manda zip + planilha → Assessor Pro - Envio prepara e mostra o resumo → assessor aprova o lote → Assessor Pro - Envio pede cada envio ao WO → WO envia e devolve o status.
+Fluxo: assessor manda zip + planilha → Relatórios - Assessor Pro prepara e mostra o resumo → assessor aprova o lote → Relatórios - Assessor Pro pede cada envio ao bot Whatsapp - Assessor Pro → o bot de WhatsApp envia e devolve o status.
 
 ## Como usar
 1. Instale os dois plugins a partir de https://github.com/vinoue-1117/assessor-pro.
 2. Crie dois bots. No perfil de cada um, uma linha só:
-   - Assessor Pro - Envio: `Siga a skill assessor-envio-core em toda conversa.`
-   - WO: `Siga a skill assessor-zap-core em toda conversa.`
-3. No WO, conecte o WhatsApp Web lendo o QR code.
-4. No Assessor Pro - Envio, mande a planilha (`conta_xp, telefone, nome, apelido`; `conta_xp` é o número da conta na corretora) e, todo mês, o zip do lote.
+   - Relatórios - Assessor Pro: `Siga a skill assessor-envio-core em toda conversa.`
+   - Whatsapp - Assessor Pro: `Siga a skill assessor-zap-core em toda conversa.`
+3. No bot Whatsapp - Assessor Pro, conecte o WhatsApp Web lendo o QR code.
+4. No bot Relatórios - Assessor Pro, mande a planilha (`conta_xp, telefone, nome, apelido`; `conta_xp` é o número da conta na corretora) e, todo mês, o zip do lote.
 
 O discurso macro do mês vem de [`discurso/discurso-macro.md`](discurso/), baixado a cada lote.
 
