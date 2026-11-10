@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# assessor.py v5 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md  (requer pdftotext/poppler)
-#   python3 assessor.py importar PLANILHA | aprovar REF CODIGO [CONTA_REVISAR ...] | checar [REF] | registrar REF CONTA STATUS [HH:MM]
+# assessor.py v6 | uso: python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md  (requer pdftotext/poppler)
+#   python3 assessor.py importar PLANILHA | aprovar REF CODIGO [CONTA_REVISAR ...] | checar [REF] | registrar REF CONTA STATUS [HH:MM] | texto REF CONTA
 import csv,io,os,re,sys,json,shutil,hashlib,zipfile,subprocess,unicodedata as U
 from datetime import datetime
 from pathlib import Path
@@ -179,6 +179,19 @@ def checar(ref=None):
         sys.exit(1)
     print('OK'+(f' lote {ref}' if ref else ''))
     if fila:print('\n'.join(fila))
+def ancoras(t):
+    """(primeira linha não vazia, última, nº de linhas não vazias). Linha = entre quebras reais; quebra visual não existe no arquivo."""
+    b=[l.strip() for l in t.splitlines() if l.strip()]
+    return (b[0] if b else ''),(b[-1] if b else ''),len(b)
+def texto(ref,conta):
+    """Conferência da trava de texto: só a quebra de linha real do mensagem.txt."""
+    out,rows=ler_lote(ref)
+    if str(conta) not in {r[0] for r in rows[1:] if r}:sys.exit(f'conta {conta} nao esta no lote {ref}')
+    p=out/str(conta)/'mensagem.txt'
+    if not p.is_file():sys.exit(f'conta {conta} sem mensagem.txt no lote {ref}')
+    a,z,n=ancoras(p.read_text(encoding='utf-8'))
+    if not n:sys.exit(f'conta {conta}: mensagem.txt sem linha')
+    print(f'LINHAS {n}\nPRIMEIRA {a}\nULTIMA {z}')
 def registrar(ref,conta,status,horario=None):
     """Acrescenta uma linha a historico-envios.csv (o csv cuida de vírgulas e aspas no motivo)."""
     if not re.fullmatch(STATUS_ENVIO,status):sys.exit(f'status "{status}" invalido: use enviado, falhou: <motivo>, pulado: <motivo> ou teste: <resultado>')
@@ -274,6 +287,7 @@ def main(zp,planilha,disc):
     if sem:print(f'AVISO: {len(sem)} sem apelido, usado o primeiro nome: '+'; '.join(f'{r[0]} {r[2]}' for r in sem))
     print(f'CODIGO {codigo(out)}')
 if __name__=='__main__':
-    cmd={'importar':importar,'aprovar':aprovar,'checar':checar,'registrar':registrar}
+    cmd={'importar':importar,'aprovar':aprovar,'checar':checar,'registrar':registrar,'texto':texto}
     if len(sys.argv)>1 and sys.argv[1] in cmd:cmd[sys.argv[1]](*sys.argv[2:])
+    elif len(sys.argv)>1 and not sys.argv[1].lower().endswith('.zip'):sys.exit(f'subcomando desconhecido: {sys.argv[1]} (use '+', '.join(cmd)+' ou LOTE.zip)')
     else:main(*sys.argv[1:4])

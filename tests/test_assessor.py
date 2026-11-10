@@ -80,6 +80,26 @@ def test_discurso_preserva_blocos_e_le_referencia():
     assert assessor.ler_discurso(p) == ('*Brasil:* a\n\n*Mundo:* b', (10, '2026'))
 
 
+def test_ancoras_usam_quebra_real():
+    longa = 'palavra ' * 40
+    assert assessor.ancoras('Olá, Ana!\n\n' + longa + '\n \n\nAbraço!\n') == ('Olá, Ana!', 'Abraço!', 3)
+    ref = '2026-09-30'
+    out = BASE / f'lote-{ref}'
+    (out / '9').mkdir(parents=True)
+    (out / '9' / 'mensagem.txt').write_text('Olá, Ana!\n\nUma linha só, mesmo longa\n\nAbraço!\n', encoding='utf-8')
+    with open(out / 'conferir-envios.csv', 'w', newline='', encoding='utf-8') as fh:
+        w = csv.writer(fh)
+        w.writerow(assessor.CAB_LOTE)
+        w.writerow(['9', 'Ana', 'Ana', '+5511987654321', 'pronto', '', ''])
+    saida, cod = rodar(assessor.texto, ref, '9')
+    assert cod == 0 and saida.splitlines() == ['LINHAS 3', 'PRIMEIRA Olá, Ana!', 'ULTIMA Abraço!']
+    saida, cod = rodar(assessor.texto, ref, '8')
+    assert cod and 'nao esta no lote' in str(cod)
+    (out / '9' / 'mensagem.txt').write_text('\n  \n', encoding='utf-8')
+    saida, cod = rodar(assessor.texto, ref, '9')
+    assert cod and 'sem linha' in str(cod)
+
+
 def test_estado_do_lote():
     ref = '2026-10-31'
     out = BASE / f'lote-{ref}'
