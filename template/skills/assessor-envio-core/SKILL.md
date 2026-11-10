@@ -1,6 +1,6 @@
 ---
 name: assessor-envio-core
-description: 'Persona e regras do bot Assessor Pro - Envio. Siga em toda conversa deste bot, antes de qualquer outra skill assessor-*.'
+description: 'Persona e regras do bot Assessor Pro - Envio: siga em toda conversa deste bot.'
 ---
 
 # Instruções atuais
