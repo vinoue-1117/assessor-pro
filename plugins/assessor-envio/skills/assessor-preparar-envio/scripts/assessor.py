@@ -180,7 +180,7 @@ def checar(ref=None):
     print('OK'+(f' lote {ref}' if ref else ''))
     if fila:print('\n'.join(fila))
 def ancoras(t):
-    """(primeira linha não vazia, última, nº de parágrafos). Parágrafo = linha lógica não vazia; quebra visual não existe no arquivo."""
+    """(primeira linha não vazia, última, nº de linhas não vazias). Linha = entre quebras reais; quebra visual não existe no arquivo."""
     b=[l.strip() for l in t.splitlines() if l.strip()]
     return (b[0] if b else ''),(b[-1] if b else ''),len(b)
 def texto(ref,conta):
@@ -190,8 +190,8 @@ def texto(ref,conta):
     p=out/str(conta)/'mensagem.txt'
     if not p.is_file():sys.exit(f'conta {conta} sem mensagem.txt no lote {ref}')
     a,z,n=ancoras(p.read_text(encoding='utf-8'))
-    if not n:sys.exit(f'conta {conta}: mensagem.txt sem paragrafo')
-    print(f'PARAGRAFOS {n}\nPRIMEIRA {a}\nULTIMA {z}')
+    if not n:sys.exit(f'conta {conta}: mensagem.txt sem linha')
+    print(f'LINHAS {n}\nPRIMEIRA {a}\nULTIMA {z}')
 def registrar(ref,conta,status,horario=None):
     """Acrescenta uma linha a historico-envios.csv (o csv cuida de vírgulas e aspas no motivo)."""
     if not re.fullmatch(STATUS_ENVIO,status):sys.exit(f'status "{status}" invalido: use enviado, falhou: <motivo>, pulado: <motivo> ou teste: <resultado>')

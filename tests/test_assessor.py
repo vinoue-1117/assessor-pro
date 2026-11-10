@@ -92,12 +92,12 @@ def test_ancoras_usam_quebra_real():
         w.writerow(assessor.CAB_LOTE)
         w.writerow(['9', 'Ana', 'Ana', '+5511987654321', 'pronto', '', ''])
     saida, cod = rodar(assessor.texto, ref, '9')
-    assert cod == 0 and saida.splitlines() == ['PARAGRAFOS 3', 'PRIMEIRA Olá, Ana!', 'ULTIMA Abraço!']
+    assert cod == 0 and saida.splitlines() == ['LINHAS 3', 'PRIMEIRA Olá, Ana!', 'ULTIMA Abraço!']
     saida, cod = rodar(assessor.texto, ref, '8')
     assert cod and 'nao esta no lote' in str(cod)
     (out / '9' / 'mensagem.txt').write_text('\n  \n', encoding='utf-8')
     saida, cod = rodar(assessor.texto, ref, '9')
-    assert cod and 'sem paragrafo' in str(cod)
+    assert cod and 'sem linha' in str(cod)
 
 
 def test_estado_do_lote():

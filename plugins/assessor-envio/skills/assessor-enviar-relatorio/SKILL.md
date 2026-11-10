@@ -20,23 +20,23 @@ O estado do envio fica em arquivo, gravado pelo script: nunca escreva `historico
    - `ENVIAR <conta> | <nome> | <telefone>`: envie (passo 3);
    - `PULAR <conta> | <motivo>`: `S registrar <ref> <conta> "pulado: <motivo>"`, sem enviar;
    - `JA_REGISTRADO <conta> | <status>`: já foi tratado neste lote; não envie de novo.
-3. Para cada `ENVIAR`, em ordem, rode `S texto <ref> <conta>` e copie as três linhas como saíram (`PARAGRAFOS`, `PRIMEIRA`, `ULTIMA`). Não conte parágrafos você mesmo e não use a quebra da tela. Se o comando recusar, pare e não envie. UMA chamada `SendToAgent` com `priority: true` para `whatsapp_bot_id`:
+3. Para cada `ENVIAR`, em ordem, rode `S texto <ref> <conta>` e copie as três linhas como saíram (`LINHAS`, `PRIMEIRA`, `ULTIMA`). Não conte linhas você mesmo e não use a quebra da tela. Se o comando recusar, pare e não envie. UMA chamada `SendToAgent` com `priority: true` para `whatsapp_bot_id`:
    ```
    Envio Assessor Pro <ref> | conta <conta_xp>
    Destinatário: <nome> | WhatsApp <telefone>
    PDF: /workspace/assessor/lote-<ref>/<conta_xp>/relatorio.pdf
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
    Conferência do texto (as três linhas do comando texto, nesta ordem):
-   PARAGRAFOS <N>
+   LINHAS <N>
    PRIMEIRA <linha inteira>
    ULTIMA <linha inteira>
    Enviar exatamente: primeiro o PDF como documento sem legenda, depois o texto completo (mensagem normal). Não altere o texto.
    Imediatamente antes de cada um (PDF e texto), confira o topo: tem que ser este destinatário. Divergência ou dúvida: não anexe e não envie.
-   Só envie o texto se a caixa tiver o texto integral. Antes do Enter, role a caixa e compare com o .txt e com a conferência acima. A quebra que vale é a real (a do .txt, Shift+Enter), nunca a quebra visual da tela. Linha = o texto inteiro entre quebras reais, mesmo que a tela o desenhe em várias. Parágrafo = linha não vazia (o que sobra depois de tirar espaços das pontas; linha em branco não conta).
+   Só envie o texto se a caixa tiver o texto integral. Antes do Enter, role a caixa e compare com o .txt e com a conferência acima. A quebra que vale é a real (a do .txt, Shift+Enter), nunca a quebra visual da tela. Linha = o texto inteiro entre quebras reais, mesmo que a tela o desenhe em várias. Linha em branco não conta. Bullet, título com emoji e saudação são uma linha cada.
    - primeira linha não vazia da caixa = PRIMEIRA;
    - última linha não vazia da caixa = ULTIMA;
-   - número de parágrafos da caixa = PARAGRAFOS;
-   - nenhum parágrafo duplicado, faltando ou fora de ordem.
+   - número de linhas não vazias da caixa = LINHAS;
+   - nenhuma linha duplicada, faltando ou fora de ordem.
    Esses três valores têm que ser os do .txt. Divergência ou dúvida: falhou, sem retry, sem pacote pela metade. Clipboard não prova o texto.
    Se o contato não bater com o telefone, não envie e me diga o motivo.
    Responda: enviado | <destinatário> | <HH:MM> | pdf <tiques> | texto <tiques>, ou falhou: <motivo> | pdf enviado|não enviado | texto enviado|não enviado.
@@ -46,7 +46,7 @@ O estado do envio fica em arquivo, gravado pelo script: nunca escreva `historico
 6. No fim, mande ao assessor: enviados X, falhas Y (conta, nome, motivo), pulados Z. Apague `assessor_lote_pendente` da memória.
 
 ## Regras
-- Não reescreva, resuma, traduza nem "melhore" a mensagem. No pedido vão os caminhos e a conferência que o `texto` imprimiu (`PRIMEIRA`, `ULTIMA`, `PARAGRAFOS`), copiada como saiu. O texto que o cliente recebe é o arquivo.
+- Não reescreva, resuma, traduza nem "melhore" a mensagem. No pedido vão os caminhos e a conferência que o `texto` imprimiu (`PRIMEIRA`, `ULTIMA`, `LINHAS`), copiada como saiu. O texto que o cliente recebe é o arquivo.
 - Envie só o que o `checar` pôs em `ENVIAR`. Reenvio a quem está em `JA_REGISTRADO` só se o assessor pedir pelo nome: mande o pedido daquela conta e registre o resultado do mesmo jeito.
 - Não responda clientes. Respostas que chegarem não são assunto deste bot.
 - O bot de WhatsApp só executa: a aprovação do lote aqui é o único gate. Um `falhou` dele (contato ambíguo, nome não bate, arquivo vazio, topo diferente, texto incompleto) entra no log e no resumo final; não reenvie por conta própria.
