@@ -289,4 +289,5 @@ def main(zp,planilha,disc):
 if __name__=='__main__':
     cmd={'importar':importar,'aprovar':aprovar,'checar':checar,'registrar':registrar,'texto':texto}
     if len(sys.argv)>1 and sys.argv[1] in cmd:cmd[sys.argv[1]](*sys.argv[2:])
+    elif len(sys.argv)>1 and not sys.argv[1].lower().endswith('.zip'):sys.exit(f'subcomando desconhecido: {sys.argv[1]} (use '+', '.join(cmd)+' ou LOTE.zip)')
     else:main(*sys.argv[1:4])

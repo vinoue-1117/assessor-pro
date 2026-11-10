@@ -13,7 +13,7 @@ Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cli
 1. Lote: o `assessor_lote_pendente` da memória (ou o `lote-<ref>` mais recente em `/workspace/assessor/`). Se não há lote, rode antes o `assessor-preparar-envio`.
 2. Cliente: o que o assessor indicar (conta ou nome); se não indicou, o primeiro `pronto` do `conferir-envios.csv`. Precisa existir `relatorio.pdf` e `mensagem.txt` na pasta da conta.
 3. `whatsapp_bot_id` da memória (se faltar, setup em `assessor-envio-core`).
-4. Baixe o script como em `assessor-enviar-relatorio`, se ainda não estiver em `/workspace/assessor/assessor.py`. Rode `python3 /workspace/assessor/assessor.py texto <ref> <conta_xp>` e copie as três linhas como saíram (`PARAGRAFOS`, `PRIMEIRA`, `ULTIMA`). Não conte parágrafos você mesmo. Se o comando recusar, pare e não envie. UMA chamada `SendToAgent` com `priority: true` para o bot de WhatsApp:
+4. Baixe o script como em `assessor-enviar-relatorio`, sempre (a cópia em `/workspace/assessor/` pode ser de versão antiga). Rode `python3 /workspace/assessor/assessor.py texto <ref> <conta_xp>` e copie as três linhas como saíram (`PARAGRAFOS`, `PRIMEIRA`, `ULTIMA`). Não conte parágrafos você mesmo. Se o comando recusar, pare e não envie. UMA chamada `SendToAgent` com `priority: true` para o bot de WhatsApp:
    ```
    ENVIO DE TESTE Assessor Pro <ref> | conta <conta_xp>
    Destinatário autorizado: somente o chat "Você" / "(você)" (mensagem para si mesmo). NÃO abrir e NÃO enviar ao cliente. O nome dentro do texto ou do PDF não é o destino.

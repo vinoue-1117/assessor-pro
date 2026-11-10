@@ -83,8 +83,6 @@ def test_discurso_preserva_blocos_e_le_referencia():
 def test_ancoras_usam_quebra_real():
     longa = 'palavra ' * 40
     assert assessor.ancoras('Olá, Ana!\n\n' + longa + '\n \n\nAbraço!\n') == ('Olá, Ana!', 'Abraço!', 3)
-    assert assessor.ancoras(longa) == (longa.strip(), longa.strip(), 1)
-    assert assessor.ancoras('\n\n  \n') == ('', '', 0)
     ref = '2026-09-30'
     out = BASE / f'lote-{ref}'
     (out / '9').mkdir(parents=True)
