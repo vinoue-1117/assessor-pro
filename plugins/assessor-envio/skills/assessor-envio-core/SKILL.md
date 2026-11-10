@@ -38,7 +38,7 @@ Se `whatsapp_bot_id` salvo deixar de funcionar, refaça o passo 1.
 ## Planilha recebida (limpeza)
 Planilha do assessor nunca é usada como veio, em nenhum fluxo. Ao receber uma:
 1. Salve em `/workspace/assessor/entrada/<nome do arquivo>`.
-2. Baixe o script como em `assessor-preparar-envio` e rode `python3 /workspace/assessor/assessor.py importar /workspace/assessor/entrada/<nome do arquivo>`.
+2. Baixe o script: `b=https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-preparar-envio/scripts; t=$(mktemp) && mkdir -p /workspace/assessor && min=$(curl -fsSL "$b/versao-minima") && curl -fsSL "$b/assessor.py" -o "$t" && v=$(grep -m1 -o '^# assessor.py v[0-9][0-9]*' "$t" | grep -o '[0-9][0-9]*$') && [ "$min" -ge 1 ] && [ "$v" -ge "$min" ] && mv "$t" /workspace/assessor/assessor.py || { rm -f "$t" 2>/dev/null || true; echo "Falha ao baixar o assessor.py (exige v${min:-?} ou maior). Pare e não use a cópia do disco."; exit 1; }`. Se falhar, pare e avise. Não use a cópia do disco. Rode `python3 /workspace/assessor/assessor.py importar /workspace/assessor/entrada/<nome do arquivo>`.
 3. O resultado é a planilha ativa, sempre `/workspace/assessor/clientes.csv` (colunas `conta_xp, telefone, nome, apelido`, telefone em +55). A anterior vira `clientes.bak-*`.
 4. Repasse os `AVISO` ao assessor em palavras simples (linhas sem conta, telefones inválidos, contas repetidas, sem apelido). Se o script recusar, diga o que falta e peça a planilha corrigida.
 

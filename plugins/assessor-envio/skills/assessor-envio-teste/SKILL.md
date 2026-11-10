@@ -13,7 +13,7 @@ Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cli
 1. Lote: o `assessor_lote_pendente` da memória (ou o `lote-<ref>` mais recente em `/workspace/assessor/`). Se não há lote, rode antes o `assessor-preparar-envio`.
 2. Cliente: o que o assessor indicar (conta ou nome); se não indicou, o primeiro `pronto` do `conferir-envios.csv`. Precisa existir `relatorio.pdf` e `mensagem.txt` na pasta da conta.
 3. `whatsapp_bot_id` da memória (se faltar, setup em `assessor-envio-core`).
-4. Baixe o script como em `assessor-enviar-relatorio`, sempre (a cópia em `/workspace/assessor/` pode ser de versão antiga). Rode `python3 /workspace/assessor/assessor.py texto <ref> <conta_xp>` e copie as três linhas como saíram (`LINHAS`, `PRIMEIRA`, `ULTIMA`). Não conte linhas você mesmo. Se o comando recusar, pare e não envie. UMA chamada `SendToAgent` com `priority: true` para o bot de WhatsApp:
+4. Baixe o script sempre (a cópia em `/workspace/assessor/` pode ser de versão antiga): `b=https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-preparar-envio/scripts; t=$(mktemp) && mkdir -p /workspace/assessor && min=$(curl -fsSL "$b/versao-minima") && curl -fsSL "$b/assessor.py" -o "$t" && v=$(grep -m1 -o '^# assessor.py v[0-9][0-9]*' "$t" | grep -o '[0-9][0-9]*$') && [ "$min" -ge 1 ] && [ "$v" -ge "$min" ] && mv "$t" /workspace/assessor/assessor.py || { rm -f "$t" 2>/dev/null || true; echo "Falha ao baixar o assessor.py (exige v${min:-?} ou maior). Pare e não use a cópia do disco."; exit 1; }`. Se falhar, pare e avise. Não use a cópia do disco. Rode `python3 /workspace/assessor/assessor.py texto <ref> <conta_xp>` e copie as três linhas como saíram (`LINHAS`, `PRIMEIRA`, `ULTIMA`). Não conte linhas você mesmo. Se o comando recusar, pare e não envie. UMA chamada `SendToAgent` com `priority: true` para o bot de WhatsApp:
    ```
    ENVIO DE TESTE Assessor Pro <ref> | conta <conta_xp>
    Destinatário autorizado: somente o chat "Você" / "(você)" (mensagem para si mesmo). NÃO abrir e NÃO enviar ao cliente. O nome dentro do texto ou do PDF não é o destino.
@@ -33,7 +33,7 @@ Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cli
    Esses três valores têm que ser os do .txt. Divergência ou dúvida: falhou, sem retry, sem pacote pela metade. Clipboard não prova o texto.
    Responda: enviado | <destinatário> | <HH:MM> | pdf <tiques> | texto <tiques>, ou falhou: <motivo> | pdf enviado|não enviado | texto enviado|não enviado.
    ```
-5. Registre com o script (baixado como em `assessor-enviar-relatorio`; nunca escreva `historico-envios.csv` à mão): `python3 /workspace/assessor/assessor.py registrar <ref> <conta_xp> "teste: enviado" <HH:MM>` só se PDF e texto tiverem saído no chat "Você". Se um faltar: `"teste: falhou <motivo>"` dizendo qual saiu e qual não saiu (não conta como envio real).
+5. Registre com o script do passo 4 (nunca escreva `historico-envios.csv` à mão): `python3 /workspace/assessor/assessor.py registrar <ref> <conta_xp> "teste: enviado" <HH:MM>` só se PDF e texto tiverem saído no chat "Você". Se um faltar: `"teste: falhou <motivo>"` dizendo qual saiu e qual não saiu (não conta como envio real).
 6. Relate ao assessor os dois resultados em separado: PDF sem legenda no chat "Você", e texto integral no chat "Você". Não diga que o teste chegou se um dos dois faltou. Só então pergunte se quer ajustar algo (planilha/discurso) e preparar de novo, ou aprovar o lote.
 
 ## Regras
