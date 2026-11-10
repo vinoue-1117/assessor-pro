@@ -13,11 +13,11 @@ Monta, de forma determinística (sem IA no conteúdo), um pacote por cliente: `r
 - **Discurso macro**: baixe a cada execução, sempre da URL fixa: `mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discurso-macro.md -o /workspace/assessor/discurso.md`. Se falhar, vier vazio ou contiver "ainda não publicado", pare e avise (não invente cenário, não reaproveite o do mês anterior). O script também para se a linha `referência: MM/AAAA` do discurso não for o mês do lote: avise que o cenário deste mês ainda não foi publicado e que é só preparar de novo quando sair.
 
 ## Script
-Baixe o script a cada execução, da branch `stable`, para o caminho de trabalho. Não dependa de uma cópia que tenha vindo com o plugin: quando só existe o ponteiro, o arquivo não está ao lado desta skill.
+Baixe o script a cada execução, da branch `stable`, para o caminho de trabalho. Não dependa de uma cópia que tenha vindo com o plugin: quando só existe o ponteiro, o arquivo não está ao lado desta skill. A versão mínima exigida está só em `versao-minima`, ao lado do script na `stable`.
 
-`mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-preparar-envio/scripts/assessor.py -o /workspace/assessor/assessor.py`
+`b=https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-preparar-envio/scripts; t=$(mktemp) && mkdir -p /workspace/assessor && min=$(curl -fsSL "$b/versao-minima") && curl -fsSL "$b/assessor.py" -o "$t" && v=$(grep -m1 -o '^# assessor.py v[0-9][0-9]*' "$t" | grep -o '[0-9][0-9]*$') && [ "$min" -ge 1 ] && [ "$v" -ge "$min" ] && mv "$t" /workspace/assessor/assessor.py || { rm -f "$t" 2>/dev/null || true; echo "Falha ao baixar o assessor.py (exige v${min:-?} ou maior). Pare e não use a cópia do disco."; exit 1; }`
 
-Confira que a 1ª linha de comentário começa com `# assessor.py v`. Se o download falhar ou a conferência não bater, pare e avise. Não use cópia antiga. Nunca edite o script.
+Se o comando falhar, pare e avise. Não use a cópia do disco. Nunca edite o script.
 
 ## Passos
 1. Garanta o `pdftotext` (`which pdftotext`; se faltar: `sudo apt-get install -y poppler-utils`).
