@@ -2,7 +2,7 @@
 
 O mesmo comando está em toda skill que baixa o script. Ele só substitui o
 arquivo de trabalho se o download deu certo e a 1ª linha de versão é >= a
-mínima em versao-minima. Falha (URL quebrada ou v5) para e deixa o disco quieto.
+mínima em versao-minima. Falha (URL quebrada ou v6) para e deixa o disco quieto.
 """
 import re
 import subprocess
@@ -21,6 +21,7 @@ ESPERADAS = {
     'assessor-envio-teste',
     'assessor-preparar-envio',
     'assessor-resumo-ultimo-envio',
+    'assessor-zap-enviar',
 }
 
 
@@ -60,7 +61,7 @@ def versao_do_script():
 def test_comando_igual_e_minima_num_lugar_so():
     cmd = comando()
     minima = MINIMA.read_text(encoding='utf-8')
-    assert minima.strip() == '6' and minima.endswith('\n') and '\n' not in minima.strip()
+    assert minima.strip() == '7' and minima.endswith('\n') and '\n' not in minima.strip()
     assert versao_do_script() >= int(minima.strip())
     for path in PLUGINS.glob('*/skills/*/SKILL.md'):
         texto = path.read_text(encoding='utf-8')
@@ -126,7 +127,7 @@ def test_download_sucesso_substitui():
 def test_download_url_quebrada_nao_troca():
     cmd = comando()
     dest, sentinela = _preparar()
-    r, sobras = _rodar(cmd, dest, {'/scripts/versao-minima': b'6\n'})
+    r, sobras = _rodar(cmd, dest, {'/scripts/versao-minima': b'7\n'})
     assert r.returncode != 0
     assert (dest / 'assessor.py').read_bytes() == sentinela
     assert 'Pare e não use a cópia do disco.' in r.stdout
@@ -138,7 +139,7 @@ def test_download_v10_substitui():
     dest, sentinela = _preparar()
     corpo = b'# assessor.py v10 | uso: teste\n'
     r, sobras = _rodar(cmd, dest, {
-        '/scripts/versao-minima': b'6\n',
+        '/scripts/versao-minima': b'7\n',
         '/scripts/assessor.py': corpo,
     })
     assert r.returncode == 0, r.stderr + r.stdout
@@ -147,18 +148,18 @@ def test_download_v10_substitui():
     assert sobras == []
 
 
-def test_download_v5_nao_troca():
+def test_download_v6_nao_troca():
     cmd = comando()
     dest, sentinela = _preparar()
-    corpo = b'# assessor.py v5 | uso: teste\n'
-    assert corpo.startswith(b'# assessor.py v5')
+    corpo = b'# assessor.py v6 | uso: teste\n'
+    assert corpo.startswith(b'# assessor.py v6')
     r, sobras = _rodar(cmd, dest, {
-        '/scripts/versao-minima': b'6\n',
+        '/scripts/versao-minima': b'7\n',
         '/scripts/assessor.py': corpo,
     })
     assert r.returncode != 0
     assert (dest / 'assessor.py').read_bytes() == sentinela
-    assert 'exige v6 ou maior' in r.stdout
+    assert 'exige v7 ou maior' in r.stdout
     assert 'Pare e não use a cópia do disco.' in r.stdout
     assert sobras == []
 
