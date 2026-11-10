@@ -5,7 +5,7 @@ O assessor importa os bots por link, sem o Cursor. Cada skill em `template/skill
 ## Publicar
 
 1. Edite na `main` e teste.
-2. Se mudou o `name` de uma skill ou criou uma skill nova, rode `python3 scripts/gerar-ponteiros.py`. A description do ponteiro não vem da skill completa: é uma frase fixa no mapa `DESCRICOES` de `scripts/gerar-ponteiros.py` e só diz quando usar a skill. Mudar a description da skill completa não altera o ponteiro. `python3 scripts/gerar-ponteiros.py --check` confere isso.
+2. Se mudou o `name` de uma skill ou criou uma skill nova, rode `python3 scripts/gerar-ponteiros.py`. A description do ponteiro não vem da skill completa: é uma frase fixa no mapa `DESCRICOES` de `scripts/gerar-ponteiros.py` e só diz quando usar a skill. Mudar a description da skill completa não altera o ponteiro. Skill nova sem entrada no `DESCRICOES` faz o script parar.
 3. Promova o que foi testado:
 
 `git push origin main:stable`

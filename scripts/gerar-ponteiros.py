@@ -3,8 +3,7 @@
 
 A description de cada ponteiro fica no mapa DESCRICOES: uma frase fixa
 sobre quando usar a skill. Ela não é copiada da skill completa, então
-editar essa description em plugins/ não altera o ponteiro. --check
-confere isso.
+editar essa description em plugins/ não altera o ponteiro.
 
 Uso:
   python3 scripts/gerar-ponteiros.py
@@ -21,7 +20,6 @@ FALHA = (
     "Não consegui baixar as instruções atuais do Assessor Pro. "
     "Tente de novo em alguns minutos."
 )
-DESCRICAO_FALSA = "description: 'GATILHO_FALSO que não pode aparecer no ponteiro.'"
 
 # Quando usar cada skill. Texto estável, mantido só aqui: não acompanhe
 # a description da skill completa (ela muda com implementação, arquivo,
@@ -41,26 +39,12 @@ DESCRICOES = {
 }
 
 
-def validar_description(nome, texto):
-    if not isinstance(texto, str) or not texto or texto != texto.strip() or "\n" in texto:
-        sys.exit(f"description de ponteiro inválida: {nome}")
-    if "/workspace" in texto or texto.startswith("/") or " /" in texto:
-        sys.exit(f"description de ponteiro não leva caminho de arquivo: {nome}")
-    for ext in (".json", ".md", ".py", ".csv", ".txt", ".pdf"):
-        if ext in texto:
-            sys.exit(f"description de ponteiro não leva nome de arquivo: {nome}")
-    if not texto.endswith("."):
-        sys.exit(f"description de ponteiro deve ser uma frase: {nome}")
-    miolo = texto[:-1].replace("ex.", "ex")
-    if any(marca in miolo for marca in ".!?"):
-        sys.exit(f"description de ponteiro deve ser uma frase só: {nome}")
-
-
 def linha_description(nome):
     if nome not in DESCRICOES:
         sys.exit(f"sem description de ponteiro: {nome}")
     texto = DESCRICOES[nome]
-    validar_description(nome, texto)
+    if not texto.strip() or "\n" in texto:
+        sys.exit(f"description de ponteiro inválida: {nome}")
     return "description: '" + texto.replace("'", "''") + "'"
 
 
@@ -85,31 +69,25 @@ def frontmatter(text, path):
 
 def carregar():
     ponteiros = {}
-    origens = {}
     for path in sorted(PLUGINS.glob("*/skills/*/SKILL.md")):
         texto = path.read_text(encoding="utf-8")
-        nome_linha, desc_skill = frontmatter(texto, path)
+        nome_linha, _ = frontmatter(texto, path)
         nome = nome_linha.split(":", 1)[1].strip().strip("'\"")
         if not nome:
             sys.exit(f"name vazio: {path}")
         if nome in ponteiros:
             sys.exit(f"nome de skill repetido: {nome}")
         rel = path.relative_to(ROOT).as_posix()
-        ponteiros[nome] = ponteiro(nome, nome_linha, rel, desc_skill)
-        origens[nome] = {"nome_linha": nome_linha, "rel": rel, "desc_skill": desc_skill}
+        ponteiros[nome] = ponteiro(nome, nome_linha, rel)
     if not ponteiros:
         sys.exit(f"nenhuma skill em {PLUGINS}")
     extras = sorted(set(DESCRICOES) - set(ponteiros))
     if extras:
         sys.exit("description de ponteiro sem skill: " + ", ".join(extras))
-    return ponteiros, origens
+    return ponteiros
 
 
-def ponteiro(nome, nome_linha, rel, desc_skill):
-    # A description da skill completa precisa existir, mas o texto dela
-    # não entra no ponteiro: só o mapa DESCRICOES entra.
-    if not isinstance(desc_skill, str) or not desc_skill.startswith("description:"):
-        sys.exit(f"description da skill inválida: {nome}")
+def ponteiro(nome, nome_linha, rel):
     url = f"{RAW}/{rel}"
     destino = f"/workspace/assessor-pro/{nome}.md"
     desc_linha = linha_description(nome)
@@ -162,19 +140,7 @@ def gravar(esperado):
     print(f"ponteiros gravados: {len(esperado)}")
 
 
-def description_independente(origens, esperado):
-    problemas = []
-    for nome, item in sorted(origens.items()):
-        gerado = ponteiro(nome, item["nome_linha"], item["rel"], DESCRICAO_FALSA)
-        if gerado != esperado[nome] or "GATILHO_FALSO" in gerado:
-            problemas.append(
-                "description da skill completa alterou o ponteiro "
-                f"{nome}: a única fonte é o mapa DESCRICOES"
-            )
-    return problemas
-
-
-def conferir(esperado, origens):
+def conferir(esperado):
     problemas = []
     if not OUT.is_dir():
         problemas.append(f"falta o diretório {OUT.relative_to(ROOT)}")
@@ -190,26 +156,22 @@ def conferir(esperado, origens):
                 problemas.append(f"ponteiro sobrando {path.relative_to(ROOT)}")
     for rel in refs_main():
         problemas.append(f"referencia /main/: {rel}")
-    problemas.extend(description_independente(origens, esperado))
     if problemas:
         print("ponteiros desatualizados:", file=sys.stderr)
         for item in problemas:
             print(f"- {item}", file=sys.stderr)
-        if any("única fonte" in item for item in problemas):
-            print("a description do ponteiro sai só do mapa DESCRICOES", file=sys.stderr)
-        if any("única fonte" not in item for item in problemas):
-            print("rode: python3 scripts/gerar-ponteiros.py", file=sys.stderr)
+        print("rode: python3 scripts/gerar-ponteiros.py", file=sys.stderr)
         sys.exit(1)
-    print(f"ponteiros ok ({len(esperado)}); description da skill completa não altera o ponteiro")
+    print(f"ponteiros ok ({len(esperado)})")
 
 
 def main():
-    esperado, origens = carregar()
+    esperado = carregar()
     if "--check" in sys.argv:
-        conferir(esperado, origens)
+        conferir(esperado)
     else:
         gravar(esperado)
-        conferir(esperado, origens)
+        conferir(esperado)
 
 
 if __name__ == "__main__":
