@@ -11,12 +11,12 @@
     {
       "name": "assessor-envio",
       "source": "./plugins/assessor-envio",
-      "description": "Bot Assessor Pro - Envio: prepara e confere o lote mensal do relatório de performance da corretora e entrega os envios ao bot de WhatsApp."
+      "description": "Bot Relatórios - Assessor Pro: prepara e confere o lote mensal do relatório de performance da corretora e entrega os envios ao bot de WhatsApp."
     },
     {
       "name": "assessor-zap",
       "source": "./plugins/assessor-zap",
-      "description": "Bot de WhatsApp (ex.: WO): lê e envia no WhatsApp Web exatamente o que outros bots pedem, dentro da permissão do dono."
+      "description": "Bot Whatsapp - Assessor Pro: lê e envia no WhatsApp Web exatamente o que outros bots pedem, dentro da permissão do dono."
     }
   ]
 }

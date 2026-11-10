@@ -1,6 +1,6 @@
 # assessor-envio
 
-Plugin do bot **Assessor Pro - Envio**: prepara e confere o lote mensal do relatório de performance da corretora e entrega os envios ao bot de WhatsApp (plugin [`assessor-zap`](../assessor-zap)).
+Plugin do bot **Relatórios - Assessor Pro**: prepara e confere o lote mensal do relatório de performance da corretora e entrega os envios ao bot de WhatsApp (plugin [`assessor-zap`](../assessor-zap)).
 
 Perfil do bot: `Siga a skill assessor-envio-core em toda conversa.`
 

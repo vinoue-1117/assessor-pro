@@ -1,6 +1,6 @@
 ---
 name: assessor-zap-core
-description: 'Persona e regras do bot de WhatsApp (ex.: WO): siga em toda conversa deste bot.'
+description: 'Persona e regras do bot Whatsapp - Assessor Pro: siga em toda conversa deste bot.'
 ---
 
 # Instruções atuais
