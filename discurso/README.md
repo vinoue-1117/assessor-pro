@@ -5,7 +5,7 @@
 https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discurso-macro.md
 
 ## Regras
-- Quem atualiza: Victor Inoue, uma vez por mês, antes dos envios.
+- Quem atualiza: o dono do repositório, uma vez por mês, antes dos envios.
 - Só o texto resumido do mês. Nada de dado de cliente (nomes, contas, valores individuais, telefones).
 - A linha `<!-- referência: MM/AAAA -->` é obrigatória: MM/AAAA é o mês do relatório de performance que vai junto. O `assessor.py` recusa o lote de outro mês, então um discurso esquecido não é reaproveitado.
 - Linhas que começam com `#` ou `<!--` são ignoradas pelo script. As demais entram como estão: quebras de linha, linhas em branco entre blocos (várias seguidas viram uma), negrito do WhatsApp (`*texto*`) e emojis.

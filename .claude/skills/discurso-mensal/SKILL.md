@@ -5,7 +5,7 @@ description: 'Monta o discurso macro do mês (discurso/discurso-macro.md, bloco 
 
 # Discurso mensal
 
-Condensa o PDF mensal "Carteiras de Alocação Brasil" da XP no bloco "Cenário do mês" que o `assessor.py` coloca, igual para todos os clientes, no fim da mensagem de WhatsApp. Uso exclusivo de Victor neste repo; não é distribuída aos assessores.
+Condensa o PDF mensal "Carteiras de Alocação Brasil" da XP no bloco "Cenário do mês" que o `assessor.py` coloca, igual para todos os clientes, no fim da mensagem de WhatsApp. Uso exclusivo do dono neste repo; não é distribuída aos assessores.
 
 ## Fonte
 Só o PDF fornecido na conversa. Páginas que importam:
@@ -41,10 +41,10 @@ Três blocos, nesta ordem, separados por uma linha em branco:
 1. Leia as páginas da seção Fonte (Read com `pages`).
 2. Redija os três blocos.
 3. Conte os caracteres (`python -c` sobre o rascunho) e confira os limites.
-4. Mostre a Victor, numa só mensagem:
+4. Mostre ao dono, numa só mensagem:
    - o rascunho;
    - a contagem por bloco e total;
    - cada afirmação com a página do PDF que a sustenta;
    - o que ficou de fora e por quê (ex.: mudança que não vale para todos os perfis).
-5. Só com aprovação explícita: grave `discurso/discurso-macro.md` (UTF-8) com o texto aprovado, sem alterar nada, e rode `node scripts/validate-template.mjs`.
-6. Commit na `main` com a skill `commit`. A promoção `git push origin main:stable` só com "go" explícito de Victor: é ela que faz o texto chegar aos bots no próximo lote.
+5. Só com aprovação explícita: grave `discurso/discurso-macro.md` (UTF-8) com o texto aprovado, sem alterar nada, e rode `node tools/validate-template.mjs`.
+6. Commit na `main` com a skill `commit`. A promoção `git push origin main:stable` só com "go" explícito do dono: é ela que faz o texto chegar aos bots no próximo lote.

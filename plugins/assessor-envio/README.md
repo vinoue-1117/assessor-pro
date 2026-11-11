@@ -30,9 +30,9 @@ Estado do envio, sempre gravado pelo script (o bot não escreve CSV à mão):
 - `marcar`: troca a área de transferência por uma marca, depois do Ctrl+V. Um Ctrl+C que não aconteceu deixaria ali o texto do `copiar`, e a conferência bateria sem ler a caixa.
 - `conferir-caixa REF CONTA` ou `conferir-caixa CAMINHO.txt`: só vale depois de `marcar`, uma vez. Lê a área de transferência (`xclip -o -selection clipboard`), que o bot preencheu com Ctrl+A e Ctrl+C na caixa, e compara com o `.txt` por parágrafos (quebra real, ignora linha em branco e espaço nas pontas, normaliza CRLF e NBSP). Imprime `bate` ou `nao bate: <motivo>`. A trava de envio é esta, não a leitura da tela.
 
-Download: toda skill que usa o script baixa o `assessor.py` da `stable` a cada execução, para um arquivo temporário, e só troca `/workspace/assessor/assessor.py` se a versão da 1ª linha for igual ou maior que a de `skills/assessor-preparar-envio/scripts/versao-minima`. Se o download falhar ou a versão for menor, a skill para sem usar a cópia do disco.
+Download: toda skill que usa o script baixa o `assessor.py` da `stable` a cada execução, para um arquivo temporário, e só troca `/workspace/assessor/assessor.py` se a versão da 1ª linha for igual ou maior que a de `skills/assessor-preparar-envio/scripts/versao-minima`. O comando é o de `comum/baixar.py`: tenta `bots/assessor/...` e, se não achar, o caminho em `plugins/`. Se a variável `GITHUB_TOKEN_BOTS` existir, ela vai só no cabeçalho `Authorization`. Se o download falhar ou a versão for menor, a skill para sem usar a cópia do disco.
 
-Checagem: `python tests/test_assessor.py` (sem PDFs reais; a leitura do PDF se confere com um lote real) e `python -m pytest tests/test_baixar_assessor.py` para o comando de download (requer `bash` e `curl`).
+Checagem: `python bots/assessor/tests/test_assessor.py` (sem PDFs reais; a leitura do PDF se confere com um lote real) e `python -m pytest bots/assessor/tests/test_baixar_assessor.py` para o comando de download (requer `bash` e `python3`).
 
 `skills/assessor-ajustar-cliente/scripts/cliente.py` (Python 3, sem dependências): `add`, `set` e `rm` na cópia salva. Grava `clientes.csv` e guarda a anterior como `clientes.bak-AAAAMMDD-HHMM.<ext>`.
 

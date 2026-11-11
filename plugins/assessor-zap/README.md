@@ -12,7 +12,7 @@ Perfil do bot: `Siga a skill assessor-zap-core em toda conversa.`
 | `assessor-zap-exportar-historico` | leitura/exportação de conversas para `.txt` (só leitura) |
 | `assessor-zap-triagem` | rotina única de leitura: encaminha cada mensagem nova de um contato com rota ao bot dono da rota |
 
-O texto entra na caixa pela área de transferência. `assessor-zap-enviar` baixa o `assessor.py` do plugin `assessor-envio` (branch `stable`) e usa `copiar`, `marcar` e `conferir-caixa`, que dependem do `xclip` e do `DISPLAY` do desktop do bot. Texto que vem escrito no pedido é gravado antes em `/workspace/wo/texto-pedido.txt`.
+O texto entra na caixa pela área de transferência. `assessor-zap-enviar` baixa o `assessor.py` da branch `stable` (caminho em `bots/assessor/`, com fallback no plugin `assessor-envio`) e usa `copiar`, `marcar` e `conferir-caixa`, que dependem do `xclip` e do `DISPLAY` do desktop do bot. Texto que vem escrito no pedido é gravado antes em `/workspace/wo/texto-pedido.txt`.
 
 ## Permissão
 O bot Whatsapp - Assessor Pro é executor: quem decide se pode enviar é o bot do dono que faz o pedido (ex.: o bot Relatórios - Assessor Pro só pede depois da aprovação do lote). O bot de WhatsApp envia sem perguntar ao dono, mas não envia e devolve `falhou` quando algo não bate (ex.: arquivo com nome de um cliente indo para outro, contato ambíguo, topo diferente do destinatário autorizado, texto na caixa incompleto).

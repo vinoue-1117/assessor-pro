@@ -28,18 +28,33 @@ Fluxo: assessor manda zip + planilha → Relatórios - Assessor Pro prepara e mo
 O discurso macro do mês vem de [`discurso/discurso-macro.md`](discurso/), baixado a cada lote.
 
 ## Como as atualizações chegam a quem instalou
-- **Marketplace oficial do Cursor**: submeter o repositório público em [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish). Qualquer pessoa instala; cada atualização passa por revisão do time do Cursor, então não é instantâneo.
+- **Marketplace oficial do Cursor**: submeter o repositório público em [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish). Qualquer pessoa instala; cada atualização passa por revisão do time do Cursor, então não é instantâneo. Esse caminho exige repositório público: deixa de valer quando este repositório for privado.
 - **Marketplace do time (Teams/Enterprise)**: importar este repositório como marketplace do time com **Auto Refresh**; cada push no branch é reindexado em poucos minutos, sem revisão. Os assessores precisam estar no time.
 - **Instalar direto por link do GitHub** (https://github.com/vinoue-1117/assessor-pro, fora de marketplace) fixa o commit da instalação: o plugin não atualiza sozinho.
 
-O que é baixado em tempo de execução (o discurso e os scripts) vem sempre da branch `stable`, independente da versão do plugin instalada. A edição fica na `main`; a promoção está em [`template/README.md`](template/README.md).
+O que é baixado em tempo de execução (o discurso e os scripts) vem sempre da branch `stable`, independente da versão do plugin instalada. A edição fica na `main`; a promoção está em [`template/assessor/README.md`](template/assessor/README.md).
 
-A description dos ponteiros em `template/skills/` é fixa (quando usar a skill) e fica no mapa `DESCRICOES` de `scripts/gerar-ponteiros.py`. Mudar a description da skill completa não muda o ponteiro, então uma promoção para `stable` não exige atualizar as skills já instaladas nos bots.
+A description dos ponteiros em `template/assessor/skills/` é fixa (quando usar a skill) e fica no mapa `DESCRICOES` de `tools/gerar-ponteiros.py`. Mudar a description da skill completa não muda o ponteiro, então uma promoção para `stable` não exige atualizar as skills já instaladas nos bots.
+
+## Estrutura
+- `bots/assessor/` — fonte do bot (skills de envio e de zap, `assessor.py`, testes). `bots/briefing/` e `bots/mercado/` ficam para os PRs seguintes.
+- `plugins/` — cópia gerada, um plugin por bot instalável. O marketplace e as URLs antigas da `stable` leem daqui.
+- `template/assessor/` — ponteiros e perfis (getting-started do bot). Não é template de página; esse, se existir, vai em `templates-page/` dentro do bot.
+- `comum/baixar.py` — download com `versao-minima` e token. `comum/skills/` fica para skill compartilhada de fato.
+- `tools/` — `gerar-ponteiros.py`, `validate-template.mjs` e `check.py`.
+- `discurso/` — texto do mês. A URL raw não mudou.
+
+Edite em `bots/` e rode `python3 tools/gerar-ponteiros.py`. Não edite `plugins/` nem `template/assessor/skills/` à mão.
+
+## Repositório privado
+O download manda `GITHUB_TOKEN_BOTS` só no cabeçalho `Authorization`, quando a variável existe. Sem ela, tenta sem autenticação. Se a resposta for 401 ou 404, a mensagem pede o token. O valor não entra no repositório, no log nem na URL.
+
+Ordem segura: merge deste PR, promover a `stable` quando for a hora, atualizar ponteiros presos a um commit e os importados pelo template, definir o token em cada computador e confirmar um download com o repositório ainda público. Só então tornar o repositório privado.
 
 ## Manutenção
-- Mudou algo? Suba a `version` em `plugins/<nome>/.cursor-plugin/plugin.json` e registre a mudança no commit.
-- Valide antes de cada commit: `node scripts/validate-template.mjs` e, se mexeu no `assessor.py`, `python tests/test_assessor.py`. Se mexeu no comando de download do script ou no `versao-minima`, `python -m pytest tests/test_baixar_assessor.py` (requer `bash` e `curl`).
-- Skill passou a depender de algo novo no `assessor.py` (um subcomando, por exemplo)? Suba a versão na 1ª linha do script e o número em `plugins/assessor-envio/skills/assessor-preparar-envio/scripts/versao-minima` na mesma mudança, e ajuste o número fixo em `tests/test_baixar_assessor.py`. Sem isso, um bot com download falho aceita a versão anterior.
-- Nunca coloque dado de cliente neste repositório (nomes, contas, telefones, PDFs, planilhas). Ele é público.
+- Mudou algo no plugin? Suba a `version` em `bots/assessor/<envio|zap>/.cursor-plugin/plugin.json`, rode `python3 tools/gerar-ponteiros.py` e registre a mudança no commit.
+- Valide antes de cada commit: `python3 tools/check.py` (ponteiros, plugins, template e testes). O mesmo vale em partes: `node tools/validate-template.mjs`, `python3 tools/gerar-ponteiros.py --check`, `python bots/assessor/tests/test_assessor.py` e `python -m pytest bots/assessor/tests/test_baixar_assessor.py`.
+- Skill passou a depender de algo novo no `assessor.py` (um subcomando, por exemplo)? Suba a versão na 1ª linha do script e o número em `bots/assessor/envio/skills/assessor-preparar-envio/scripts/versao-minima` na mesma mudança, e ajuste o número fixo em `bots/assessor/tests/test_baixar_assessor.py`. Sem isso, um bot com download falho aceita a versão anterior.
+- Não coloque neste repositório dado de cliente, nome de pessoa, chave, token, id interno, telefone nem e-mail. A regra vale com o repositório privado. Detalhe em [`.claude/rules/repositorio.md`](.claude/rules/repositorio.md).
 
 Licença: MIT.
