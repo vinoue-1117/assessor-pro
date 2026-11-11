@@ -28,7 +28,7 @@ Três blocos, nesta ordem, separados por uma linha em branco:
 ```
 
 - `MM/YYYY` é o mês do relatório de performance que vai junto (em geral, o mês anterior ao da capa do PDF).
-- Cada bloco com até ~250 caracteres; total (sem a linha de comentário) até ~600.
+- Cada bloco com até ~250 caracteres. O total, sem a linha de comentário, tem teto de 550 caracteres, sem exceção: a mensagem inteira do cliente (números mais discurso) precisa caber nos 1.024 caracteres que o WhatsApp aceita na legenda de um anexo.
 - Negrito do WhatsApp é `*texto*`. Sem `#` no início de linha de conteúdo: o script ignora essas linhas.
 
 ## Regras de conteúdo
@@ -40,7 +40,7 @@ Três blocos, nesta ordem, separados por uma linha em branco:
 ## Passos
 1. Leia as páginas da seção Fonte (Read com `pages`).
 2. Redija os três blocos.
-3. Conte os caracteres (`python -c` sobre o rascunho) e confira os limites.
+3. Conte os caracteres (`python -c` sobre o rascunho) e confira os limites. Total acima de 550: encurte antes de mostrar.
 4. Mostre a Victor, numa só mensagem:
    - o rascunho;
    - a contagem por bloco e total;

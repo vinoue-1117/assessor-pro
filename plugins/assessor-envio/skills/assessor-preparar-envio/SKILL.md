@@ -40,4 +40,4 @@ Se o comando falhar, pare e avise. Não use a cópia do disco. Nunca edite o scr
 - Nunca edite `mensagem.txt` à mão nem reescreva o texto; para mudar, corrija planilha/discurso e rode de novo.
 - Não corrija números, não adivinhe conta/telefone, não preencha dado faltante: reporte.
 - Rodar de novo é seguro: a pasta do lote é recriada do zero.
-- Modelo da mensagem: constante `MODELO` no script (placeholders `{apelido}`, `{mes_ano}`, `{cart_mes}`, `{cdi_mes}`, `{ibov_mes}`, `{ipca_mes}`, `{cart_ano}`…`{ibov_24m}`, `{resultado}`, `{patrimonio}`, `{meses_pos}`, `{meses_cdi}`, `{discurso_macro}`). Mudança no modelo é feita no repositório do plugin, não aqui.
+- Modelo da mensagem: constante `MODELO` no script (placeholders `{apelido}`, `{mes_ano}`, `{cart_mes}`, `{cdi_mes}`, `{ibov_mes}`, `{ipca_mes}`, `{cart_ano}`, `{cart_12m}`, `{cdi_ano}`, `{cdi_12m}`, `{resultado}`, `{patrimonio}`, `{discurso_macro}`). Mudança no modelo é feita no repositório do plugin, não aqui.
