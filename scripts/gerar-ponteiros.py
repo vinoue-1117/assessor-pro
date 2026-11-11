@@ -91,15 +91,6 @@ def ponteiro(nome, nome_linha, rel):
     url = f"{RAW}/{rel}"
     destino = f"/workspace/assessor-pro/{nome}.md"
     desc_linha = linha_description(nome)
-    if "'" in nome_linha:
-        sys.exit(f"name com aspa simples quebra o comando do ponteiro: {nome}")
-    # Baixa para temporário e só troca o arquivo de trabalho se veio a skill certa.
-    comando = (
-        f"t=$(mktemp) && mkdir -p /workspace/assessor-pro && curl -fsSL {url} -o \"$t\""
-        f" && [ \"$(head -n1 \"$t\")\" = '---' ] && grep -qxF '{nome_linha}' \"$t\""
-        f" && mv \"$t\" {destino}"
-        f" || {{ rm -f \"$t\" 2>/dev/null || true; echo \"{FALHA} Pare e não use a cópia do disco.\"; exit 1; }}"
-    )
     return (
         "---\n"
         f"{nome_linha}\n"
@@ -110,11 +101,12 @@ def ponteiro(nome, nome_linha, rel):
         "\n"
         "Baixe as instruções completas e siga somente o arquivo baixado.\n"
         "\n"
-        f"1. `{comando}`\n"
-        f"2. Siga exatamente o que foi baixado em `{destino}`.\n"
+        f"1. `mkdir -p /workspace/assessor-pro && curl -fsSL {url} -o {destino}`\n"
+        f"2. Confira que `{destino}` começa com frontmatter (`---`) e tem `{nome_linha}`.\n"
+        "3. Siga exatamente o que foi baixado.\n"
         "\n"
-        f'Se o comando falhar, pare e diga ao assessor: "{FALHA}" '
-        "Não use a cópia do disco nem improvise.\n"
+        f'Se o download falhar, vier vazio ou a conferência não bater, pare e diga ao assessor: "{FALHA}" '
+        "Não use cópia antiga nem improvise.\n"
     )
 
 

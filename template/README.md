@@ -12,6 +12,4 @@ O assessor importa os bots por link, sem o Cursor. Cada skill em `template/skill
 
 Os bots leem sempre `stable`. A `main` não chega neles até essa promoção.
 
-4. Se o `gerar-ponteiros.py` mudou o corpo dos ponteiros (o texto ou o comando de download, não só a lista de skills), reimporte as skills em cada bot depois da promoção. O ponteiro instalado não muda com a promoção: só a skill completa que ele baixa muda.
-
 Só Victor Inoue deve ter escrita neste repositório.
