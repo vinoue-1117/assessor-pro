@@ -38,7 +38,7 @@ A description dos ponteiros em `template/skills/` é fixa (quando usar a skill) 
 
 ## Manutenção
 - Mudou algo? Suba a `version` em `plugins/<nome>/.cursor-plugin/plugin.json` e registre a mudança no commit.
-- Valide antes de cada commit: `node scripts/validate-template.mjs` e, se mexeu no `assessor.py`, `python tests/test_assessor.py`. Se mexeu num comando de download (`assessor.py`, `cliente.py` ou o dos ponteiros) ou no `versao-minima`, `python -m pytest tests/test_baixar_assessor.py` (requer `bash` e `curl`; no Windows os testes que executam o comando são pulados).
+- Valide antes de cada commit: `node scripts/validate-template.mjs` e, se mexeu no `assessor.py`, `python tests/test_assessor.py`. Se mexeu num comando de download (`assessor.py` ou `cliente.py`) ou no `versao-minima`, `python -m pytest tests/test_baixar_assessor.py` (requer `bash` e `curl`; no Windows os testes que executam o comando são pulados).
 - Skill passou a depender de algo novo no `assessor.py` (um subcomando, por exemplo)? Suba a versão na 1ª linha do script e o número em `plugins/assessor-envio/skills/assessor-preparar-envio/scripts/versao-minima` na mesma mudança, e ajuste o número fixo em `tests/test_baixar_assessor.py`. Sem isso, um bot com download falho aceita a versão anterior.
 - Nunca coloque dado de cliente neste repositório (nomes, contas, telefones, PDFs, planilhas). Ele é público.
 
