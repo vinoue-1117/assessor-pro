@@ -283,6 +283,31 @@ def test_xclip_ausente_mensagem_clara():
         assessor.subprocess.run = orig_run
 
 
+def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
+    """Discurso acima do teto para o preparo; mensagem acima do limite da legenda bloqueia só aquela conta."""
+    campos = {k: '1,23%' for k in ('cart_mes', 'cdi_mes', 'ibov_mes', 'ipca_mes', 'cart_ano', 'cart_12m', 'cdi_ano', 'cdi_12m')}
+    campos.update(resultado='R$ 1,00', patrimonio='R$ 2,00', data=('2026', '09', '30'))
+    orig = assessor.ler_pdf
+    assessor.ler_pdf = lambda pdf: ({**campos, 'conta': pdf.name.split()[2]}, [])
+    try:
+        zp, plan, disc, out = BASE / 'tam.zip', BASE / 'tam.csv', BASE / 'tam.md', BASE / 'lote-2026-09-30'
+        with zipfile.ZipFile(zp, 'w') as z:
+            for c, n in (('71', 'ANA'), ('72', 'BIA')):
+                z.writestr(f'XPerformance - {c} {n} - Ref.pdf', b'%PDF')
+        plan.write_text('conta,telefone,nome,apelido\n71,11 98765-4321,Ana,Ana\n72,11 98765-4322,Bia,' + 'B' * 700 + '\n', encoding='utf-8')
+        disc.write_text('<!-- referência: 09/2026 -->\n' + 'x' * (assessor.TETO_DISCURSO + 1), encoding='utf-8')
+        saida, cod = rodar(assessor.main, zp, plan, disc)
+        assert 'teto' in str(cod) and not out.exists(), (saida, cod)
+        disc.write_text('<!-- referência: 09/2026 -->\n' + 'x' * assessor.TETO_DISCURSO, encoding='utf-8')
+        saida, cod = rodar(assessor.main, zp, plan, disc)
+        assert cod == 0, saida
+        with open(out / 'conferir-envios.csv', encoding='utf-8', newline='') as fh:
+            st = {r[0]: (r[4], r[5]) for r in csv.reader(fh)}
+        assert st['71'] == ('pronto', '') and st['72'][0] == 'bloqueado' and 'limite de 1024' in st['72'][1], st
+    finally:
+        assessor.ler_pdf = orig
+
+
 if __name__ == '__main__':
     for nome, f in list(globals().items()):
         if nome.startswith('test_'):

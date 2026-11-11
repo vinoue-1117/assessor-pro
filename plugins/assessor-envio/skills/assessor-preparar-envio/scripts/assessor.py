@@ -41,6 +41,9 @@ Segue seu relatório de {mes_ano}. Resumo:
 {discurso_macro}
 
 Qualquer dúvida, é só me chamar. Abraço!"""
+LIMITE_MSG=1024# legenda de anexo do WhatsApp: o que passa disso é cortado
+TETO_DISCURSO=550# deixa a mensagem inteira abaixo de LIMITE_MSG com os números de qualquer cliente
+tam=lambda s:len(s.encode('utf-16-le'))//2# emoji conta 2: lado seguro, o limite foi medido só com letras e números
 norm=lambda s:U.normalize('NFKD',s or '').encode('ascii','ignore').decode().strip().lower()
 def ler_pdf(pdf):
     t=subprocess.run(['pdftotext','-raw','-f','1','-l','2',str(pdf),'-'],capture_output=True,text=True).stdout.replace('\xa0',' ')
@@ -295,6 +298,7 @@ def importar(planilha):
 def main(zp,planilha,disc):
     discurso,mref=ler_discurso(disc)
     if not discurso:sys.exit('discurso macro vazio')
+    if len(discurso)>TETO_DISCURSO:sys.exit(f'discurso macro com {len(discurso)} caracteres: o teto e {TETO_DISCURSO}. Encurte o discurso antes de preparar')
     tmp=BASE/'_pdfs';shutil.rmtree(tmp,ignore_errors=True)
     pdfs={};dup=[];nomes={}
     with zipfile.ZipFile(zp) as z:
@@ -333,6 +337,7 @@ def main(zp,planilha,disc):
             if nomes[c] and (not nn or norm(nomes[c]).split()[0]!=nn[0]):rev.append(f'nome no PDF "{nomes[c]}" ≠ planilha "{l["nome"]}"')
             if not err:
                 msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,**f)
+                if tam(msg)>LIMITE_MSG:bloq.append(f'mensagem com {tam(msg)} caracteres, acima do limite de {LIMITE_MSG}')
                 p=out/c;p.mkdir();shutil.copy(d,p/'relatorio.pdf');(p/'mensagem.txt').write_text(msg,encoding='utf-8')
         res.append([c,l['nome'],ap,tel or l['telefone'],'bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev),aviso])
     for c,(d,f,err) in pdfs.items():res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha',''])
