@@ -28,7 +28,7 @@ Três blocos, nesta ordem, separados por uma linha em branco:
 ```
 
 - `MM/YYYY` é o mês do relatório de performance que vai junto (em geral, o mês anterior ao da capa do PDF).
-- Cada bloco com até ~250 caracteres. O total, sem a linha de comentário, tem teto de 550 caracteres, sem exceção: a mensagem inteira do cliente (números mais discurso) precisa caber nos 1.024 caracteres que o WhatsApp aceita na legenda de um anexo. O `assessor.py` aplica o mesmo teto (`TETO_DISCURSO`, contado com `len`) e recusa o lote se o discurso passar.
+- O total, sem a linha de comentário, tem teto de 550 caracteres, sem exceção: a mensagem inteira do cliente (números mais discurso) precisa caber nos 1.024 caracteres que o WhatsApp aceita na legenda de um anexo. O `assessor.py` aplica o mesmo teto (`TETO_DISCURSO`, contado com `len`) e recusa o lote se o discurso passar.
 - Negrito do WhatsApp é `*texto*`. Sem `#` no início de linha de conteúdo: o script ignora essas linhas.
 
 ## Regras de conteúdo

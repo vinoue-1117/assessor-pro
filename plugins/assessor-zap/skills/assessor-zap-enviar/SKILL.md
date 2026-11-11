@@ -40,8 +40,8 @@ Valem imediatamente antes de cada envio. PDF e texto são envios separados. A ol
 1. No WhatsApp Web, abra a conversa seguindo "Abrir e fechar conversas" do core: pelo telefone use `https://web.whatsapp.com/send?phone=<só dígitos com DDI>`; pelo nome, só um único resultado com o nome exato. Chat "você"/"(você)" = mensagem para si mesmo. No teste, abra só esse chat.
 2. Confira o topo ao abrir. Se não for o destinatário autorizado, saia sem digitar e sem anexar: `falhou`.
 3. **Só texto**: trava de destinatário; trava de texto (Shell `copiar`, subagente Ctrl+V, Shell `marcar`, subagente Ctrl+A e Ctrl+C, Shell `conferir-caixa`); só com `bate`, Enter.
-4. **Só arquivo**: trava de destinatário; clipe/"+" → Documento → selecione o arquivo → confira o nome → sem legenda → envie. Se o topo na prévia não for o destinatário autorizado, cancele sem enviar.
-5. **Texto e arquivo**: duas mensagens, nesta ordem. (a) Trava de destinatário e envie o arquivo como Documento, sem legenda. Se a trava falhar, pare: não anexe e não envie o texto. (b) Trava de destinatário de novo e a trava de texto no mesmo caminho. Sem `bate`: limpe a caixa, não envie o texto e não reenvie o arquivo.
+4. **Só arquivo**: trava de destinatário; clipe/"+" → Documento → selecione o arquivo → confira o nome → deixe vazio o campo "Digite uma mensagem" da prévia, embaixo da miniatura → envie. Se o topo na prévia não for o destinatário autorizado, cancele sem enviar.
+5. **Texto e arquivo**: duas mensagens, nesta ordem. (a) Trava de destinatário e envie o arquivo como Documento, com o campo "Digite uma mensagem" da prévia (embaixo da miniatura) vazio. Se a trava falhar, pare: não anexe e não envie o texto. (b) Trava de destinatário de novo e a trava de texto no mesmo caminho. Sem `bate`: limpe a caixa, não envie o texto e não reenvie o arquivo.
 6. Cada pedido é atendido uma vez. Pacote pela metade não segue e não tem retry automático. `falhou` diz o que saiu e o que não saiu.
 
 ## Conferir e reportar
