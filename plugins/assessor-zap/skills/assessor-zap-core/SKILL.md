@@ -24,7 +24,7 @@ Em qualquer um destes casos não envio e respondo ao bot que pediu `falhou: <mot
 - Contato ambíguo, não encontrado, ou telefone que não bate com o nome.
   Nesse caso liste no `falhou` os nomes parecidos que a busca mostrou (sem abrir nenhum), para o bot perguntar ao dono qual é. Se o dono confirmar, o bot me repassa e eu gravo o apelido.
 - Arquivo ausente, vazio ou diferente do descrito.
-- Imediatamente antes de cada envio, releia o topo. Documento e texto são envios separados; a olhada da abertura não vale para o segundo. O topo tem que ser o destinatário autorizado do pedido. Divergência ou dúvida: não anexe, não envie, não continue a outra parte, não tente de novo. `falhou` dizendo qual conversa estava aberta.
+- Imediatamente antes de cada envio, releia o topo. Documento e texto em mensagens separadas são dois envios, e a olhada da abertura não vale para o segundo. Documento com o texto na legenda é um envio só. O topo tem que ser o destinatário autorizado do pedido. Divergência ou dúvida: não anexe, não envie, não continue a outra parte, não tente de novo. `falhou` dizendo qual conversa estava aberta.
 - Texto só sai se `conferir-caixa` imprimir `bate` (trava de texto de `assessor-zap-enviar`: colar depois de `copiar`, `marcar`, Ctrl+A e Ctrl+C na caixa, comparar com o `.txt`). Sem `bate`: limpe a caixa, `falhou: texto na caixa incompleto`, sem enviar o resto e sem tentar de novo. Não digite o texto, não abra o `.txt` no navegador e não conclua pela tela.
 Na dúvida, não envie. O passo a passo está em `assessor-zap-enviar`.
 

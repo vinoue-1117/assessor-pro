@@ -1,13 +1,13 @@
 ---
 name: assessor-envio-teste
-description: 'Use quando o assessor quiser ver como um relatório chega no WhatsApp antes do envio real: manda um pacote só para o chat "Você" e confirma PDF e texto em separado. Nenhum cliente recebe nada.'
+description: 'Use quando o assessor quiser ver como um relatório chega no WhatsApp antes do envio real: manda um pacote só para o chat "Você" e confirma o PDF e o texto da legenda. Nenhum cliente recebe nada.'
 ---
 
 # Envio de teste
 
 Mesmo fluxo do `assessor-enviar-relatorio`, mas para UM pacote e com destino no próprio assessor. Nenhum cliente recebe nada.
 
-Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cliente enquanto ele não confirmar que viu os dois.
+Confirme com o assessor o PDF e o texto da legenda. Não ofereça envio a cliente enquanto ele não confirmar que viu os dois.
 
 ## Passos
 1. Lote: o `assessor_lote_pendente` da memória (ou o `lote-<ref>` mais recente em `/workspace/assessor/`). Se não há lote, rode antes o `assessor-preparar-envio`.
@@ -19,13 +19,13 @@ Confirme com o assessor, em separado, o PDF e o texto. Não ofereça envio a cli
    Destinatário autorizado: somente o chat "Você" / "(você)" (mensagem para si mesmo). NÃO abrir e NÃO enviar ao cliente. O nome dentro do texto ou do PDF não é o destino.
    PDF: /workspace/assessor/lote-<ref>/<conta_xp>/relatorio.pdf
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
-   Enviar exatamente: primeiro o PDF como documento sem legenda, depois o texto do arquivo (mensagem normal). Não altere o texto. Não abra o .txt no navegador e não digite o texto.
-   Imediatamente antes de cada um (PDF e texto), confira o topo. Se não for o chat "Você", não anexe e não envie.
-   O texto só entra na caixa colado depois de `copiar` nesse caminho. Confira com `conferir-caixa`. Só envie o texto se a saída for `bate`. Sem `bate`: falhou, sem retry, sem pacote pela metade.
-   Responda: enviado | <destinatário> | <HH:MM> | pdf <tiques> | texto <tiques>, ou falhou: <motivo> | pdf enviado|não enviado | texto enviado|não enviado.
+   Enviar exatamente: o PDF como documento com o texto do arquivo na legenda, numa mensagem só (arquivo com legenda). Não altere o texto. Não abra o .txt no navegador e não digite o texto.
+   Imediatamente antes de anexar e antes de enviar, confira o topo. Se não for o chat "Você", não anexe e não envie.
+   O texto só entra na legenda colado depois de `copiar` nesse caminho. Confira com `conferir-caixa`. Só envie se a saída for `bate`. Sem `bate`: cancele a prévia sem enviar, falhou, sem retry.
+   Responda: enviado | <destinatário> | <HH:MM> | <tiques>, ou falhou: <motivo>.
    ```
-5. Registre com o script do passo 4 (nunca escreva `historico-envios.csv` à mão): `python3 /workspace/assessor/assessor.py registrar <ref> <conta_xp> "teste: enviado" <HH:MM>` só se PDF e texto tiverem saído no chat "Você". Se um faltar: `"teste: falhou <motivo>"` dizendo qual saiu e qual não saiu (não conta como envio real).
-6. Relate ao assessor os dois resultados em separado: PDF sem legenda no chat "Você", e texto integral no chat "Você". Não diga que o teste chegou se um dos dois faltou. Só então pergunte se quer ajustar algo (planilha/discurso) e preparar de novo, ou aprovar o lote.
+5. Registre com o script do passo 4 (nunca escreva `historico-envios.csv` à mão): `python3 /workspace/assessor/assessor.py registrar <ref> <conta_xp> "teste: enviado" <HH:MM>` só se a mensagem saiu no chat "Você". Se não saiu: `"teste: falhou <motivo>"` (não conta como envio real).
+6. Relate ao assessor o resultado: o PDF no chat "Você", com o texto integral na legenda. Não diga que o teste chegou se a mensagem não saiu. Só então pergunte se quer ajustar algo (planilha/discurso) e preparar de novo, ou aprovar o lote.
 
 ## Regras
 - Nunca use o telefone nem o nome do cliente como destino do teste. Se o bot de WhatsApp não achar o chat "Você", ele deve falhar, não escolher outro contato.
