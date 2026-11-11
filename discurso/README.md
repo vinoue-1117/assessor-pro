@@ -9,5 +9,6 @@ https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discu
 - Só o texto resumido do mês. Nada de dado de cliente (nomes, contas, valores individuais, telefones).
 - A linha `<!-- referência: MM/AAAA -->` é obrigatória: MM/AAAA é o mês do relatório de performance que vai junto. O `assessor.py` recusa o lote de outro mês, então um discurso esquecido não é reaproveitado.
 - Linhas que começam com `#` ou `<!--` são ignoradas pelo script. As demais entram como estão: quebras de linha, linhas em branco entre blocos (várias seguidas viram uma), negrito do WhatsApp (`*texto*`) e emojis.
-- A mensagem inteira (saudação, números, discurso e despedida) vai como texto normal no WhatsApp, em mensagem separada do PDF. O documento sai sem legenda, e o tamanho do texto não marca o pacote como `revisar`.
+- O discurso tem teto de 550 caracteres, sem contar a linha de comentário. Com esse teto, a mensagem inteira (saudação, números, discurso e despedida) fica abaixo dos 1.024 caracteres que o WhatsApp aceita na legenda de um anexo. Quem conta é a skill `discurso-mensal`; o `assessor.py` não confere o tamanho.
+- A mensagem vai como texto normal no WhatsApp, em mensagem separada do PDF, e o documento sai sem legenda. O tamanho do texto não marca o pacote como `revisar`.
 - Enquanto o arquivo disser "ainda não publicado", o `assessor-preparar-envio` para e avisa, em vez de montar mensagens sem cenário.
