@@ -310,10 +310,10 @@ def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
 
 def test_ler_pdf_janelas_conforme_cobertura():
     """Conta sem histórico traz "-" na tabela de referências: sai lida, e a mensagem mostra só as janelas em que a carteira tem valor."""
-    def texto(cart, cdi='1,07% 11,70% 12,62% 12,62%'):
+    def texto(cart, cdi='1,07% 11,70% 12,00% 12,00%'):
         # pdftotext -raw das páginas 1-2, anonimizado: só capa, campos e tabela de referências
         return ('Conta Assessor Data de Referência\n123 Exclusive Assessor Teste 30/10/2026\n'
-                'PATRIMÔNIO TOTAL BRUTO:\nR$ 1.234,56\nRENTABILIDADE MÊS:\n0,98%\nGANHO MÊS:\nR$ 12,34\n'
+                'PATRIMÔNIO TOTAL BRUTO:\nR$ 1.234,56\nRENTABILIDADE MÊS:\n1,11%\nGANHO MÊS:\nR$ 12,34\n'
                 f'Referências (%) Mês Ano 12M 24M\nPortfólio {cart}\nCDI {cdi}\n'
                 'Ibovespa -9,88% 4,22% - -\nIPCA 0,21% 4,17% 4,40% 4,40%\n')
     orig = assessor.subprocess.run
@@ -321,16 +321,16 @@ def test_ler_pdf_janelas_conforme_cobertura():
         def ler(*a):
             assessor.subprocess.run = lambda *x, **k: type('R', (), {'stdout': texto(*a)})()
             return assessor.ler_pdf('x.pdf')
-        f, err = ler('0,98% 11,83% 13,69% 29,29%')
-        assert not err and assessor.janelas(f) == '📈 *No ano / 12M*\n• Carteira: 11,83% / 13,69%\n• CDI: 11,70% / 12,62%\n\n', (f, err)
-        f, err = ler('0,98% 11,83% 13,69% -')
+        f, err = ler('1,11% 10,10% 12,12% 25,25%')
+        assert not err and assessor.janelas(f) == '📈 *No ano / 12M*\n• Carteira: 10,10% / 12,12%\n• CDI: 11,70% / 12,00%\n\n', (f, err)
+        f, err = ler('1,11% 10,10% 12,12% -')
         assert not err and 'No ano / 12M' in assessor.janelas(f), err
-        f, err = ler('0,98% 11,83% - -')
-        assert not err and assessor.janelas(f) == '📈 *No ano*\n• Carteira: 11,83%\n• CDI: 11,70%\n\n', (f, err)
-        f, err = ler('0,98% - - -')
+        f, err = ler('1,11% 10,10% - -')
+        assert not err and assessor.janelas(f) == '📈 *No ano*\n• Carteira: 10,10%\n• CDI: 11,70%\n\n', (f, err)
+        f, err = ler('1,11% - - -')
         assert not err and assessor.janelas(f) == '', (f, err)
-        assert ler('- 11,83% 13,69% -')[1] == ['referências Portfólio']
-        assert ler('0,98% 11,83% 13,69% -', '1,07% 11,70% - -')[1] == ['referências CDI sem 12M']
+        assert ler('- 10,10% 12,12% -')[1] == ['referências Portfólio']
+        assert ler('1,11% 10,10% 12,12% -', '1,07% 11,70% - -')[1] == ['referências CDI sem 12M']
     finally:
         assessor.subprocess.run = orig
 
