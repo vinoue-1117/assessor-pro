@@ -23,9 +23,9 @@ A ativa é `/workspace/assessor/clientes.csv`, já limpa (ignore `clientes.bak-*
 ## Script
 Baixe o script a cada execução, da branch `stable`, para o caminho de trabalho. Não dependa de uma cópia que tenha vindo com o plugin: quando só existe o ponteiro, o arquivo não está ao lado desta skill.
 
-`mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-ajustar-cliente/scripts/cliente.py -o /workspace/assessor/cliente.py`
+`t=$(mktemp) && mkdir -p /workspace/assessor && curl -fsSL https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-ajustar-cliente/scripts/cliente.py -o "$t" && grep -q '^# cliente.py v' "$t" && mv "$t" /workspace/assessor/cliente.py || { rm -f "$t" 2>/dev/null || true; echo "Falha ao baixar o cliente.py. Pare e não use a cópia do disco."; exit 1; }`
 
-Confira que a 1ª linha de comentário começa com `# cliente.py v`. Se o download falhar ou a conferência não bater, pare. Não use cópia antiga. Nunca edite o script.
+Se falhar, pare e avise. Não use a cópia do disco. Nunca edite o script.
 
 Depois do sim, uma chamada por ajuste, na ordem pedida. Passe a planilha ativa. Aspas quando o valor tiver espaço:
 - `python3 /workspace/assessor/cliente.py <planilha> add <conta> <telefone> "<nome>" ["<apelido>"]`
