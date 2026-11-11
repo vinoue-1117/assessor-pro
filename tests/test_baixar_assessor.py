@@ -1,8 +1,10 @@
-"""Download do assessor.py: temporário, versão mínima num lugar só, sem cópia velha.
+"""Downloads das skills: temporário, conferência e só então o arquivo de trabalho.
 
-O mesmo comando está em toda skill que baixa o script. Ele só substitui o
-arquivo de trabalho se o download deu certo e a 1ª linha de versão é >= a
-mínima em versao-minima. Falha (URL quebrada ou v6) para e deixa o disco quieto.
+assessor.py: o mesmo comando está em toda skill que baixa o script. Ele só
+substitui o arquivo de trabalho se o download deu certo e a 1ª linha de versão
+é >= a mínima em versao-minima. Falha (URL quebrada ou v6) para e deixa o disco
+quieto. O cliente.py e a skill completa baixada pelos ponteiros seguem o mesmo
+formato, conferindo o prefixo da versão e o `name:` da skill.
 """
 import re
 import subprocess
@@ -98,7 +100,7 @@ def _servir():
     return srv
 
 
-def _rodar(cmd, dest, rotas):
+def _rodar(cmd, dest, rotas, base=BASE, workspace='/workspace/assessor'):
     if sys.platform == 'win32':
         pytest.skip('o comando de download roda no Shell do bot (Linux): no Windows o curl fica fora de /usr/bin e o caminho de destino tem barra invertida')
     _Handler.rotas = rotas
@@ -106,7 +108,7 @@ def _rodar(cmd, dest, rotas):
     try:
         porta = srv.server_address[1]
         local = f'http://127.0.0.1:{porta}/scripts'
-        c = cmd.replace(BASE, local).replace('/workspace/assessor', str(dest))
+        c = cmd.replace(base, local).replace(workspace, str(dest))
         tmp = dest.parent / 'tmp'
         tmp.mkdir()
         r = subprocess.run(['bash', '-c', c], capture_output=True, text=True, env={'PATH': '/usr/bin:/bin', 'TMPDIR': str(tmp)})
@@ -169,13 +171,91 @@ def test_download_v6_nao_troca():
     assert sobras == []
 
 
-def _preparar():
+def _preparar(arquivo='assessor.py'):
     import tempfile
     dest = Path(tempfile.mkdtemp()) / 'assessor'
     dest.mkdir()
     sentinela = b'SENTINELA copia antiga\n'
-    (dest / 'assessor.py').write_bytes(sentinela)
+    (dest / arquivo).write_bytes(sentinela)
     return dest, sentinela
+
+
+CLIENTE = PLUGINS / 'assessor-envio/skills/assessor-ajustar-cliente/scripts/cliente.py'
+URL_CLIENTE = 'https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/plugins/assessor-envio/skills/assessor-ajustar-cliente/scripts'
+TEMPLATE = ROOT / 'template' / 'skills'
+RAW = 'https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable'
+
+
+def comando_mktemp(path):
+    partes = re.findall(r'`(t=\$\(mktemp\)[^`]+)`', path.read_text(encoding='utf-8'))
+    assert len(partes) == 1, path
+    cmd = partes[0]
+    assert '-o "$t"' in cmd and 'mv "$t"' in cmd and 'Pare e não use a cópia do disco.' in cmd, path
+    return cmd
+
+
+def comando_cliente():
+    cmd = comando_mktemp(PLUGINS / 'assessor-envio/skills/assessor-ajustar-cliente/SKILL.md')
+    assert cmd.count(URL_CLIENTE + '/cliente.py') == 1 and "grep -q '^# cliente.py v'" in cmd
+    for path in PLUGINS.glob('*/skills/*/SKILL.md'):
+        assert '-o /workspace/assessor/cliente.py' not in path.read_text(encoding='utf-8'), path
+    return cmd
+
+
+def test_comando_dos_ponteiros():
+    ponteiros = sorted(TEMPLATE.glob('*/SKILL.md'))
+    assert ponteiros
+    for path in ponteiros:
+        nome = path.parent.name
+        cmd = comando_mktemp(path)
+        assert f"grep -qxF 'name: {nome}'" in cmd, nome
+        assert f'mv "$t" /workspace/assessor-pro/{nome}.md' in cmd, nome
+        assert '-o /workspace/assessor-pro/' not in cmd, nome
+
+
+def test_cliente_sucesso_substitui():
+    dest, sentinela = _preparar('cliente.py')
+    r, sobras = _rodar(comando_cliente(), dest, {'/scripts/cliente.py': CLIENTE.read_bytes()}, base=URL_CLIENTE)
+    assert r.returncode == 0, r.stderr + r.stdout
+    assert (dest / 'cliente.py').read_bytes() == CLIENTE.read_bytes()
+    assert sobras == []
+
+
+def test_cliente_url_quebrada_nao_troca():
+    dest, sentinela = _preparar('cliente.py')
+    r, sobras = _rodar(comando_cliente(), dest, {}, base=URL_CLIENTE)
+    assert r.returncode != 0
+    assert (dest / 'cliente.py').read_bytes() == sentinela
+    assert 'Pare e não use a cópia do disco.' in r.stdout
+    assert sobras == []
+
+
+def _rodar_ponteiro(corpo):
+    nome = 'assessor-envio-teste'
+    cmd = comando_mktemp(TEMPLATE / nome / 'SKILL.md')
+    dest, sentinela = _preparar(f'{nome}.md')
+    rotas = {} if corpo is None else {'/scripts/SKILL.md': corpo}
+    r, sobras = _rodar(cmd, dest, rotas, base=f'{RAW}/plugins/assessor-envio/skills/{nome}', workspace='/workspace/assessor-pro')
+    return r, sobras, (dest / f'{nome}.md').read_bytes(), sentinela
+
+
+def test_ponteiro_sucesso_substitui():
+    corpo = (PLUGINS / 'assessor-envio/skills/assessor-envio-teste/SKILL.md').read_bytes()
+    r, sobras, final, _ = _rodar_ponteiro(corpo)
+    assert r.returncode == 0, r.stderr + r.stdout
+    assert final == corpo
+    assert sobras == []
+
+
+def test_ponteiro_falha_nao_troca():
+    outra = (PLUGINS / 'assessor-envio/skills/assessor-envio-core/SKILL.md').read_bytes()
+    # URL quebrada, página sem frontmatter, skill errada
+    for corpo in (None, b'<html>erro</html>\n', outra):
+        r, sobras, final, sentinela = _rodar_ponteiro(corpo)
+        assert r.returncode != 0, corpo
+        assert final == sentinela, corpo
+        assert 'Pare e não use a cópia do disco.' in r.stdout
+        assert sobras == []
 
 
 if __name__ == '__main__':
