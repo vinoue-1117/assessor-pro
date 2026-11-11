@@ -8,7 +8,7 @@ description: 'Use quando o assessor pedir por mensagem para adicionar, alterar o
 Altera só a cópia da planilha no computador do bot. O arquivo original do assessor não é editado. Nada é enviado.
 
 ## Planilha
-A ativa é `/workspace/assessor/clientes.csv`, já limpa (ignore `clientes.bak-*`). Se só existir `clientes.xlsx`, ou se o assessor mandar planilha nova, faça antes a limpeza de `assessor-envio-core` ("Planilha recebida"). Sem nenhuma: peça a planilha de clientes (`conta_xp` é o número da conta na corretora) e pare.
+A ativa é `/workspace/assessor/clientes.csv`, já limpa (ignore `clientes.bak-*`). Se o assessor mandar planilha nova, faça antes a limpeza de `assessor-envio-core` ("Planilha recebida"). Sem nenhuma: peça a planilha de clientes (`conta_xp` é o número da conta na corretora) e pare.
 
 ## Entender o pedido
 - Adicionar, alterar um campo ou remover. Vários ajustes na mesma mensagem são ok.

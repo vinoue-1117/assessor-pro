@@ -11,4 +11,3 @@ https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/discurso/discu
 - Linhas que começam com `#` ou `<!--` são ignoradas pelo script. As demais entram como estão: quebras de linha, linhas em branco entre blocos (várias seguidas viram uma), negrito do WhatsApp (`*texto*`) e emojis.
 - O discurso tem teto de 550 caracteres, sem contar a linha de comentário. Com esse teto, a mensagem inteira (saudação, números, discurso e despedida) fica abaixo dos 1.024 caracteres que o WhatsApp aceita na legenda de um anexo. O `assessor.py` recusa o lote com discurso acima do teto e bloqueia a conta cuja mensagem passe de 1.024.
 - A mensagem vai como texto normal no WhatsApp, em mensagem separada do PDF, e o documento sai sem legenda.
-- Enquanto o arquivo disser "ainda não publicado", o `assessor-preparar-envio` para e avisa, em vez de montar mensagens sem cenário.

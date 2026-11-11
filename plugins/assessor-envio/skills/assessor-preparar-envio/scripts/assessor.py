@@ -22,6 +22,7 @@ MESES='janeiro fevereiro março abril maio junho julho agosto setembro outubro n
 P=r'-?\d{1,3}(?:\.\d{3})*,\d{2}%';R=r'-?R\$ ?\d{1,3}(?:\.\d{3})*,\d{2}'
 CAMPOS={'patrimonio':('PATRIMÔNIO TOTAL BRUTO:',R),'cart_mes':('RENTABILIDADE MÊS:',P),'resultado':('GANHO MÊS:',R)}
 IND={'Portfólio':'cart','CDI':'cdi','Ibovespa':'ibov','IPCA':'ipca'}
+JANELAS={'ano':'No ano','12m':'12M'}
 MODELO="""Olá, {apelido}!
 
 Segue seu relatório de {mes_ano}. Resumo:
@@ -30,11 +31,7 @@ Segue seu relatório de {mes_ano}. Resumo:
 • Carteira: *{cart_mes}*
 • CDI: {cdi_mes} | Ibovespa: {ibov_mes} | IPCA: {ipca_mes}
 
-📈 *No ano / 12M*
-• Carteira: {cart_ano} / {cart_12m}
-• CDI: {cdi_ano} / {cdi_12m}
-
-💰 Resultado no mês: *{resultado}*
+{janelas}💰 Resultado no mês: *{resultado}*
 🏦 Patrimônio bruto: *{patrimonio}*
 
 🌎 *Cenário do mês*
@@ -56,10 +53,18 @@ def ler_pdf(pdf):
         if m:f[k]=m[1]
         else:err.append(k)
     for nome,k in IND.items():
-        m=re.search(r'^'+nome+' '+' '.join(['('+P+')']*4)+'$',t,re.M)
-        if m:f.update({k+'_mes':m[1],k+'_ano':m[2],k+'_12m':m[3],k+'_24m':m[4]})
+        m=re.search(r'^'+nome+' ('+P+')'+(r' ((?:'+P+r'|-))')*3+'$',t,re.M)# conta sem histórico traz "-" em ano, 12M ou 24M; o mês é obrigatório
+        if m:f.update({k+'_mes':m[1],k+'_ano':m[2],k+'_12m':m[3]})
         else:err.append('referências '+nome)
+    for j,rot in JANELAS.items():
+        if f.get('cart_'+j,'-')!='-' and f.get('cdi_'+j)=='-':err.append('referências CDI sem '+rot.split()[-1])
     return f,err
+def janelas(f):
+    """Bloco "No ano / 12M" só com as janelas em que a carteira tem rentabilidade: sem a carteira, o CDI da janela cobre outro período."""
+    js=[j for j in JANELAS if f.get('cart_'+j,'-')!='-']
+    if not js:return ''
+    lin=lambda k:' / '.join(f[k+'_'+j] for j in js)
+    return f"📈 *{' / '.join(JANELAS[j] for j in js)}*\n• Carteira: {lin('cart')}\n• CDI: {lin('cdi')}\n\n"
 def ler_planilha(p):
     p=Path(p)
     if p.suffix.lower()=='.xlsx':
@@ -336,7 +341,7 @@ def main(zp,planilha,disc):
             nn=norm(l['nome']).split()
             if nomes[c] and (not nn or norm(nomes[c]).split()[0]!=nn[0]):rev.append(f'nome no PDF "{nomes[c]}" ≠ planilha "{l["nome"]}"')
             if not err:
-                msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,**f)
+                msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,janelas=janelas(f),**f)
                 if tam(msg)>LIMITE_MSG:bloq.append(f'mensagem com {tam(msg)} caracteres, acima do limite de {LIMITE_MSG}')
                 p=out/c;p.mkdir();shutil.copy(d,p/'relatorio.pdf');(p/'mensagem.txt').write_text(msg,encoding='utf-8')
         res.append([c,l['nome'],ap,tel or l['telefone'],'bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev),aviso])
