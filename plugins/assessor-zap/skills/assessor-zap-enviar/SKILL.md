@@ -5,7 +5,7 @@ description: 'Use quando outro bot pedir para enviar no WhatsApp um texto e/ou u
 
 # Enviar no WhatsApp Web
 
-O bot principal roda Shell. O subagente de desktop só clica e aperta tecla no navegador. Um entrega para o outro nesta ordem, e cada um espera o anterior terminar: o Shell acaba o comando, aí o subagente age; o subagente acaba a tecla, aí o Shell roda o próximo comando. Não inverta e não faça o trabalho do outro.
+O bot principal roda Shell. O subagente de desktop só clica e aperta tecla no navegador. Um entrega para o outro nesta ordem, e cada um espera o anterior terminar: o Shell acaba o comando, aí o subagente age; o subagente acaba a tecla, aí o Shell roda o próximo comando. Não inverta e não faça o trabalho do outro. Cada ação do subagente é um passo só: o Enter que envia vai sozinho, nunca junto com o passo seguinte nem com outro pacote.
 
 `A` abaixo é `python3 /workspace/assessor/assessor.py`, depois do download. `copiar`, `marcar` e `conferir-caixa` usam o `DISPLAY` do ambiente: tem que ser o display do desktop do bot, o mesmo em que o subagente clica.
 
@@ -24,7 +24,7 @@ Valem imediatamente antes de cada envio. PDF e texto são envios separados. A ol
 1. **Destinatário.** Antes de anexar e antes de apertar enviar, leia o topo de novo. Tem que ser o destinatário autorizado: nome ou telefone do pedido; no teste, "Você" ou "(você)". Parecido, parcial, grupo ou outro contato não conta. Divergência ou dúvida: não anexe, não envie, não mande a outra parte e não tente de novo. Feche a conversa. `falhou: topo é <o que está no topo>, não <destinatário autorizado>`.
 2. **Texto.** A caixa não mostra o texto longo inteiro. Isso não é falha de colagem e não se resolve olhando a tela. A prova é só a saída de `conferir-caixa`.
    1. Shell: `A copiar <caminho>` de novo, imediatamente antes de colar. Sem `copiado`, não cole e não digite. `vazio` → responda `falhou: vazio`; outra linha `falhou: …` → responda essa linha. Se o PDF já saiu, diga isso no retorno. Sem retry.
-   2. Subagente: foque a caixa de mensagem e aperte Ctrl+V.
+   2. Subagente: foque a caixa de mensagem, apague o que houver nela (Ctrl+A e Delete: um envio interrompido deixa rascunho na caixa) e aperte Ctrl+V.
    3. Shell, só depois desse Ctrl+V: `A marcar`. Só `marcado` segue. Isso tira da área de transferência o texto do `copiar`: se o Ctrl+C do próximo passo não acontecer, a conferência lê a marca e não bate.
    4. Subagente: dentro da caixa, Ctrl+A e depois Ctrl+C. Isso põe na área de transferência o que a caixa tem.
    5. Shell, só depois desse Ctrl+C: `A conferir-caixa <caminho>`.
@@ -39,10 +39,11 @@ Valem imediatamente antes de cada envio. PDF e texto são envios separados. A ol
 ## Envio
 1. No WhatsApp Web, abra a conversa seguindo "Abrir e fechar conversas" do core: pelo telefone use `https://web.whatsapp.com/send?phone=<só dígitos com DDI>`; pelo nome, só um único resultado com o nome exato. Chat "você"/"(você)" = mensagem para si mesmo. No teste, abra só esse chat.
 2. Confira o topo ao abrir. Se não for o destinatário autorizado, saia sem digitar e sem anexar: `falhou`.
-3. **Só texto**: trava de destinatário; trava de texto (Shell `copiar`, subagente Ctrl+V, Shell `marcar`, subagente Ctrl+A e Ctrl+C, Shell `conferir-caixa`); só com `bate`, Enter.
+3. **Só texto**: trava de destinatário; trava de texto (Shell `copiar`, subagente Ctrl+A, Delete e Ctrl+V, Shell `marcar`, subagente Ctrl+A e Ctrl+C, Shell `conferir-caixa`); só com `bate`, Enter.
 4. **Só arquivo**: trava de destinatário; clipe/"+" → Documento → selecione o arquivo → confira o nome → deixe vazio o campo "Digite uma mensagem" da prévia, embaixo da miniatura → envie. Se o topo na prévia não for o destinatário autorizado, cancele sem enviar.
 5. **Texto e arquivo**: duas mensagens, nesta ordem. (a) Trava de destinatário e envie o arquivo como Documento, com o campo "Digite uma mensagem" da prévia (embaixo da miniatura) vazio. Se a trava falhar, pare: não anexe e não envie o texto. (b) Trava de destinatário de novo e a trava de texto no mesmo caminho. Sem `bate`: limpe a caixa, não envie o texto e não reenvie o arquivo.
-6. Cada pedido é atendido uma vez. Pacote pela metade não segue e não tem retry automático. `falhou` diz o que saiu e o que não saiu.
+6. Pedido com vários pacotes: um pacote inteiro por vez, na ordem do pedido (abrir, PDF, texto, tiques). O próximo só começa depois dos tiques do anterior.
+7. Cada pedido é atendido uma vez. Pacote pela metade não segue e não tem retry automático. `falhou` diz o que saiu e o que não saiu.
 
 ## Conferir e reportar
 1. Espere cada mensagem que saiu deixar o relógio: ✓ enviado, ✓✓ entregue, ✓✓ azul lido. Não marque como enviada uma parte que você não viu sair.
