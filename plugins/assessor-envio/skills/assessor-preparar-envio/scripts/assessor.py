@@ -57,7 +57,7 @@ def ler_pdf(pdf):
         if m:f.update({k+'_mes':m[1],k+'_ano':m[2],k+'_12m':m[3]})
         else:err.append('referências '+nome)
     for j,rot in JANELAS.items():
-        if f.get('cart_'+j,'-')!='-' and f.get('cdi_'+j)=='-':err.append('referências CDI sem '+rot)
+        if f.get('cart_'+j,'-')!='-' and f.get('cdi_'+j)=='-':err.append('referências CDI sem '+rot.split()[-1])
     return f,err
 def janelas(f):
     """Bloco "No ano / 12M" só com as janelas em que a carteira tem rentabilidade: sem a carteira, o CDI da janela cobre outro período."""

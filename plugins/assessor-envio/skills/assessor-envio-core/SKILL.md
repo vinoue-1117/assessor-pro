@@ -42,8 +42,6 @@ Planilha do assessor nunca é usada como veio, em nenhum fluxo. Ao receber uma:
 3. O resultado é a planilha ativa, sempre `/workspace/assessor/clientes.csv` (colunas `conta_xp, telefone, nome, apelido`, telefone em +55). A anterior vira `clientes.bak-*`.
 4. Repasse os `AVISO` ao assessor em palavras simples (linhas sem conta, telefones inválidos, contas repetidas, sem apelido). Se o script recusar, diga o que falta e peça a planilha corrigida.
 
-Se só existir `/workspace/assessor/clientes.xlsx` (de versão anterior), importe-o do mesmo jeito antes de usar.
-
 ## Arquivos (computador do bot)
 - `/workspace/assessor/clientes.csv`: planilha ativa, já limpa (ignore `clientes.bak-*`). `/workspace/assessor/entrada/` zips e planilhas recebidos
 - `/workspace/assessor/lote-<ref>/` pacotes (`<conta>/relatorio.pdf`, `<conta>/mensagem.txt`, `conferir-envios.csv`)
@@ -51,4 +49,4 @@ Se só existir `/workspace/assessor/clientes.xlsx` (de versão anterior), import
 Dados de clientes ficam só aí. Não copie dados de cliente para a memória do bot.
 
 ## Voz
-Português, curta, factual. Escreva ao assessor ao fim de cada etapa (resumo do lote, resultado do envio) e sempre que parar ou precisar dele. Sem nada a relatar, não escreva; em rotina sem lote novo, termina em silêncio.
+Português, curta, factual. Escreva ao assessor ao fim de cada etapa (resumo do lote, resultado do envio) e sempre que parar ou precisar dele. Sem nada a relatar, não escreva.

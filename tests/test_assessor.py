@@ -284,17 +284,20 @@ def test_xclip_ausente_mensagem_clara():
 
 
 def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
-    """Discurso acima do teto para o preparo; mensagem acima do limite da legenda bloqueia só aquela conta."""
+    """Discurso acima do teto para o preparo; mensagem acima do limite da legenda bloqueia só aquela conta; o bloco de janelas entra na mensagem sem linha em branco sobrando nem faltando."""
     campos = {k: '1,23%' for k in ('cart_mes', 'cdi_mes', 'ibov_mes', 'ipca_mes', 'cart_ano', 'cart_12m', 'cdi_ano', 'cdi_12m')}
     campos.update(resultado='R$ 1,00', patrimonio='R$ 2,00', data=('2026', '09', '30'))
     orig = assessor.ler_pdf
-    assessor.ler_pdf = lambda pdf: ({**campos, 'conta': pdf.name.split()[2]}, [])
+    def ler(pdf):
+        c = pdf.name.split()[2]
+        return {**campos, **({'cart_ano': '-', 'cart_12m': '-'} if c == '73' else {}), 'conta': c}, []
+    assessor.ler_pdf = ler
     try:
         zp, plan, disc, out = BASE / 'tam.zip', BASE / 'tam.csv', BASE / 'tam.md', BASE / 'lote-2026-09-30'
         with zipfile.ZipFile(zp, 'w') as z:
-            for c, n in (('71', 'ANA'), ('72', 'BIA')):
+            for c, n in (('71', 'ANA'), ('72', 'BIA'), ('73', 'CAIO')):
                 z.writestr(f'XPerformance - {c} {n} - Ref.pdf', b'%PDF')
-        plan.write_text('conta,telefone,nome,apelido\n71,11 98765-4321,Ana,Ana\n72,11 98765-4322,Bia,' + 'B' * 700 + '\n', encoding='utf-8')
+        plan.write_text('conta,telefone,nome,apelido\n71,11 98765-4321,Ana,Ana\n73,11 98765-4323,Caio,Caio\n72,11 98765-4322,Bia,' + 'B' * 700 + '\n', encoding='utf-8')
         disc.write_text('<!-- referência: 09/2026 -->\n' + 'x' * (assessor.TETO_DISCURSO + 1), encoding='utf-8')
         saida, cod = rodar(assessor.main, zp, plan, disc)
         assert 'teto' in str(cod) and not out.exists(), (saida, cod)
@@ -303,7 +306,10 @@ def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
         assert cod == 0, saida
         with open(out / 'conferir-envios.csv', encoding='utf-8', newline='') as fh:
             st = {r[0]: (r[4], r[5]) for r in csv.reader(fh)}
-        assert st['71'] == ('pronto', '') and st['72'][0] == 'bloqueado' and 'limite de 1024' in st['72'][1], st
+        assert st['71'] == ('pronto', '') and st['73'] == ('pronto', '') and st['72'][0] == 'bloqueado' and 'limite de 1024' in st['72'][1], st
+        msg = lambda c: (out / c / 'mensagem.txt').read_text(encoding='utf-8')
+        assert '| IPCA: 1,23%\n\n📈 *No ano / 12M*\n• Carteira: 1,23% / 1,23%\n• CDI: 1,23% / 1,23%\n\n💰 Resultado' in msg('71'), msg('71')
+        assert '| IPCA: 1,23%\n\n💰 Resultado' in msg('73'), msg('73')
     finally:
         assessor.ler_pdf = orig
 
@@ -321,16 +327,18 @@ def test_ler_pdf_janelas_conforme_cobertura():
         def ler(*a):
             assessor.subprocess.run = lambda *x, **k: type('R', (), {'stdout': texto(*a)})()
             return assessor.ler_pdf('x.pdf')
+        completo = '📈 *No ano / 12M*\n• Carteira: 10,10% / 12,12%\n• CDI: 11,70% / 12,00%\n\n'
         f, err = ler('1,11% 10,10% 12,12% 25,25%')
-        assert not err and assessor.janelas(f) == '📈 *No ano / 12M*\n• Carteira: 10,10% / 12,12%\n• CDI: 11,70% / 12,00%\n\n', (f, err)
+        assert not err and assessor.janelas(f) == completo, (f, err)
         f, err = ler('1,11% 10,10% 12,12% -')
-        assert not err and 'No ano / 12M' in assessor.janelas(f), err
+        assert not err and assessor.janelas(f) == completo, (f, err)
         f, err = ler('1,11% 10,10% - -')
         assert not err and assessor.janelas(f) == '📈 *No ano*\n• Carteira: 10,10%\n• CDI: 11,70%\n\n', (f, err)
         f, err = ler('1,11% - - -')
         assert not err and assessor.janelas(f) == '', (f, err)
         assert ler('- 10,10% 12,12% -')[1] == ['referências Portfólio']
         assert ler('1,11% 10,10% 12,12% -', '1,07% 11,70% - -')[1] == ['referências CDI sem 12M']
+        assert ler('1,11% 10,10% - -', '1,07% - - -')[1] == ['referências CDI sem ano']
     finally:
         assessor.subprocess.run = orig
 
