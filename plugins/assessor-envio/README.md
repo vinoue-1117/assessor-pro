@@ -18,7 +18,7 @@ Perfil do bot: `Siga a skill assessor-envio-core em toda conversa.`
 ## Script
 `skills/assessor-preparar-envio/scripts/assessor.py` (Python 3 + `pdftotext`): descompacta o zip, lê cada PDF, cruza com a planilha e grava `/workspace/assessor/lote-<ref>/` com `relatorio.pdf` + `mensagem.txt` por conta e um `conferir-envios.csv` com status `pronto` / `revisar` / `bloqueado`. Sem IA no conteúdo.
 
-Uso: `python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md`. A planilha aceita variações de nome de coluna, linhas de título acima do cabeçalho e telefone com ou sem 55 (normalizado para `+55DDDNÚMERO`); apelido vazio usa o 1º nome sem mudar o status. O discurso precisa da linha `referência: MM/AAAA` igual ao mês do lote. A saída termina com `CODIGO <código>`, a impressão digital do conteúdo do lote.
+Uso: `python3 assessor.py LOTE.zip CLIENTES.csv|.xlsx DISCURSO.md`. A planilha aceita variações de nome de coluna, linhas de título acima do cabeçalho e telefone com ou sem 55 (normalizado para `+55DDDNÚMERO`); apelido vazio usa o 1º nome sem mudar o status. O discurso precisa da linha `referência: MM/AAAA` igual ao mês do lote e de no máximo 550 caracteres; acima disso o preparo para. Conta cuja mensagem passe de 1.024 caracteres (limite da legenda de anexo do WhatsApp) sai `bloqueado`. A saída termina com `CODIGO <código>`, a impressão digital do conteúdo do lote.
 
 Limpeza da planilha, antes de qualquer uso: `importar PLANILHA` lê a planilha do assessor como veio e grava a ativa, `/workspace/assessor/clientes.csv`, com as 4 colunas canônicas (conta só com dígitos, telefone em +55 quando válido, espaços colapsados); a anterior vira `clientes.bak-*`. Preparo, `cliente.py` e rastreio de apelidos leem só esse arquivo.
 
@@ -32,7 +32,7 @@ Estado do envio, sempre gravado pelo script (o bot não escreve CSV à mão):
 
 Download: toda skill que usa o script baixa o `assessor.py` da `stable` a cada execução, para um arquivo temporário, e só troca `/workspace/assessor/assessor.py` se a versão da 1ª linha for igual ou maior que a de `skills/assessor-preparar-envio/scripts/versao-minima`. Se o download falhar ou a versão for menor, a skill para sem usar a cópia do disco.
 
-Checagem: `python tests/test_assessor.py` (sem PDFs reais; a leitura do PDF se confere com um lote real) e `python -m pytest tests/test_baixar_assessor.py` para o comando de download (requer `bash` e `curl`).
+Checagem: `python tests/test_assessor.py` (sem PDFs reais; a leitura do PDF se confere com um lote real) e `python -m pytest tests/test_baixar_assessor.py` para o comando de download (requer `bash` e `curl`; no Windows os testes que executam o comando são pulados).
 
 `skills/assessor-ajustar-cliente/scripts/cliente.py` (Python 3, sem dependências): `add`, `set` e `rm` na cópia salva. Grava `clientes.csv` e guarda a anterior como `clientes.bak-AAAAMMDD-HHMM.<ext>`.
 

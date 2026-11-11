@@ -20,34 +20,30 @@ COLUNAS={'conta_xp':{'contaxp','conta','numerodaconta','numeroconta','ndaconta',
 DDD={11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,51,53,54,55,61,62,63,64,65,66,67,68,69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99}
 MESES='janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro'.split()
 P=r'-?\d{1,3}(?:\.\d{3})*,\d{2}%';R=r'-?R\$ ?\d{1,3}(?:\.\d{3})*,\d{2}'
-CAMPOS={'patrimonio':('PATRIMÔNIO TOTAL BRUTO:',R),'cart_mes':('RENTABILIDADE MÊS:',P),'resultado':('GANHO MÊS:',R),
- 'meses_pos':('Meses Positivos',r'\d+'),'meses_cdi':('Meses Acima do CDI',r'\d+')}
+CAMPOS={'patrimonio':('PATRIMÔNIO TOTAL BRUTO:',R),'cart_mes':('RENTABILIDADE MÊS:',P),'resultado':('GANHO MÊS:',R)}
 IND={'Portfólio':'cart','CDI':'cdi','Ibovespa':'ibov','IPCA':'ipca'}
 MODELO="""Olá, {apelido}!
 
-Fechamos {mes_ano}. Segue em anexo seu relatório mensal de performance da corretora (PDF); aqui vai o resumo:
+Segue seu relatório de {mes_ano}. Resumo:
 
 📊 *No mês*
 • Carteira: *{cart_mes}*
-• CDI: {cdi_mes}
-• Ibovespa: {ibov_mes}
-• IPCA: {ipca_mes}
+• CDI: {cdi_mes} | Ibovespa: {ibov_mes} | IPCA: {ipca_mes}
 
-📈 *No ano / 12M / 24M*
-• Carteira: {cart_ano} / {cart_12m} / {cart_24m}
-• CDI: {cdi_ano} / {cdi_12m} / {cdi_24m}
-• Ibovespa: {ibov_ano} / {ibov_12m} / {ibov_24m}
+📈 *No ano / 12M*
+• Carteira: {cart_ano} / {cart_12m}
+• CDI: {cdi_ano} / {cdi_12m}
 
-💰 Resultado financeiro no mês: *{resultado}*
-🏦 Patrimônio total bruto: *{patrimonio}*
-Nos últimos 24 meses, {meses_pos} meses positivos e {meses_cdi} acima do CDI.
+💰 Resultado no mês: *{resultado}*
+🏦 Patrimônio bruto: *{patrimonio}*
 
 🌎 *Cenário do mês*
 {discurso_macro}
 
-Qualquer dúvida sobre o relatório, é só me chamar.
-
-Abraço!"""
+Qualquer dúvida, é só me chamar. Abraço!"""
+LIMITE_MSG=1024# legenda de anexo do WhatsApp: o que passa disso é cortado
+TETO_DISCURSO=550# deixa a mensagem inteira abaixo de LIMITE_MSG com os números de qualquer cliente
+tam=lambda s:len(s.encode('utf-16-le'))//2# emoji conta 2: lado seguro, o limite foi medido só com letras e números
 norm=lambda s:U.normalize('NFKD',s or '').encode('ascii','ignore').decode().strip().lower()
 def ler_pdf(pdf):
     t=subprocess.run(['pdftotext','-raw','-f','1','-l','2',str(pdf),'-'],capture_output=True,text=True).stdout.replace('\xa0',' ')
@@ -302,6 +298,7 @@ def importar(planilha):
 def main(zp,planilha,disc):
     discurso,mref=ler_discurso(disc)
     if not discurso:sys.exit('discurso macro vazio')
+    if len(discurso)>TETO_DISCURSO:sys.exit(f'discurso macro com {len(discurso)} caracteres: o teto e {TETO_DISCURSO}. Encurte o discurso antes de preparar')
     tmp=BASE/'_pdfs';shutil.rmtree(tmp,ignore_errors=True)
     pdfs={};dup=[];nomes={}
     with zipfile.ZipFile(zp) as z:
@@ -340,6 +337,7 @@ def main(zp,planilha,disc):
             if nomes[c] and (not nn or norm(nomes[c]).split()[0]!=nn[0]):rev.append(f'nome no PDF "{nomes[c]}" ≠ planilha "{l["nome"]}"')
             if not err:
                 msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,**f)
+                if tam(msg)>LIMITE_MSG:bloq.append(f'mensagem com {tam(msg)} caracteres, acima do limite de {LIMITE_MSG}')
                 p=out/c;p.mkdir();shutil.copy(d,p/'relatorio.pdf');(p/'mensagem.txt').write_text(msg,encoding='utf-8')
         res.append([c,l['nome'],ap,tel or l['telefone'],'bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev),aviso])
     for c,(d,f,err) in pdfs.items():res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha',''])

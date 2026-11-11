@@ -6,9 +6,12 @@ mínima em versao-minima. Falha (URL quebrada ou v6) para e deixa o disco quieto
 """
 import re
 import subprocess
+import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGINS = ROOT / 'plugins'
@@ -96,6 +99,8 @@ def _servir():
 
 
 def _rodar(cmd, dest, rotas):
+    if sys.platform == 'win32':
+        pytest.skip('o comando de download roda no Shell do bot (Linux): no Windows o curl fica fora de /usr/bin e o caminho de destino tem barra invertida')
     _Handler.rotas = rotas
     srv = _servir()
     try:
