@@ -32,7 +32,7 @@ Estado do envio, sempre gravado pelo script (o bot não escreve CSV à mão):
 
 Download: toda skill que usa o script baixa o `assessor.py` da `stable` a cada execução, para um arquivo temporário, e só troca `/workspace/assessor/assessor.py` se a versão da 1ª linha for igual ou maior que a de `skills/assessor-preparar-envio/scripts/versao-minima`. Se o download falhar ou a versão for menor, a skill para sem usar a cópia do disco.
 
-Checagem: `python tests/test_assessor.py` (sem PDFs reais; a leitura do PDF se confere com um lote real) e `python -m pytest tests/test_baixar_assessor.py` para o comando de download (requer `bash` e `curl`; no Windows os testes que executam o comando são pulados).
+Checagem: `python tests/test_assessor.py` (sem PDFs reais; a leitura do texto extraído se confere com texto anonimizado, e a extração do PDF, com um lote real) e `python -m pytest tests/test_baixar_assessor.py` para o comando de download (requer `bash` e `curl`; no Windows os testes que executam o comando são pulados).
 
 `skills/assessor-ajustar-cliente/scripts/cliente.py` (Python 3, sem dependências): `add`, `set` e `rm` na cópia salva. Grava `clientes.csv` e guarda a anterior como `clientes.bak-AAAAMMDD-HHMM.<ext>`.
 
