@@ -1,4 +1,4 @@
-"""Checagem do assessor.py sem PDFs reais: planilha, telefone, discurso e estado do lote.
+"""Checagem do assessor.py sem PDFs reais: planilha, telefone, discurso, estado do lote e trava de texto.
 
 Roda com `python tests/test_assessor.py` (ou pytest). A leitura dos PDFs fica no teste manual com um lote real.
 """
