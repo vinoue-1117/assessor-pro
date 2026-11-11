@@ -99,7 +99,7 @@ def _servir():
     return srv
 
 
-def _rodar(cmd, dest, rotas, base=BASE, workspace='/workspace/assessor'):
+def _rodar(cmd, dest, rotas, base=BASE):
     if sys.platform == 'win32':
         pytest.skip('o comando de download roda no Shell do bot (Linux): no Windows o curl fica fora de /usr/bin e o caminho de destino tem barra invertida')
     _Handler.rotas = rotas
@@ -107,7 +107,7 @@ def _rodar(cmd, dest, rotas, base=BASE, workspace='/workspace/assessor'):
     try:
         porta = srv.server_address[1]
         local = f'http://127.0.0.1:{porta}/scripts'
-        c = cmd.replace(base, local).replace(workspace, str(dest))
+        c = cmd.replace(base, local).replace('/workspace/assessor', str(dest))
         tmp = dest.parent / 'tmp'
         tmp.mkdir()
         r = subprocess.run(['bash', '-c', c], capture_output=True, text=True, env={'PATH': '/usr/bin:/bin', 'TMPDIR': str(tmp)})
