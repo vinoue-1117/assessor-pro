@@ -34,6 +34,9 @@ def test_bot_md_e_skills_precisam_bater(tmp_path):
     ponteiro = (bot / 'ponteiros/exemplo-core/SKILL.md').read_text(encoding='utf-8')
     assert "description: 'Use sempre.'" in ponteiro
     assert '/stable/bots/exemplo/skills/exemplo-core/SKILL.md' in ponteiro
+    assert 'diga ao dono do bot: "Não consegui baixar as instruções atuais. Tente de novo em alguns minutos."' in ponteiro
+    assert 'Assessor Pro' not in ponteiro
+    assert 'diga ao assessor' not in ponteiro.lower()
 
     # ponteiro editado à mão ou de skill que saiu: a conferência acusa
     escrever(bot / 'ponteiros/exemplo-velha/SKILL.md', ponteiro)
@@ -47,7 +50,7 @@ def test_bot_md_e_skills_precisam_bater(tmp_path):
 
     # linha no bot.md sem skill
     escrever(bot / 'bot.md', ficha.replace('Use sempre.\n', 'Use sempre.\n- `exemplo-nova`: Use.\n- `exemplo-fantasma`: Use.\n'))
-    with pytest.raises(SystemExit, match='exemplo-fantasma'):
+    with pytest.raises(SystemExit, match=r'nao existe: exemplo-fantasma'):
         mod.carregar()
 
     # skill em pasta sem bot.md

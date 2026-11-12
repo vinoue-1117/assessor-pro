@@ -11,4 +11,4 @@ Baixe as instruções completas e siga somente o arquivo baixado.
 2. Confira que `/workspace/assessor-pro/assessor-envio-core.md` começa com frontmatter (`---`) e tem `name: assessor-envio-core`.
 3. Siga exatamente o que foi baixado.
 
-Se o download falhar, vier vazio ou a conferência não bater, pare e diga ao assessor: "Não consegui baixar as instruções atuais do Assessor Pro. Tente de novo em alguns minutos." Não use cópia antiga nem improvise.
+Se o download falhar, vier vazio ou a conferência não bater, pare e diga ao dono do bot: "Não consegui baixar as instruções atuais. Tente de novo em alguns minutos." Não use cópia antiga nem improvise.

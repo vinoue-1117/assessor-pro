@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BOTS = ROOT / "bots"
 RAW = "https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable"
 FALHA = (
-    "Não consegui baixar as instruções atuais do Assessor Pro. "
+    "Não consegui baixar as instruções atuais. "
     "Tente de novo em alguns minutos."
 )
 ITEM = re.compile(r"^- `([a-z0-9-]+)`: (\S.*)$")
@@ -93,7 +93,7 @@ def carregar():
             esperado[dest] = ponteiro(nome, nome_linha, rel(path), descr[nome])
         extras = sorted(set(descr) - achadas)
         if extras:
-            sys.exit(f"{rel(ficha)} lista skill que nao existe:" + ", ".join(extras))
+            sys.exit(f"{rel(ficha)} lista skill que nao existe: {', '.join(extras)}")
     if not esperado:
         sys.exit(f"nenhum bot.md em {rel(BOTS)}")
     return esperado
@@ -117,7 +117,7 @@ def ponteiro(nome, nome_linha, caminho, descricao):
         f"2. Confira que `{destino}` começa com frontmatter (`---`) e tem `{nome_linha}`.\n"
         "3. Siga exatamente o que foi baixado.\n"
         "\n"
-        f'Se o download falhar, vier vazio ou a conferência não bater, pare e diga ao assessor: "{FALHA}" '
+        f'Se o download falhar, vier vazio ou a conferência não bater, pare e diga ao dono do bot: "{FALHA}" '
         "Não use cópia antiga nem improvise.\n"
     )
 

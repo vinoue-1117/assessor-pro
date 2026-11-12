@@ -16,7 +16,22 @@ Bots para assessores enviarem o relatório mensal de performance da corretora (P
 Fluxo: assessor manda zip + planilha → Relatórios - Assessor Pro prepara e mostra o resumo → assessor aprova o lote → Relatórios - Assessor Pro pede cada envio ao bot Whatsapp - Assessor Pro → o bot de WhatsApp envia e devolve o status.
 
 ## Como usar
-1. Peça ao seu bot de configuração para criar os dois bots seguindo [`bots/instalar.md`](bots/instalar.md): `assessor/envio` e `assessor/zap`.
+
+O dono dá um prompt por bot. Cole o prompt no chat desse bot. O bot ajusta a si mesmo.
+
+No chat do bot Relatórios - Assessor Pro:
+
+```
+você é o bot de Relatórios do Assessor Pro; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot assessor/envio. Não apague nada do workspace.
+```
+
+No chat do bot Whatsapp - Assessor Pro:
+
+```
+você é o bot de WhatsApp do Assessor Pro; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot assessor/zap. Não apague nada do workspace.
+```
+
+1. Cole cada prompt no chat do bot correspondente.
 2. No bot Whatsapp - Assessor Pro, conecte o WhatsApp Web lendo o QR code.
 3. No bot Relatórios - Assessor Pro, mande a planilha (`conta_xp, telefone, nome, apelido`; `conta_xp` é o número da conta na corretora) e, todo mês, o zip do lote.
 
@@ -27,7 +42,7 @@ O bot instalado guarda só ponteiros: cada skill baixa a versão completa da bra
 
 `git push origin main:stable`
 
-O que fica gravado no bot é o perfil e a lista de ponteiros. Skill nova ou perfil alterado pedem rodar o [`bots/instalar.md`](bots/instalar.md) de novo.
+O que fica gravado no bot é o perfil e a lista de ponteiros. Skill nova ou perfil alterado pedem colar de novo o prompt desse bot no chat dele. O bot segue o [`bots/instalar.md`](bots/instalar.md) e se ajusta.
 
 A description de cada ponteiro é fixa (quando usar a skill) e fica na seção `## Skills` do `bot.md`. Mudar a description da skill completa não muda o ponteiro, então uma promoção para `stable` não exige atualizar as skills já instaladas nos bots.
 

@@ -23,19 +23,19 @@ O título é o nome do bot. As quatro seções existem sempre, com `Nenhuma.` qu
 - `## Perfil`: o texto do perfil do bot, copiado sem alteração na instalação. Mantenha curto e mande seguir a skill `<bot>-core`: a persona e as regras ficam nela, e assim chegam ao bot por download, sem reinstalar.
 - `## Skills`: uma linha por skill, no formato ``- `nome-da-skill`: quando usar``. A frase vira a description do ponteiro. A lista tem que bater com as pastas de `skills/`; o gerador para se sobrar ou faltar.
 - `## Rotinas`: cada rotina com horário e o que ela executa.
-- `## Conexões`: o que o dono precisa conectar ou guardar no vault do bot. De segredo, só o nome.
+- `## Conexões`: o que o dono precisa conectar.
 
 O nome de cada skill é único no repositório. Comece pelo nome do bot ou do produto (`assessor-zap-enviar`).
 
 ## Ponteiro
 
-O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado no bot é o perfil e a lista de ponteiros: mudar um dos dois pede rodar o [`instalar.md`](instalar.md) de novo.
+O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado no bot é o perfil e a lista de ponteiros: mudar um dos dois pede colar de novo o prompt desse bot no chat dele. O bot segue o [`instalar.md`](instalar.md) e se ajusta.
 
 ## O que não entra
 
 O repositório é público e o histórico não se apaga.
 
-- Segredo: chave de API, token, senha. Fica no vault do bot.
+- Nenhum bot deste repo precisa de chave de API ou token.
 - Dado de cliente: nome, conta, telefone, e-mail, valor, posição de carteira. PDF, planilha, CSV e zip não são versionados, e o `check` recusa esses formatos.
 - Nome, telefone ou e-mail de terceiro.
 - Amostra para teste usa valor fictício em tudo que é do cliente. De real, só o layout das linhas e o que é igual para todos.
