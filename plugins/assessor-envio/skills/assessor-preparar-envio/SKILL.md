@@ -30,7 +30,7 @@ Se o comando falhar, pare e avise. Não use a cópia do disco. Nunca edite o scr
 5. Abra 1 `mensagem.txt` de exemplo e confira, contra `pdftotext -raw -f 1 -l 2 relatorio.pdf -`, patrimônio, rentabilidade do mês e resultado. Se não bater, pare e reporte.
 6. Mande ao assessor UM resumo do lote:
    - referência, código do lote, total de PDFs, quantos `pronto` / `revisar` / `bloqueado`;
-   - a mensagem de exemplo completa (de um cliente pronto);
+   - a mensagem de exemplo completa (de um cliente pronto; sem nenhum pronto, a de um `revisar`, dizendo que nenhum cliente está pronto);
    - quantos clientes estão sem apelido e vão receber "Olá, <primeiro nome>!", com a lista;
    - quantos clientes têm `mensagem sem: …` na coluna `aviso`, com a lista (conta, nome, o que ficou de fora);
    - a lista de `revisar` e `bloqueado` com o problema de cada um (conta, nome, problema);
