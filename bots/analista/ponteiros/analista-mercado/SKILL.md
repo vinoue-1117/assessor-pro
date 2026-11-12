@@ -1,6 +1,6 @@
 ---
 name: analista-mercado
-description: 'Use sempre que precisar de cotação, histórico de preços ou cadeia de opções via yfinance, ou conferir números em Python.'
+description: 'Use sempre que precisar de cotação, histórico de preços ou cadeia de opções via yfinance, de Selic, CDI ou IPCA do Banco Central, ou conferir números em Python.'
 ---
 
 # Instruções atuais

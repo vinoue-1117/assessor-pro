@@ -1,7 +1,7 @@
-# mercado.py v1
-"""Consulta de mercado via yfinance.
+# mercado.py v2
+"""Consulta de mercado via yfinance e taxas do Banco Central (SGS).
 
-Subcomandos: cotacao, historico, opcoes.
+Subcomandos: cotacao, historico, opcoes, taxa.
 Saida: JSON no stdout. Erro: objeto com "erro" e "consultado_em", exit code != 0.
 Nao inventa dado.
 """
@@ -11,6 +11,7 @@ import logging
 import math
 import re
 import sys
+import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -23,6 +24,15 @@ except ZoneInfoNotFoundError:
 B3 = re.compile(r"^[A-Z]{4}\d{1,2}$")
 YF_INTERVALO = {"1d": "1d", "1w": "1wk", "1m": "1mo", "1h": "1h"}
 CAMPOS_PRECO = {"open", "high", "low", "close", "adj close", "volume"}
+SGS = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados?formato=json&dataInicial={de}&dataFinal={ate}"
+# Series do SGS (Banco Central) por indicador: (campo, codigo, unidade).
+TAXAS = {
+    "selic": [("meta", 432, "% a.a."), ("efetiva", 1178, "% a.a. (base 252)")],
+    "cdi": [("taxa", 4389, "% a.a. (base 252)")],
+    "ipca": [("mes", 433, "% no mês"), ("acumulado_12m", 13522, "% em 12 meses")],
+}
+# O IPCA e mensal e sai com atraso: a janela precisa alcancar o ultimo mes publicado.
+JANELA_SGS = 100
 
 
 class FonteErro(Exception):
@@ -369,6 +379,56 @@ def cmd_opcoes(a):
         return erro(f"yfinance falhou para {sym}: {type(e).__name__}: {e}", ticker=rot, ticker_yf=sym)
 
 
+def baixar_sgs(codigo, de, ate):
+    url = SGS.format(codigo=codigo, de=de.strftime("%d/%m/%Y"), ate=ate.strftime("%d/%m/%Y"))
+    with urllib.request.urlopen(url, timeout=20) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def ultimo_sgs(codigo, hoje):
+    """Ultimo valor com data ate hoje.
+
+    A meta Selic vem preenchida ate a proxima reuniao do Copom, e a ordem das
+    datas varia entre series: por isso o filtro e o max, nunca a ultima linha.
+    """
+    vistos = []
+    for linha in baixar_sgs(codigo, hoje - timedelta(days=JANELA_SGS), hoje):
+        try:
+            dia = datetime.strptime(str(linha["data"]), "%d/%m/%Y").date()
+        except (KeyError, TypeError, ValueError):
+            continue
+        valor = num(linha.get("valor"))
+        if valor is not None and dia <= hoje:
+            vistos.append((dia, valor))
+    if not vistos:
+        raise FonteErro(f"BCB sem dados para a série {codigo}")
+    dia, valor = max(vistos)
+    return dia.isoformat(), valor
+
+
+def taxa_uma(nome):
+    ind = nome.strip().lower()
+    if ind not in TAXAS:
+        return erro(f"indicador inválido: {nome} (use selic, cdi ou ipca)", indicador=ind)
+    hoje = datetime.now(TZ).date()
+    try:
+        out = {"indicador": ind}
+        for campo, codigo, unidade in TAXAS[ind]:
+            dia, valor = ultimo_sgs(codigo, hoje)
+            out[campo] = {"valor": valor, "unidade": unidade, "data": dia, "serie_sgs": codigo}
+        out["fonte"] = "bcb-sgs"
+        out["consultado_em"] = agora()
+        return out
+    except FonteErro as e:
+        return erro(str(e), indicador=ind)
+    except Exception as e:
+        return erro(f"BCB falhou para {ind}: {type(e).__name__}: {e}", indicador=ind)
+
+
+def cmd_taxa(a):
+    return [taxa_uma(n) for n in a.indicadores]
+
+
 def tem_erro(r):
     if isinstance(r, list):
         return any(tem_erro(x) for x in r)
@@ -376,7 +436,7 @@ def tem_erro(r):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="mercado.py", description="Consulta de mercado via yfinance. Saída JSON.")
+    p = argparse.ArgumentParser(prog="mercado.py", description="Consulta de mercado via yfinance e taxas do Banco Central. Saída JSON.")
     sp = p.add_subparsers(dest="cmd", required=True)
 
     c = sp.add_parser("cotacao", help="preço, variação, volume, moeda e nome")
@@ -396,6 +456,10 @@ def main(argv=None):
     o.add_argument("--tipo", choices=["CALL", "PUT", "call", "put"])
     o.add_argument("--so-negociadas", action="store_true")
     o.set_defaults(fn=cmd_opcoes)
+
+    t = sp.add_parser("taxa", help="Selic, CDI e IPCA pelo SGS do Banco Central")
+    t.add_argument("indicadores", nargs="+", help="selic, cdi ou ipca")
+    t.set_defaults(fn=cmd_taxa)
 
     a = p.parse_args(argv)
     try:

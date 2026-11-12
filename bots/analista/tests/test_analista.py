@@ -1,4 +1,4 @@
-"""Analista offline: mercado.py com yfinance mockado, download versionado e privacidade.
+"""Analista offline: mercado.py com yfinance e Banco Central mockados, download versionado e privacidade.
 
 O comando de Shell do bot roda em Linux. No Windows o teste que executa o
 comando e pulado: curl fora do PATH e barra invertida no destino.
@@ -320,6 +320,49 @@ def test_opcoes_eua_e_erro_b3(monkeypatch):
     assert chamadas == []
 
 
+def test_taxa_bcb_ultimo_valor_ate_hoje(monkeypatch):
+    hoje = MOD.datetime.now(MOD.TZ).date()
+
+    def dia(n):
+        return (hoje + MOD.timedelta(days=n)).strftime('%d/%m/%Y')
+
+    # A meta Selic vem preenchida para a frente e a ordem das datas varia entre series.
+    series = {
+        432: [{'data': dia(20), 'valor': '99.00'}, {'data': dia(0), 'valor': '13.75'}, {'data': dia(-1), 'valor': '14.25'}],
+        1178: [{'data': dia(-1), 'valor': '13.65'}, {'data': dia(-2), 'valor': '13.90'}],
+        433: [{'data': dia(-40), 'valor': '0.14'}],
+        13522: [{'data': dia(-40), 'valor': '4.63'}],
+    }
+    pedidos = []
+
+    def baixar(codigo, de, ate):
+        pedidos.append((codigo, ate))
+        if codigo not in series:
+            raise RuntimeError('rede caiu')
+        return series[codigo]
+
+    monkeypatch.setattr(MOD, 'baixar_sgs', baixar)
+    code, data, _ = rodar(['taxa', 'selic', 'IPCA'])
+    assert code == 0
+    selic, ipca = data
+    assert selic['meta'] == {'valor': 13.75, 'unidade': '% a.a.', 'data': hoje.isoformat(), 'serie_sgs': 432}
+    assert selic['efetiva']['valor'] == 13.65
+    assert selic['fonte'] == 'bcb-sgs'
+    assert selic['consultado_em'].endswith('-03:00')
+    assert 'atraso_estimado_min' not in selic
+    assert ipca['indicador'] == 'ipca'
+    assert ipca['mes']['valor'] == 0.14
+    assert ipca['acumulado_12m']['valor'] == 4.63
+    assert pedidos == [(432, hoje), (1178, hoje), (433, hoje), (13522, hoje)]
+
+    code2, ruim, _ = rodar(['taxa', 'cdi', 'di'])
+    assert code2 != 0
+    assert 'RuntimeError' in ruim[0]['erro']
+    assert 'taxa' not in ruim[0]
+    assert 'indicador inválido' in ruim[1]['erro']
+    assert ruim[1]['consultado_em']
+
+
 def test_subcomando_desconhecido_lista_uso():
     err = io.StringIO()
     with contextlib.redirect_stderr(err):
@@ -327,7 +370,7 @@ def test_subcomando_desconhecido_lista_uso():
             MOD.main(['nao-existe'])
     assert exc.value.code != 0
     texto = err.getvalue()
-    assert 'cotacao' in texto and 'historico' in texto and 'opcoes' in texto
+    assert 'cotacao' in texto and 'historico' in texto and 'opcoes' in texto and 'taxa' in texto
 
 
 def comandos():
@@ -361,9 +404,9 @@ def comando():
 def test_comando_download_igual_e_versao():
     cmd = comando()
     minima = MINIMA.read_text(encoding='utf-8')
-    assert minima == '1\n'
+    assert minima == '2\n'
     primeira = SCRIPT.read_text(encoding='utf-8').splitlines()[0]
-    assert primeira == '# mercado.py v1'
+    assert primeira == '# mercado.py v2'
     assert int(primeira.split()[2][1:]) >= int(minima.strip())
     for path in (RAIZ / 'skills').glob('*/SKILL.md'):
         texto = path.read_text(encoding='utf-8')

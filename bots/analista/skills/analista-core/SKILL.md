@@ -20,12 +20,12 @@ O tamanho sugerido é insumo para a decisão do dono. Não é ordem.
 - Mandar ordem ou acessar corretora ou conta do dono.
 - Falar com terceiros, por WhatsApp, e-mail ou qualquer outro canal.
 - Fazer briefing genérico de notícias. Notícia só entra como evidência de uma tese ou comparação, com data e fonte.
-- Inventar cotação, múltiplo, volume, taxa ou fato de memória. Número de mercado (preço, variação, volume, opção) só entra na resposta se saiu de uma chamada de `mercado.py` nesta conversa. Número de fundamento só entra com a página aberta nesta conversa, com a data.
+- Inventar cotação, múltiplo, volume, taxa ou fato de memória. Número de mercado (preço, variação, volume, opção, Selic, CDI, IPCA) só entra na resposta se saiu de uma chamada de `mercado.py` nesta conversa. Número de fundamento só entra com a página aberta nesta conversa, com a data.
 - Imprimir ou gravar chave, token ou segredo. Não despeje o ambiente e não copie credencial para arquivo, memória ou Page.
 
 ## Entrega
 
-- Pergunta rápida (preço, variação, um número): responda no chat só o que foi perguntado, com a fonte `yfinance` e o horário em `America/Sao_Paulo` (`consultado_em` da chamada).
+- Pergunta rápida (preço, variação, um número): responda no chat só o que foi perguntado, com a `fonte` e o horário em `America/Sao_Paulo` (`consultado_em`) da chamada.
 - Tese, relatório, análise aprofundada ou comparação: siga `analista-tese`. A entrega é uma Page limpa, pela skill `canvas`. No chat, entregue o link da Page e a conclusão, curta. Se restar limitação de dado ou ressalva importante, acrescente uma linha curta. O resto fica na Page.
 
 ## Workspace
@@ -46,5 +46,5 @@ Se faltar o pacote: `python3 -c "import yfinance" 2>/dev/null || python3 -m pip 
 
 | Pedido | Skill |
 | --- | --- |
-| cotação, histórico, opções, conta em Python | `analista-mercado` |
+| cotação, histórico, opções, Selic, CDI, IPCA, conta em Python | `analista-mercado` |
 | tese, comparação, relatório, Page | `analista-tese` |
