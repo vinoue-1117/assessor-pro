@@ -26,42 +26,49 @@ JANELAS={'ano':'No ano','12m':'12M'}# título do bloco na mensagem
 ROT_AVISO={'ano':'do ano','12m':'de 12M'}# nome da janela na coluna aviso do conferir-envios.csv
 MODELO="""Olá, {apelido}!
 
-Segue seu relatório de {mes_ano}. Resumo:
-
-📊 *No mês*
-• Carteira: *{cart_mes}*
-{comparativos}
-{janelas}💰 Resultado no mês: *{resultado}*
-🏦 Patrimônio bruto: *{patrimonio}*
+Segue seu relatório de {mes_ano}.{numeros}
 
 🌎 *Cenário do mês*
 {discurso_macro}
 
 Qualquer dúvida, é só me chamar. Abraço!"""
+# Bloco de números lidos do PDF: com o relatório fora do formato esperado, a mensagem sai sem ele.
+NUMEROS=""" Resumo:
+
+📊 *No mês*
+• Carteira: *{cart_mes}*
+{comparativos}
+{janelas}💰 Resultado no mês: *{resultado}*
+🏦 Patrimônio bruto: *{patrimonio}*"""
 LIMITE_MSG=1024# legenda de anexo do WhatsApp: o que passa disso é cortado
 TETO_DISCURSO=550# deixa a mensagem inteira abaixo de LIMITE_MSG com os números de qualquer cliente
 tam=lambda s:len(s.encode('utf-16-le'))//2# emoji conta 2: lado seguro, o limite foi medido só com letras e números
 norm=lambda s:U.normalize('NFKD',s or '').encode('ascii','ignore').decode().strip().lower()
 def ler_pdf(pdf):
+    """(campos lidos, erros que bloqueiam a conta, sinais de formato mudado que tiram os números da mensagem)."""
     t=subprocess.run(['pdftotext','-raw','-f','1','-l','2',str(pdf),'-'],capture_output=True,text=True).stdout.replace('\xa0',' ')
-    f,err={},[]
+    f,err,fmt={},[],[]
     m=re.search(r'Data de Refer\w+\n(\d+) .*?(\d\d)/(\d\d)/(\d{4})',t)
     if m:f['conta'],f['data']=m[1],(m[4],m[3],m[2])
     else:err.append('capa (conta/data)')
     for k,(rot,rx) in CAMPOS.items():
         m=re.search(re.escape(rot)+r'\n('+rx+r')\n',t)
         if m:f[k]=m[1]
-        else:err.append(k)
-    # A tabela de referências não bloqueia a conta: o que não for lido fica fora da mensagem (omitidos).
+        else:fmt.append('não li '+rot.rstrip(':'))
+    # Colunas atribuídas por posição: cabeçalho fora de "Mês Ano 12M" tira os números da mensagem (fmt).
+    # Com o cabeçalho certo, linha não lida tira só o trecho (omitidos).
     # Só valem as 6 linhas abaixo do cabeçalho (a tabela tem 5): linha de mesmo nome em outro quadro não entra.
-    m=re.search(r'^Refer\w+ \(%\).*\n((?:.*(?:\n|$)){0,6})',t,re.M);tab=m[1] if m else ''
+    m=re.search(r'^Refer\w+ \(%\)(.*)\n((?:.*(?:\n|$)){0,6})',t,re.M)
+    ok=m and m[1].split()[:3]==['Mês','Ano','12M']
+    if not ok:fmt.append(f'colunas de Referências (%) "{m[1].strip()}" em vez de Mês Ano 12M' if m else 'tabela Referências (%) não encontrada')
+    tab=m[2] if ok else ''
     for nome,k in IND.items():
         m=re.search(r'^'+nome+' ('+P+r')((?: \S+){0,3})$',tab,re.M)# mês em percentual e até 3 colunas
         if not m:continue
         f[k+'_mes']=m[1]
         # Ibovespa e IPCA entram na mensagem só com o mês. Conta sem histórico traz "-" na janela.
         if k in('cart','cdi'):f.update((k+'_'+j,x) for j,x in zip(JANELAS,m[2].split()) if re.fullmatch(P+'|-',x))
-    return f,err
+    return f,err,fmt
 tem=lambda f,k:f.get(k,'-')!='-'
 def cobertas(f):
     """Janelas em que a carteira tem rentabilidade: são as que entram na mensagem."""
@@ -332,12 +339,12 @@ def main(zp,planilha,disc):
         for n in z.namelist():
             if not n.lower().endswith('.pdf'):continue
             d=tmp/Path(n).name;d.parent.mkdir(parents=True,exist_ok=True);d.write_bytes(z.read(n))
-            m=re.search(r'XPerformance - (\d+) (.+?) - Ref',d.name);f,err=ler_pdf(d)
+            m=re.search(r'XPerformance - (\d+) (.+?) - Ref',d.name);f,err,fmt=ler_pdf(d)
             c=f.get('conta') or (m and m[1]) or d.stem
             if m and f.get('conta') and m[1]!=f['conta']:err.append(f'conta do arquivo {m[1]} difere da capa')
             if c in pdfs:dup.append(c)
-            pdfs[c]=(d,f,err);nomes[c]=m[2] if m else ''
-    datas=Counter(f['data'] for _,f,_ in pdfs.values() if 'data' in f)
+            pdfs[c]=(d,f,err,fmt);nomes[c]=m[2] if m else ''
+    datas=Counter(f['data'] for _,f,*_ in pdfs.values() if 'data' in f)
     if not datas:sys.exit('nenhum PDF do relatório mensal de performance da corretora legível no zip')
     a,me,di=datas.most_common(1)[0][0];ref=f'{a}-{me}-{di}';out=BASE/f'lote-{ref}'
     if mref!=(int(me),a):
@@ -356,16 +363,19 @@ def main(zp,planilha,disc):
             av.append(f'sem apelido, usado "{ap}"');sem_ap.append(f'{c} {ap}')
         if c not in pdfs:bloq.append('sem PDF no lote')
         else:
-            d,f,err=pdfs.pop(c)
+            d,f,err,fmt=pdfs.pop(c)
             if err:bloq.append('não lido: '+', '.join(err))
             if f.get('data',(a,me,di))!=(a,me,di):bloq.append('data de referência diferente do lote')
             if c in dup:rev.append('conta repetida no zip')
             nn=norm(l['nome']).split()
             if nomes[c] and (not nn or norm(nomes[c]).split()[0]!=nn[0]):rev.append(f'nome no PDF "{nomes[c]}" ≠ planilha "{l["nome"]}"')
             if not err:
-                msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,comparativos=comparativos(f),janelas=janelas(f),**f)
+                num='' if fmt else NUMEROS.format(comparativos=comparativos(f),janelas=janelas(f),**f)
+                msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,numeros=num)
+                if fmt:rev.append('relatório pode ter mudado de formato ('+'; '.join(fmt)+'): mensagem sem números')
                 if tam(msg)>LIMITE_MSG:bloq.append(f'mensagem com {tam(msg)} caracteres, acima do limite de {LIMITE_MSG}')
-                oms[c]=omitidos(f);o=', '.join(oms[c])
+                if not fmt:oms[c]=omitidos(f)
+                o=', '.join(oms.get(c,[]))
                 if o:av.append('mensagem sem: '+o)
                 if o and not bloq:fora.append(c)
                 p=out/c;p.mkdir();shutil.copy(d,p/'relatorio.pdf');(p/'mensagem.txt').write_text(msg,encoding='utf-8')
@@ -374,7 +384,7 @@ def main(zp,planilha,disc):
     comum=[x for x in next(iter(oms.values()),[]) if all(x in o for o in oms.values())] if len(oms)>1 else []
     for r in res:
         if comum and r[0] in oms and r[4]!='bloqueado':r[4]='revisar';r[5]='; '.join(filter(None,[r[5],f'mensagem sem {", ".join(comum)} em todas as contas lidas do lote']))
-    for c,(d,f,err) in pdfs.items():res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha',''])
+    for c in pdfs:res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha',''])
     with open(out/'conferir-envios.csv','w',newline='',encoding='utf-8') as fh:
         w=csv.writer(fh);w.writerow(CAB_LOTE);w.writerows(res)
     shutil.rmtree(tmp,ignore_errors=True)

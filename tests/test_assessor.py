@@ -284,22 +284,25 @@ def test_xclip_ausente_mensagem_clara():
 
 
 def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
-    """Discurso acima do teto para o preparo; mensagem acima do limite da legenda bloqueia só aquela conta; a linha de comparativos e o bloco de janelas entram na mensagem sem linha em branco sobrando nem faltando, e o que ficou de fora vai para a coluna aviso; omissão igual em todas as contas lidas deixa o lote em revisar."""
+    """Discurso acima do teto para o preparo; mensagem acima do limite da legenda bloqueia só aquela conta; a linha de comparativos e o bloco de janelas entram na mensagem sem linha em branco sobrando nem faltando, e o que ficou de fora vai para a coluna aviso; omissão igual em todas as contas lidas deixa o lote em revisar. Relatório com formato mudado tira o bloco de números e deixa a conta em revisar, fora da trava de lote; capa não lida segue bloqueando."""
     campos = {k: '1,23%' for k in ('cart_mes', 'cdi_mes', 'ibov_mes', 'ipca_mes', 'cart_ano', 'cart_12m', 'cdi_ano', 'cdi_12m')}
     campos.update(resultado='R$ 1,00', patrimonio='R$ 2,00', data=('2026', '09', '30'))
     orig = assessor.ler_pdf
-    falta = {'74': ('cdi_mes', 'ibov_mes', 'ipca_mes', 'cdi_12m')}
+    falta = {'74': ('cdi_mes', 'ibov_mes', 'ipca_mes', 'cdi_12m'), '75': ('resultado',)}
+    err = {'76': ['capa (conta/data)']}
+    fmt = {'75': ['não li GANHO MÊS']}
     def ler(pdf):
         c = pdf.name.split()[2]
         f = {**campos, **({'cart_ano': '-', 'cart_12m': '-'} if c == '73' else {}), 'conta': c}
-        return {k: v for k, v in f.items() if k not in falta.get(c, ()) + falta.get('todas', ())}, []
+        return {k: v for k, v in f.items() if k not in falta.get(c, ()) + falta.get('todas', ())}, err.get(c, []), fmt.get(c, [])
     assessor.ler_pdf = ler
     try:
         zp, plan, disc, out = BASE / 'tam.zip', BASE / 'tam.csv', BASE / 'tam.md', BASE / 'lote-2026-09-30'
         with zipfile.ZipFile(zp, 'w') as z:
-            for c, n in (('71', 'ANA'), ('72', 'BIA'), ('73', 'CAIO'), ('74', 'DUDA')):
+            for c, n in (('71', 'ANA'), ('72', 'BIA'), ('73', 'CAIO'), ('74', 'DUDA'), ('75', 'EVA'), ('76', 'GIL')):
                 z.writestr(f'XPerformance - {c} {n} - Ref.pdf', b'%PDF')
-        plan.write_text('conta,telefone,nome,apelido\n71,11 98765-4321,Ana,Ana\n73,11 98765-4323,Caio,Caio\n74,11 98765-4324,Duda,Duda\n72,11 98765-4322,Bia,' + 'B' * 700 + '\n', encoding='utf-8')
+        plan.write_text('conta,telefone,nome,apelido\n71,11 98765-4321,Ana,Ana\n73,11 98765-4323,Caio,Caio\n74,11 98765-4324,Duda,Duda\n'
+                        '75,11 98765-4325,Eva,Eva\n76,11 98765-4326,Gil,Gil\n72,11 98765-4322,Bia,' + 'B' * 700 + '\n', encoding='utf-8')
         disc.write_text('<!-- referência: 09/2026 -->\n' + 'x' * (assessor.TETO_DISCURSO + 1), encoding='utf-8')
         saida, cod = rodar(assessor.main, zp, plan, disc)
         assert 'teto' in str(cod) and not out.exists(), (saida, cod)
@@ -310,10 +313,16 @@ def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
             st = {r[0]: (r[4], r[5], r[6]) for r in csv.reader(fh)}
         assert st['71'] == ('pronto', '', '') and st['73'] == ('pronto', '', '') and st['72'][0] == 'bloqueado' and 'limite de 1024' in st['72'][1], st
         assert st['74'] == ('pronto', '', 'mensagem sem: CDI do mês, Ibovespa do mês, IPCA do mês, CDI das janelas'), st
+        formato = 'relatório pode ter mudado de formato (não li GANHO MÊS): mensagem sem números'
+        assert st['75'] == ('revisar', formato, '') and st['76'] == ('bloqueado', 'não lido: capa (conta/data)', ''), st
         assert 'AVISO: 1 com a mensagem sem algum trecho' in saida and saida.rstrip().splitlines()[-2].endswith(': 74'), saida
         msg = lambda c: (out / c / 'mensagem.txt').read_text(encoding='utf-8')
-        bloco = '📈 *No ano / 12M*\n• Carteira: 1,23% / 1,23%\n• CDI: 1,23% / 1,23%\n\n💰 Resultado'
-        assert '• Carteira: *1,23%*\n• CDI: 1,23% | Ibovespa: 1,23% | IPCA: 1,23%\n\n' + bloco in msg('71'), msg('71')
+        assert msg('71').startswith(
+            'Olá, Ana!\n\nSegue seu relatório de setembro/2026. Resumo:\n\n📊 *No mês*\n• Carteira: *1,23%*\n'
+            '• CDI: 1,23% | Ibovespa: 1,23% | IPCA: 1,23%\n\n📈 *No ano / 12M*\n• Carteira: 1,23% / 1,23%\n• CDI: 1,23% / 1,23%\n\n'
+            '💰 Resultado no mês: *R$ 1,00*\n🏦 Patrimônio bruto: *R$ 2,00*\n\n🌎 *Cenário do mês*\n'), msg('71')
+        assert msg('75').startswith('Olá, Eva!\n\nSegue seu relatório de setembro/2026.\n\n🌎 *Cenário do mês*\n'), msg('75')
+        assert not (out / '76').exists()
         assert '| IPCA: 1,23%\n\n💰 Resultado' in msg('73'), msg('73')
         assert '• Carteira: *1,23%*\n\n📈 *No ano / 12M*\n• Carteira: 1,23% / 1,23%\n\n💰 Resultado' in msg('74'), msg('74')
         falta['todas'] = ('ibov_mes',)  # a mesma omissão em todas as contas lidas: o lote pede revisão
@@ -322,25 +331,26 @@ def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
             st = {r[0]: (r[4], r[5]) for r in csv.reader(fh)}
         motivo = 'mensagem sem Ibovespa do mês em todas as contas lidas do lote'
         assert st['71'] == ('revisar', motivo) and st['74'] == ('revisar', motivo) and st['72'][0] == 'bloqueado' and motivo not in st['72'][1], st
+        assert st['75'] == ('revisar', formato), st
     finally:
         assessor.ler_pdf = orig
 
 
 def test_ler_pdf_janelas_conforme_cobertura():
-    """A tabela de referências não bloqueia a conta: "-" na carteira é conta sem histórico, e o que não for lido fica fora da mensagem e entra em omitidos. Sem patrimônio, rentabilidade do mês ou resultado, a conta não é lida."""
-    def texto(cart, cdi='1,07% 11,70% 12,00% 12,00%', resto='Ibovespa -9,88% n/d n/d n/d\nIPCA 0,21%\n', sem=''):
+    """A tabela de referências não bloqueia a conta: "-" na carteira é conta sem histórico, e o que não for lido fica fora da mensagem e entra em omitidos. Sem patrimônio, rentabilidade do mês ou resultado, sem a tabela ou com as colunas fora de Mês Ano 12M, o formato pode ter mudado; sem conta e data na capa, a conta não é lida."""
+    def texto(cart, cdi='1,07% 11,70% 12,00% 12,00%', resto='Ibovespa -9,88% n/d n/d n/d\nIPCA 0,21%\n', sem='', cab='Mês Ano 12M 24M'):
         # pdftotext -raw das páginas 1-2, anonimizado: capa, campos e tabela de referências.
         # As linhas "CDI", "Ibovespa" e "IPCA" antes do cabeçalho são de outro quadro e não podem ser lidas.
         return ('Conta Assessor Data de Referência\n123 Exclusive Assessor Teste 30/10/2026\n'
                 'PATRIMÔNIO TOTAL BRUTO:\nR$ 1.234,56\nRENTABILIDADE MÊS:\n1,11%\nGANHO MÊS:\nR$ 12,34\n'
                 'CDI 100,00%\nIbovespa 50,00%\nIPCA 4,50%\n'
-                f'Referências (%) Mês Ano 12M 24M\nPortfólio {cart}\nCDI {cdi}\n{resto}').replace(sem, '')
+                f'Referências (%) {cab}\nPortfólio {cart}\nCDI {cdi}\n{resto}').replace(sem, '')
     orig = assessor.subprocess.run
     try:
         def ler(*a, **k):
             assessor.subprocess.run = lambda *x, **kw: type('R', (), {'stdout': texto(*a, **k)})()
-            f, err = assessor.ler_pdf('x.pdf')
-            return err, assessor.comparativos(f), assessor.janelas(f), assessor.omitidos(f)
+            f, err, fmt = assessor.ler_pdf('x.pdf')
+            return err + fmt, assessor.comparativos(f), assessor.janelas(f), assessor.omitidos(f)
         mes = '• CDI: 1,07% | Ibovespa: -9,88% | IPCA: 0,21%\n'
         completo = '📈 *No ano / 12M*\n• Carteira: 10,10% / 12,12%\n• CDI: 11,70% / 12,00%\n\n'
         assert ler('1,11% 10,10% 12,12% 25,25%') == ([], mes, completo, [])
@@ -353,7 +363,14 @@ def test_ler_pdf_janelas_conforme_cobertura():
             [], '• CDI: 1,07% | IPCA: 0,21%\n', '📈 *No ano / 12M*\n• Carteira: 10,10% / 12,12%\n\n', ['Ibovespa do mês', 'CDI das janelas'])
         assert ler('1,11% 10,10% - -', 'n/d n/d n/d n/d', 'IPCA –\n') == (
             [], '', '📈 *No ano*\n• Carteira: 10,10%\n\n', ['CDI do mês', 'Ibovespa do mês', 'IPCA do mês', 'CDI das janelas'])
-        assert ler('1,11% 10,10% 12,12% 25,25%', sem='GANHO MÊS:\nR$ 12,34\n')[0] == ['resultado']
+        for rot, _ in assessor.CAMPOS.values():
+            assert ler('1,11% 10,10% 12,12% 25,25%', sem=rot + '\n')[0] == ['não li ' + rot.rstrip(':')], rot
+        # colunas atribuídas por posição: fora de Mês Ano 12M, nada da tabela é lido
+        assert ler('1,11% 12,12% 10,10% 25,25%', cab='Mês 12M Ano 24M')[::2] == (
+            ['colunas de Referências (%) "Mês 12M Ano 24M" em vez de Mês Ano 12M'], '')
+        assert ler('1,11% 10,10% 12,12% -', sem='Referências (%) Mês Ano 12M 24M\n')[::2] == (['tabela Referências (%) não encontrada'], '')
+        assessor.subprocess.run = lambda *x, **kw: type('R', (), {'stdout': texto('1,11% 10,10% 12,12% -', sem='Data de Referência')})()
+        assert assessor.ler_pdf('x.pdf')[1:] == (['capa (conta/data)'], [])
     finally:
         assessor.subprocess.run = orig
 
