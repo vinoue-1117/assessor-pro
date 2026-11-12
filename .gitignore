@@ -3,6 +3,19 @@
 .env.*
 !.env.example
 
+# Dado de cliente: nunca versionado (mesma lista em DADOS, scripts/check.py)
+*.csv
+*.tsv
+*.pdf
+*.xls
+*.xlsx
+*.xlsm
+*.xlsb
+*.ods
+*.zip
+*.7z
+*.rar
+
 # OS and editor
 .DS_Store
 *.swp

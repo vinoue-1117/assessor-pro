@@ -1,51 +1,55 @@
 #!/usr/bin/env python3
-"""Gera os ponteiros em template/skills a partir das skills completas.
+"""Gera os ponteiros de cada bot a partir das skills completas.
 
-A description de cada ponteiro fica no mapa DESCRICOES: uma frase fixa
-sobre quando usar a skill. Ela não é copiada da skill completa, então
-editar essa description em plugins/ não altera o ponteiro.
+Bot é toda pasta de bots/ que tem bot.md. As skills completas ficam em
+<bot>/skills/ e os ponteiros gerados em <bot>/ponteiros/.
+
+A description de cada ponteiro vem da seção "## Skills" do bot.md: uma
+frase fixa sobre quando usar a skill. Ela não é copiada da skill completa,
+então editar a description da skill completa não altera o ponteiro.
+
+O README do bot precisa, no bloco "## Instalar", de "caminho <pasta>,"
+e da URL do instalar.md.
 
 Uso:
-  python3 scripts/gerar-ponteiros.py
-  python3 scripts/gerar-ponteiros.py --check
+  python scripts/gerar-ponteiros.py
+  python scripts/gerar-ponteiros.py --check
 """
+import re
+import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGINS = ROOT / "plugins"
-OUT = ROOT / "template" / "skills"
+BOTS = ROOT / "bots"
 RAW = "https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable"
 FALHA = (
-    "Não consegui baixar as instruções atuais do Assessor Pro. "
+    "Não consegui baixar as instruções atuais. "
     "Tente de novo em alguns minutos."
 )
-
-# Quando usar cada skill. Texto estável, mantido só aqui: não acompanhe
-# a description da skill completa (ela muda com implementação, arquivo,
-# versão e regra de trava). Comece pelas palavras-gatilho já em uso.
-DESCRICOES = {
-    "assessor-ajustar-cliente": "Use quando o assessor pedir por mensagem para adicionar, alterar ou remover um cliente da planilha salva (conta, telefone, nome ou apelido), sem mandar a planilha inteira.",
-    "assessor-enviar-relatorio": "Use só depois que o assessor aprovou no chat o resumo do lote gerado por assessor-preparar-envio, para enviar os relatórios aos clientes pelo bot de WhatsApp.",
-    "assessor-envio-core": "Persona e regras do bot Relatórios - Assessor Pro: siga em toda conversa deste bot.",
-    "assessor-envio-teste": "Use quando o assessor quiser ver como um relatório chega no WhatsApp antes do envio real, sem enviar a nenhum cliente.",
-    "assessor-preparar-envio": "Use quando o assessor mandar no chat o zip do lote do relatório mensal de performance da corretora e/ou a planilha de clientes, ou pedir para preparar o envio mensal dos relatórios por WhatsApp.",
-    "assessor-rastrear-apelido": "Use quando o assessor pedir para preencher ou corrigir a coluna apelido da planilha de clientes a partir de como ele chama cada cliente no WhatsApp.",
-    "assessor-resumo-ultimo-envio": "Use quando o assessor perguntar como foi o último envio de relatórios (quantos foram, quais falharam e por quê).",
-    "assessor-zap-core": "Persona e regras do bot Whatsapp - Assessor Pro: siga em toda conversa deste bot.",
-    "assessor-zap-enviar": "Use quando outro bot pedir para enviar no WhatsApp um texto e/ou um arquivo para um contato.",
-    "assessor-zap-exportar-historico": "Use quando outro bot ou o dono pedir para ler ou exportar mensagens de uma ou mais conversas do WhatsApp.",
-    "assessor-zap-triagem": "Use na rotina de leitura do WhatsApp para ler as conversas que têm rota e encaminhar cada mensagem nova ao bot dono da rota.",
-}
+ITEM = re.compile(r"^- `([a-z0-9-]+)`: (\S.*)$")
 
 
-def linha_description(nome):
-    if nome not in DESCRICOES:
-        sys.exit(f"sem description de ponteiro: {nome}")
-    texto = DESCRICOES[nome]
-    if not texto.strip() or "\n" in texto:
-        sys.exit(f"description de ponteiro inválida: {nome}")
-    return "description: '" + texto.replace("'", "''") + "'"
+def rel(path):
+    return path.relative_to(ROOT).as_posix()
+
+
+def descricoes(ficha):
+    """Lê as linhas "- `skill`: quando usar" da seção ## Skills do bot.md."""
+    achadas, dentro = {}, False
+    for linha in ficha.read_text(encoding="utf-8").split("\n"):
+        if linha.startswith("## "):
+            dentro = linha.strip() == "## Skills"
+        elif dentro and linha.strip():
+            m = ITEM.match(linha.rstrip())
+            if not m:
+                sys.exit(f"linha fora do formato em ## Skills de {rel(ficha)}: {linha}")
+            if m[1] in achadas:
+                sys.exit(f"skill repetida em ## Skills de {rel(ficha)}: {m[1]}")
+            achadas[m[1]] = m[2]
+    if not achadas:
+        sys.exit(f"sem skill em ## Skills de {rel(ficha)}")
+    return achadas
 
 
 def frontmatter(text, path):
@@ -67,30 +71,69 @@ def frontmatter(text, path):
     return nome, descricao
 
 
+def bloco(texto, titulo):
+    """Texto de uma seção "## ...", até a próxima seção do mesmo nível."""
+    linhas, dentro = [], False
+    for linha in texto.split("\n"):
+        if linha.startswith("## "):
+            if dentro:
+                break
+            dentro = linha.strip() == titulo
+        elif dentro:
+            linhas.append(linha)
+    return "\n".join(linhas)
+
+
+def prompt_ok(leiame, caminho):
+    """O bloco ## Instalar traz "caminho <pasta>," e a URL do instalar.md."""
+    if not leiame.is_file():
+        return False
+    texto = bloco(leiame.read_text(encoding="utf-8"), "## Instalar")
+    return f"caminho {caminho}," in texto and f"{RAW}/bots/instalar.md" in texto
+
+
 def carregar():
-    ponteiros = {}
-    for path in sorted(PLUGINS.glob("*/skills/*/SKILL.md")):
-        texto = path.read_text(encoding="utf-8")
-        nome_linha, _ = frontmatter(texto, path)
-        nome = nome_linha.split(":", 1)[1].strip().strip("'\"")
-        if not nome:
-            sys.exit(f"name vazio: {path}")
-        if nome in ponteiros:
-            sys.exit(f"nome de skill repetido: {nome}")
-        rel = path.relative_to(ROOT).as_posix()
-        ponteiros[nome] = ponteiro(nome, nome_linha, rel)
-    if not ponteiros:
-        sys.exit(f"nenhuma skill em {PLUGINS}")
-    extras = sorted(set(DESCRICOES) - set(ponteiros))
-    if extras:
-        sys.exit("description de ponteiro sem skill: " + ", ".join(extras))
-    return ponteiros
+    """Devolve {caminho do ponteiro: texto} de todos os bots."""
+    for path in sorted(BOTS.rglob("skills/*/SKILL.md")):
+        if not (path.parents[2] / "bot.md").is_file():
+            sys.exit(f"skill em pasta sem bot.md: {rel(path)}")
+    esperado, nomes = {}, set()
+    for ficha in sorted(BOTS.rglob("bot.md")):
+        bot = ficha.parent
+        caminho = bot.relative_to(BOTS).as_posix()
+        leiame = bot / "README.md"
+        if not prompt_ok(leiame, caminho):
+            sys.exit(
+                f"sem prompt de instalacao em {rel(bot)}/README.md, "
+                f"falta no ## Instalar: caminho {caminho}, e {RAW}/bots/instalar.md"
+            )
+        descr = descricoes(ficha)
+        achadas = set()
+        for path in sorted(bot.glob("skills/*/SKILL.md")):
+            nome_linha, _ = frontmatter(path.read_text(encoding="utf-8"), path)
+            nome = nome_linha.split(":", 1)[1].strip().strip("'\"")
+            if not nome:
+                sys.exit(f"name vazio: {path}")
+            if nome in nomes:
+                sys.exit(f"nome de skill repetido: {nome}")
+            if nome not in descr:
+                sys.exit(f"skill sem linha em ## Skills de {rel(ficha)}: {nome}")
+            nomes.add(nome)
+            achadas.add(nome)
+            dest = bot / "ponteiros" / nome / "SKILL.md"
+            esperado[dest] = ponteiro(nome, nome_linha, rel(path), descr[nome])
+        extras = sorted(set(descr) - achadas)
+        if extras:
+            sys.exit(f"{rel(ficha)} lista skill que nao existe: {', '.join(extras)}")
+    if not esperado:
+        sys.exit(f"nenhum bot.md em {rel(BOTS)}")
+    return esperado
 
 
-def ponteiro(nome, nome_linha, rel):
-    url = f"{RAW}/{rel}"
+def ponteiro(nome, nome_linha, caminho, descricao):
+    url = f"{RAW}/{caminho}"
     destino = f"/workspace/assessor-pro/{nome}.md"
-    desc_linha = linha_description(nome)
+    desc_linha = "description: '" + descricao.replace("'", "''") + "'"
     return (
         "---\n"
         f"{nome_linha}\n"
@@ -105,73 +148,54 @@ def ponteiro(nome, nome_linha, rel):
         f"2. Confira que `{destino}` começa com frontmatter (`---`) e tem `{nome_linha}`.\n"
         "3. Siga exatamente o que foi baixado.\n"
         "\n"
-        f'Se o download falhar, vier vazio ou a conferência não bater, pare e diga ao assessor: "{FALHA}" '
+        f'Se o download falhar, vier vazio ou a conferência não bater, pare e diga ao dono do bot: "{FALHA}" '
         "Não use cópia antiga nem improvise.\n"
     )
 
 
 def refs_main():
-    ruins = []
-    for pasta in (PLUGINS, OUT):
-        if not pasta.exists():
-            continue
-        glob = "*/skills/*/SKILL.md" if pasta == PLUGINS else "*/SKILL.md"
-        for path in sorted(pasta.glob(glob)):
-            if "/main/" in path.read_text(encoding="utf-8"):
-                ruins.append(path.relative_to(ROOT).as_posix())
-    return ruins
+    return [
+        rel(path)
+        for path in sorted(BOTS.rglob("SKILL.md"))
+        if "/main/" in path.read_text(encoding="utf-8")
+    ]
 
 
 def gravar(esperado):
-    OUT.mkdir(parents=True, exist_ok=True)
-    for filho in list(OUT.iterdir()):
-        if filho.is_dir() and filho.name not in esperado:
-            for item in filho.rglob("*"):
-                if item.is_file():
-                    item.unlink()
-            for item in sorted(filho.rglob("*"), reverse=True):
-                if item.is_dir():
-                    item.rmdir()
-            filho.rmdir()
-    for nome in sorted(esperado):
-        dest = OUT / nome / "SKILL.md"
+    for pasta in {dest.parents[1] for dest in esperado}:
+        shutil.rmtree(pasta, ignore_errors=True)
+    for dest, texto in esperado.items():
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(esperado[nome], encoding="utf-8")
+        dest.write_text(texto, encoding="utf-8", newline="\n")
     print(f"ponteiros gravados: {len(esperado)}")
 
 
 def conferir(esperado):
     problemas = []
-    if not OUT.is_dir():
-        problemas.append(f"falta o diretório {OUT.relative_to(ROOT)}")
-    else:
-        for nome, texto in sorted(esperado.items()):
-            path = OUT / nome / "SKILL.md"
-            if not path.is_file():
-                problemas.append(f"falta {path.relative_to(ROOT)}")
-            elif path.read_text(encoding="utf-8") != texto:
-                problemas.append(f"desatualizado {path.relative_to(ROOT)}")
-        for path in sorted(OUT.glob("*/SKILL.md")):
-            if path.parent.name not in esperado:
-                problemas.append(f"ponteiro sobrando {path.relative_to(ROOT)}")
-    for rel in refs_main():
-        problemas.append(f"referencia /main/: {rel}")
+    for dest, texto in sorted(esperado.items()):
+        if not dest.is_file():
+            problemas.append(f"falta {rel(dest)}")
+        elif dest.read_text(encoding="utf-8") != texto:
+            problemas.append(f"desatualizado {rel(dest)}")
+    for path in sorted(BOTS.rglob("ponteiros/*/SKILL.md")):
+        if path not in esperado:
+            problemas.append(f"ponteiro sobrando {rel(path)}")
+    for item in refs_main():
+        problemas.append(f"referencia /main/: {item}")
     if problemas:
         print("ponteiros desatualizados:", file=sys.stderr)
         for item in problemas:
             print(f"- {item}", file=sys.stderr)
-        print("rode: python3 scripts/gerar-ponteiros.py", file=sys.stderr)
+        print("rode: python scripts/gerar-ponteiros.py", file=sys.stderr)
         sys.exit(1)
     print(f"ponteiros ok ({len(esperado)})")
 
 
 def main():
     esperado = carregar()
-    if "--check" in sys.argv:
-        conferir(esperado)
-    else:
+    if "--check" not in sys.argv:
         gravar(esperado)
-        conferir(esperado)
+    conferir(esperado)
 
 
 if __name__ == "__main__":

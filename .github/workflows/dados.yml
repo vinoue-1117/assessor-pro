@@ -1,0 +1,26 @@
+name: dados
+
+# Recusa arquivo de dado pela lista de arquivos da PR, com o check.py da
+# branch de destino. O código da PR não roda aqui, então a PR não consegue
+# desligar a recusa.
+on:
+  pull_request_target:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  dados:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: >
+          gh api "repos/$REPO/pulls/$PR/files" --paginate
+          --jq '.[] | select(.status != "removed") | .filename'
+          | python3 scripts/check.py --nomes
