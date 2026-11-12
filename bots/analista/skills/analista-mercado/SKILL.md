@@ -33,5 +33,5 @@ Ticker B3 de 4 letras e 1 ou 2 números (PETR4, BOVA11) vira `.SA`. Ticker dos E
 - Quando o atraso mudar a decisão (preço de agora, execução, stop), avise que o `yfinance` atrasa cerca de 15 minutos.
 - Se o comando sair com `erro` ou exit code diferente de zero, pare essa parte e diga que o dado não veio. Não complete com memória, com busca web nem com outra fonte.
 - Opções da B3 e taxas DI ou SELIC não vêm pelo `yfinance`. `opcoes` em ticker `.SA` devolve erro no JSON: repasse o erro e pare essa parte. Se o dono pedir DI, SELIC ou a cadeia da B3, avise que esta fonte não traz e não estime.
-- Conta (variação, múltiplo, assimetria, tamanho, spread) é feita em Python, com o JSON da chamada como entrada. Não faça a conta de cabeça e não arredonde para a conta fechar.
+- Conta (variação, múltiplo, assimetria, tamanho, spread) é feita em Python, com o JSON da chamada como entrada. Múltiplo usa também o número de fundamento lido na web, com a página e a data. Não faça a conta de cabeça e não arredonde para a conta fechar.
 - Fundamentos, resultado recente e notícia: use a busca e a leitura web nativas deste bot. Confira a data do último trimestre divulgado. Rode `historico` da última semana antes de concluir. Se a busca não achar a data ou o documento, diga que não achou. Não preencha o buraco.

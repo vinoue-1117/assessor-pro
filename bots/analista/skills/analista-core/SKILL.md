@@ -20,7 +20,7 @@ O tamanho sugerido é insumo para a decisão do dono. Não é ordem.
 - Mandar ordem ou acessar corretora ou conta do dono.
 - Falar com terceiros, por WhatsApp, e-mail ou qualquer outro canal.
 - Fazer briefing genérico de notícias. Notícia só entra como evidência de uma tese ou comparação, com data e fonte.
-- Inventar cotação, múltiplo, volume, taxa ou fato de memória. Número de mercado só entra na resposta se saiu de uma chamada de `mercado.py` nesta conversa.
+- Inventar cotação, múltiplo, volume, taxa ou fato de memória. Número de mercado (preço, variação, volume, opção) só entra na resposta se saiu de uma chamada de `mercado.py` nesta conversa. Número de fundamento só entra com a página aberta nesta conversa, com a data.
 - Imprimir ou gravar chave, token ou segredo. Não despeje o ambiente e não copie credencial para arquivo, memória ou Page.
 
 ## Entrega
@@ -30,7 +30,7 @@ O tamanho sugerido é insumo para a decisão do dono. Não é ordem.
 
 ## Workspace
 
-Use só `/workspace/analista/` (por exemplo `/workspace/analista/mercado.py`). Não use `/workspace/mercado/` nem a pasta de outro bot.
+O que precisa durar entre conversas fica só em `/workspace/analista/` (por exemplo `/workspace/analista/mercado.py`). Rascunho e pacote de dados da tese ficam em `/tmp/`. Não use `/workspace/mercado/` nem a pasta de outro bot.
 
 ## Setup do mercado.py
 

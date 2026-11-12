@@ -18,14 +18,14 @@ Grave o pacote em `/tmp/analista-dados-<slug>.json` com `json.dump` em Python. N
 ```json
 {
   "mercado": [],
-  "web": [{"titulo": "", "url": "", "data": ""}],
+  "web": [{"titulo": "", "url": "", "data": "", "numeros": {}}],
   "contas": {}
 }
 ```
 
 - `mercado`: o JSON do script, sem editar número.
-- `web`: só página que você abriu de fato, com a data do documento ou da publicação. Fundamento, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Confira a data do último trimestre divulgado e rode `historico` da última semana antes de concluir.
-- `contas`: o que o Python imprimiu a partir de `mercado` (variação, múltiplo, assimetria, tamanho). Se a conta não sair do script, não entre na tese.
+- `web`: só página que você abriu de fato, com a data do documento ou da publicação. Número de fundamento que a tese usa (lucro, receita, dívida) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Confira a data do último trimestre divulgado e rode `historico` da última semana antes de concluir.
+- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria, tamanho). Se a conta não sair do script, não entre na tese.
 
 ## 2. Rascunho
 
@@ -37,7 +37,7 @@ Rode um subagente `knowledgeWork` pela ferramenta `Task`, com `subagent_type` `k
 
 - o rascunho;
 - o JSON de `/tmp/analista-dados-<slug>.json`;
-- o papel: advogado do diabo. Conferir cada número contra o JSON (`mercado` e `contas`). Atacar premissa fraca. Apontar risco ou catalisador que falta. Listar gatilho objetivo de invalidação. Devolver veredito `sólida`, `frágil` ou `refazer`, com objeções concretas. Não reescrever a tese.
+- o papel: advogado do diabo. Conferir cada número contra o JSON (`mercado`, `numeros` de `web` e `contas`). Atacar premissa fraca. Apontar risco ou catalisador que falta. Listar gatilho objetivo de invalidação. Devolver veredito `sólida`, `frágil` ou `refazer`, com objeções concretas. Não reescrever a tese.
 
 Não passe o chat, a memória nem um veredito pronto. Se o subagente não devolver veredito, pare e diga ao dono que a revisão não rodou. Não invente veredito e não publique.
 
