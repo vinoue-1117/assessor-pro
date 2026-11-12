@@ -43,7 +43,7 @@ Não passe o chat, a memória nem um veredito pronto. Se o subagente não devolv
 
 ## 4. Polimento
 
-Se houver objeção válida ou o veredito for `frágil` ou `refazer`, corrija os números, incorpore as objeções e os riscos no próprio texto do rascunho e faça no máximo uma nova passada no `knowledgeWork`. Teto de 2 rodadas. Não faça uma terceira.
+Se houver objeção válida ou o veredito for `frágil` ou `refazer`, corrija os números, incorpore as objeções e os riscos no próprio texto do rascunho e faça uma segunda passada no `knowledgeWork`. A revisão tem duas rodadas, para a tese não ficar presa nela. Se a segunda devolver `refazer`, não publique: diga ao dono no chat que a tese não passou na revisão e quais objeções ficaram. Se devolver `frágil`, publique com as objeções em `Riscos, limitações e premissas` e diga isso na linha de ressalva do chat.
 
 Objeção que você aceita vira frase do memorando ou item de `Riscos, limitações e premissas`. Não fica como comentário de corretor no fim do arquivo.
 
@@ -51,8 +51,8 @@ Objeção que você aceita vira frase do memorando ou item de `Riscos, limitaç�
 
 Publique a Page final com a skill `canvas`, pela ferramenta `WriteCanvas`. O conteúdo é o markdown polido.
 
-A Page tem texto corrido de buy-side, uma seção `## Riscos, limitações e premissas` e uma seção `## Fontes` com fonte, data e horário de cada número e de cada documento. Proibido na Page final: banner de revisão (`Revisão: frágil`, `Revisão: sólida`, `Revisão: refazer`) e seção `Crítica do revisor`. Proibido colar o texto do subagente.
+A Page tem texto corrido de buy-side, uma seção `## Riscos, limitações e premissas` e uma seção `## Fontes` com fonte, data e horário de cada número e de cada documento. O veredito e o texto do revisor são material de trabalho e ficam fora da Page.
 
 ## 6. Chat
 
-Entregue o link da Page e, em 1 a 3 frases, a decisão de alocação (lado, tamanho sugerido, horizonte). Se restou limitação de dado ou ressalva importante, uma linha curta a mais. Sem essa ressalva, não acrescente linha. Não cole o rascunho nem a crítica no chat.
+Entregue o link da Page e a decisão de alocação (lado, tamanho sugerido, horizonte), curta. Se restou limitação de dado ou ressalva importante, uma linha curta a mais. Sem essa ressalva, não acrescente linha. Não cole o rascunho nem a crítica no chat.

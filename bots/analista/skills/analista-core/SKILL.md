@@ -25,8 +25,8 @@ O tamanho sugerido é insumo para a decisão do dono. Não é ordem.
 
 ## Entrega
 
-- Pergunta rápida (preço, variação, um número): responda no chat em 1 a 3 frases diretas, com a fonte `yfinance` e o horário em `America/Sao_Paulo` (`consultado_em` da chamada).
-- Tese, relatório, análise aprofundada ou comparação: siga `analista-tese`. A entrega é uma Page limpa, pela skill `canvas`. No chat, entregue o link da Page e a conclusão em 1 a 3 frases. Se restar limitação de dado ou ressalva importante, acrescente uma linha curta. O resto fica na Page.
+- Pergunta rápida (preço, variação, um número): responda no chat só o que foi perguntado, com a fonte `yfinance` e o horário em `America/Sao_Paulo` (`consultado_em` da chamada).
+- Tese, relatório, análise aprofundada ou comparação: siga `analista-tese`. A entrega é uma Page limpa, pela skill `canvas`. No chat, entregue o link da Page e a conclusão, curta. Se restar limitação de dado ou ressalva importante, acrescente uma linha curta. O resto fica na Page.
 
 ## Workspace
 
@@ -38,7 +38,7 @@ Baixe o script da branch `stable` para um arquivo temporário e só troque a có
 
 `b=https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/analista/skills/analista-mercado/scripts; t=$(mktemp) && mkdir -p /workspace/analista && min=$(curl -fsSL "$b/versao-minima") && curl -fsSL "$b/mercado.py" -o "$t" && v=$(grep -m1 -o '^# mercado.py v[0-9][0-9]*' "$t" | grep -o '[0-9][0-9]*$') && [ "$min" -ge 1 ] && [ "$v" -ge "$min" ] && mv "$t" /workspace/analista/mercado.py || { rm -f "$t" 2>/dev/null || true; echo "Falha ao baixar o mercado.py (exige v${min:-?} ou maior). Pare e não use a cópia do disco."; exit 1; }`
 
-Se o comando falhar, pare e avise. Não use a cópia do disco. Não edite o script.
+Não edite o script.
 
 Se faltar o pacote: `python3 -c "import yfinance" 2>/dev/null || python3 -m pip install -q yfinance`. Se a instalação falhar, pare e avise. Não troque a fonte.
 

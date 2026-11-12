@@ -13,7 +13,7 @@ Baixe a cada execução, da branch `stable`, para um arquivo temporário. Não p
 
 `b=https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/analista/skills/analista-mercado/scripts; t=$(mktemp) && mkdir -p /workspace/analista && min=$(curl -fsSL "$b/versao-minima") && curl -fsSL "$b/mercado.py" -o "$t" && v=$(grep -m1 -o '^# mercado.py v[0-9][0-9]*' "$t" | grep -o '[0-9][0-9]*$') && [ "$min" -ge 1 ] && [ "$v" -ge "$min" ] && mv "$t" /workspace/analista/mercado.py || { rm -f "$t" 2>/dev/null || true; echo "Falha ao baixar o mercado.py (exige v${min:-?} ou maior). Pare e não use a cópia do disco."; exit 1; }`
 
-Se o comando falhar, pare e avise. Não use a cópia do disco. Não edite o script.
+Não edite o script.
 
 Se faltar o pacote: `python3 -c "import yfinance" 2>/dev/null || python3 -m pip install -q yfinance`. Se a instalação falhar, pare e avise. Não troque a fonte.
 
@@ -23,7 +23,7 @@ Rode `python3 /workspace/analista/mercado.py …`. A saída é JSON no stdout. E
 
 - `cotacao TICKER [TICKER…]`: preço, variação %, abertura, máxima, mínima, volume, moeda, nome curto (se o `yfinance` trouxer), `data_pregao`, `fonte` (`yfinance`), `atraso_estimado_min` (15) e `consultado_em` (`America/Sao_Paulo`).
 - `historico TICKER [--de YYYY-MM-DD] [--ate YYYY-MM-DD] [--intervalo 1d|1w|1m|1h]`: OHLCV. Sem datas, os 30 dias até hoje em `America/Sao_Paulo`. O intervalo `1w` e `1m` saem como semana e mês. O preço não vem ajustado por provento. Se um salto parecer split ou agrupamento, diga isso em vez de tratar o salto como retorno.
-- `opcoes SUBJACENTE [--vencimento YYYY-MM-DD] [--tipo CALL|PUT] [--so-negociadas]`: cadeia do `yfinance`. Funciona para subjacente dos EUA. `--so-negociadas` fica só com volume maior que zero.
+- `opcoes SUBJACENTE [--vencimento YYYY-MM-DD] [--tipo CALL|PUT] [--so-negociadas]`: cadeia do `yfinance`. Funciona para subjacente dos EUA. Sem `--vencimento`, vem só o primeiro vencimento da cadeia; os outros estão em `vencimentos_disponiveis`. Vencimento que não existe sai com erro e a lista dos disponíveis. `--so-negociadas` fica só com volume maior que zero.
 
 Ticker B3 de 4 letras e 1 ou 2 números (PETR4, BOVA11) vira `.SA`. Ticker dos EUA, índice (`^…`) e câmbio (`=X`) ficam como estão.
 
