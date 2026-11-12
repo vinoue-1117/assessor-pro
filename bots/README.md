@@ -18,7 +18,7 @@ O que mais for só do bot fica na pasta dele: template de página, script de apo
 
 ## bot.md
 
-O título é o nome do bot. As quatro seções existem sempre, com `Nenhuma.` quando não houver o que listar.
+O título é o nome do bot no repositório. Na instalação ele não é comparado com o nome que o bot tem no chat. As quatro seções existem sempre, com `Nenhuma.` quando não houver o que listar.
 
 - `## Perfil`: o texto do perfil do bot, copiado sem alteração na instalação. Mantenha curto e mande seguir a skill `<bot>-core`: a persona e as regras ficam nela, e assim chegam ao bot por download, sem reinstalar.
 - `## Skills`: uma linha por skill, no formato ``- `nome-da-skill`: quando usar``. A frase vira a description do ponteiro. A lista tem que bater com as pastas de `skills/`; o gerador para se sobrar ou faltar.
@@ -33,13 +33,16 @@ O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a
 
 ## Prompt de instalação
 
-Fica no `README.md` da pasta do bot, na seção `## Instalar`, e em nenhum outro arquivo. O dono cola no chat do bot para instalar ou atualizar. Formato:
+Fica no `README.md` da pasta do bot, na seção `## Instalar`, e em nenhum outro arquivo. O dono cola no chat do bot para instalar ou atualizar. O prompt diz a função do bot: o nome pode ser outro. Formato:
 
 ```
-você é o bot <quem>; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot <caminho>. Não apague nada do workspace.
+Atualize suas skills pelo Assessor Pro, caminho <caminho>, seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md.
+Antes de começar, confira que você é o bot que <função> (seu nome pode ser outro). Se você for <outro bot> ou outro bot qualquer, pare e diga que este prompt é para outro bot.
+Não apague nem altere planilha, histórico de envios ou contatos do workspace.
+No fim, mostre a checklist do instalar.md marcada.
 ```
 
-`<caminho>` é a pasta do bot dentro de `bots/`. O gerador para se o README do bot não tiver o prompt com esse caminho.
+`<caminho>` é a pasta do bot dentro de `bots/`. O gerador para se o bloco `## Instalar` não tiver `caminho <caminho>,` e a URL do `instalar.md`.
 
 ## O que não entra
 

@@ -8,6 +8,9 @@ A description de cada ponteiro vem da seção "## Skills" do bot.md: uma
 frase fixa sobre quando usar a skill. Ela não é copiada da skill completa,
 então editar a description da skill completa não altera o ponteiro.
 
+O README do bot precisa, no bloco "## Instalar", de "caminho <pasta>,"
+e da URL do instalar.md.
+
 Uso:
   python scripts/gerar-ponteiros.py
   python scripts/gerar-ponteiros.py --check
@@ -68,6 +71,27 @@ def frontmatter(text, path):
     return nome, descricao
 
 
+def bloco(texto, titulo):
+    """Texto de uma seção "## ...", até a próxima seção do mesmo nível."""
+    linhas, dentro = [], False
+    for linha in texto.split("\n"):
+        if linha.startswith("## "):
+            if dentro:
+                break
+            dentro = linha.strip() == titulo
+        elif dentro:
+            linhas.append(linha)
+    return "\n".join(linhas)
+
+
+def prompt_ok(leiame, caminho):
+    """O bloco ## Instalar traz "caminho <pasta>," e a URL do instalar.md."""
+    if not leiame.is_file():
+        return False
+    texto = bloco(leiame.read_text(encoding="utf-8"), "## Instalar")
+    return f"caminho {caminho}," in texto and f"{RAW}/bots/instalar.md" in texto
+
+
 def carregar():
     """Devolve {caminho do ponteiro: texto} de todos os bots."""
     for path in sorted(BOTS.rglob("skills/*/SKILL.md")):
@@ -76,10 +100,13 @@ def carregar():
     esperado, nomes = {}, set()
     for ficha in sorted(BOTS.rglob("bot.md")):
         bot = ficha.parent
-        prompt = f"{RAW}/bots/instalar.md para o bot {bot.relative_to(BOTS).as_posix()}."
+        caminho = bot.relative_to(BOTS).as_posix()
         leiame = bot / "README.md"
-        if not leiame.is_file() or prompt not in leiame.read_text(encoding="utf-8"):
-            sys.exit(f"sem prompt de instalacao em {rel(bot)}/README.md, falta: {prompt}")
+        if not prompt_ok(leiame, caminho):
+            sys.exit(
+                f"sem prompt de instalacao em {rel(bot)}/README.md, "
+                f"falta no ## Instalar: caminho {caminho}, e {RAW}/bots/instalar.md"
+            )
         descr = descricoes(ficha)
         achadas = set()
         for path in sorted(bot.glob("skills/*/SKILL.md")):

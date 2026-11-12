@@ -9,7 +9,10 @@ Ficha do bot: [`bot.md`](bot.md).
 Cole no chat deste bot. O mesmo prompt atualiza um bot já instalado.
 
 ```
-você é o bot de Relatórios do Assessor Pro; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot assessor/envio. Não apague nada do workspace.
+Atualize suas skills pelo Assessor Pro, caminho assessor/envio, seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md.
+Antes de começar, confira que você é o bot que prepara e envia os relatórios mensais aos clientes (seu nome pode ser outro). Se você for o bot de WhatsApp ou outro bot qualquer, pare e diga que este prompt é para outro bot.
+Não apague nem altere planilha, histórico de envios ou contatos do workspace.
+No fim, mostre a checklist do instalar.md marcada.
 ```
 
 ## Skills

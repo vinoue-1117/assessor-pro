@@ -28,11 +28,30 @@ def test_bot_md_e_skills_precisam_bater(tmp_path):
     escrever(bot / 'bot.md', ficha)
     escrever(bot / 'skills/exemplo-core/SKILL.md', SKILL.format(nome='exemplo-core'))
 
-    # sem o prompt de instalação no README do bot, com o caminho da pasta dele
-    escrever(bot / 'README.md', f'{mod.RAW}/bots/instalar.md para o bot outro.')
+    # caminho errado no bloco ## Instalar
+    escrever(bot / 'README.md', (
+        "## Instalar\n\n"
+        "Atualize suas skills pelo Assessor Pro, caminho outro, "
+        f"seguindo {mod.RAW}/bots/instalar.md.\n"
+    ))
     with pytest.raises(SystemExit, match='prompt de instalacao'):
         mod.carregar()
-    escrever(bot / 'README.md', f'{mod.RAW}/bots/instalar.md para o bot exemplo.')
+
+    # URL do instalar.md fora do bloco ## Instalar
+    escrever(bot / 'README.md', (
+        f"seguindo {mod.RAW}/bots/instalar.md.\n\n"
+        "## Instalar\n\n"
+        "caminho exemplo,\n"
+    ))
+    with pytest.raises(SystemExit, match='prompt de instalacao'):
+        mod.carregar()
+
+    # caminho certo e a URL do instalar.md no mesmo bloco
+    escrever(bot / 'README.md', (
+        "## Instalar\n\n"
+        "Atualize suas skills pelo Assessor Pro, caminho exemplo, "
+        f"seguindo {mod.RAW}/bots/instalar.md.\n"
+    ))
 
     esperado = mod.carregar()
     mod.gravar(esperado)
