@@ -28,7 +28,7 @@ O estado do envio fica em arquivo, gravado pelo script: nunca escreva `historico
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
    Enviar exatamente: o PDF como documento com o texto do arquivo na legenda, numa mensagem só (arquivo com legenda). Não altere o texto. Não abra o .txt no navegador e não digite o texto.
    Imediatamente antes de anexar e antes de enviar, confira o topo: tem que ser este destinatário. Divergência ou dúvida: não anexe e não envie.
-   O texto só entra na legenda colado depois de `copiar` nesse caminho. Confira com `conferir-caixa`. Só envie se a saída for `bate`. Sem `bate`: cancele a prévia sem enviar, falhou, sem retry.
+   O texto só entra na legenda colado depois de `copiar` nesse caminho. Confira com `conferir-caixa`. Só envie se a saída for `bate`. Sem `bate`: não envie; falhou, sem retry.
    Se o contato não bater com o telefone, não envie e me diga o motivo.
    Responda: enviado | <destinatário> | <HH:MM> | <tiques>, ou falhou: <motivo>.
    ```
@@ -42,5 +42,5 @@ O estado do envio fica em arquivo, gravado pelo script: nunca escreva `historico
 - Não responda clientes. Respostas que chegarem não são assunto deste bot.
 - O bot de WhatsApp só executa: a aprovação do lote aqui é o único gate. Um `falhou` dele (contato ambíguo, nome não bate, arquivo vazio, topo diferente, texto incompleto) entra no log e no resumo final; não reenvie por conta própria.
 - Grave `enviado` só quando o bot de WhatsApp confirmar que a mensagem saiu. Senão, grave o `falhou` inteiro que ele devolveu.
-- Reenvio de um `falhou` registrado com `pdf enviado` (envio antigo, em mensagens separadas): peça só o texto (sem a linha `PDF:`, o mesmo caminho do `.txt`). O cliente já tem o PDF; não mande de novo.
-- Se o assessor disse que o envio mudou e ainda não confirmou um teste no chat próprio (`assessor-envio-teste`), faça o teste antes. Um teste pela metade não vira envio ao cliente.
+- Reenvio de um `falhou` registrado com `pdf enviado` (envio antigo, em mensagens separadas): o cliente já tem o PDF; não mande de novo. Peça só o texto, com o mesmo caminho do `.txt`: tire a linha `PDF:` e, nas linhas seguintes do pedido, peça o texto do arquivo como mensagem normal (só texto) no lugar do PDF com o texto na legenda.
+- Se o assessor disse que o envio mudou e ainda não confirmou um teste no chat próprio (`assessor-envio-teste`), faça o teste antes. Um teste que falhou não vira envio ao cliente.

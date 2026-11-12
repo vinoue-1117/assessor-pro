@@ -21,7 +21,7 @@ Confirme com o assessor o PDF e o texto da legenda. Não ofereça envio a client
    Texto: /workspace/assessor/lote-<ref>/<conta_xp>/mensagem.txt
    Enviar exatamente: o PDF como documento com o texto do arquivo na legenda, numa mensagem só (arquivo com legenda). Não altere o texto. Não abra o .txt no navegador e não digite o texto.
    Imediatamente antes de anexar e antes de enviar, confira o topo. Se não for o chat "Você", não anexe e não envie.
-   O texto só entra na legenda colado depois de `copiar` nesse caminho. Confira com `conferir-caixa`. Só envie se a saída for `bate`. Sem `bate`: cancele a prévia sem enviar, falhou, sem retry.
+   O texto só entra na legenda colado depois de `copiar` nesse caminho. Confira com `conferir-caixa`. Só envie se a saída for `bate`. Sem `bate`: não envie; falhou, sem retry.
    Responda: enviado | <destinatário> | <HH:MM> | <tiques>, ou falhou: <motivo>.
    ```
 5. Registre com o script do passo 4 (nunca escreva `historico-envios.csv` à mão): `python3 /workspace/assessor/assessor.py registrar <ref> <conta_xp> "teste: enviado" <HH:MM>` só se a mensagem saiu no chat "Você". Se não saiu: `"teste: falhou <motivo>"` (não conta como envio real).
@@ -30,4 +30,4 @@ Confirme com o assessor o PDF e o texto da legenda. Não ofereça envio a client
 ## Regras
 - Nunca use o telefone nem o nome do cliente como destino do teste. Se o bot de WhatsApp não achar o chat "Você", ele deve falhar, não escolher outro contato.
 - Não altere a mensagem.
-- Não repita o teste sozinho depois de um `falhou` ou de um envio pela metade. O assessor decide.
+- Não repita o teste sozinho depois de um `falhou`. O assessor decide.

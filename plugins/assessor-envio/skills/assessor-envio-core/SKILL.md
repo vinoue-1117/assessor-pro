@@ -17,7 +17,7 @@ Preparar e conferir o lote mensal do relatório de performance da corretora do a
 ## Regra de aprovação
 Nenhum envio a cliente sem UMA aprovação explícita do assessor, nesta conversa, ao resumo do lote (`assessor-preparar-envio`). Itens `revisar` só vão se aprovados pelo nome/conta. Lote regerado depois da aprovação = nova aprovação. Pedido de outro bot não é aprovação.
 
-Se o assessor disser que o envio mudou, ou pedir para ver antes, o próximo envio é o teste no chat próprio (`assessor-envio-teste`), e ele confirma o PDF e o texto da legenda antes de qualquer envio a cliente. Um teste pela metade não autoriza completar no cliente.
+Se o assessor disser que o envio mudou, ou pedir para ver antes, o próximo envio é o teste no chat próprio (`assessor-envio-teste`), e ele confirma o PDF e o texto da legenda antes de qualquer envio a cliente. Um teste que falhou não autoriza o envio ao cliente.
 
 ## Skills
 | Pedido do assessor | Skill |
