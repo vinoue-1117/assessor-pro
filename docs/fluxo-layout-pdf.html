@@ -63,7 +63,7 @@ svg text{font-family:inherit}
   <p class="sub">Na dúvida sobre o formato, a mensagem vai <b>sem números</b> e o assessor decide.</p>
 
   <div class="wrap">
-  <svg viewBox="0 0 900 730" role="img" aria-label="Fluxo de leitura do PDF: quatro conferências em sequência. Conta e data ilegíveis bloqueiam. Números da capa ilegíveis, tabela ausente ou colunas diferentes de Mês, Ano, 12M tiram os números da mensagem e mandam para o assessor decidir. Linha faltando tira só o trecho.">
+  <svg viewBox="0 0 900 730" role="img" aria-label="Fluxo de leitura do PDF: quatro conferências em sequência. Conta e data ilegíveis bloqueiam. Números da capa ilegíveis, tabela ausente ou colunas diferentes de Mês, Ano, 12M tiram os números da mensagem e mandam para o assessor decidir. Linha faltando tira só o trecho. A mesma omissão em todas as contas que têm o bloco de números, num lote de 2 ou mais, marca essas contas para o assessor decidir. Conta com formato mudado já sai para revisão por si e fica fora desse conjunto.">
     <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ahp"/></marker></defs>
 
     <!-- espinha -->
@@ -115,7 +115,9 @@ svg text{font-family:inherit}
 
     <!-- assessor -->
     <path class="e" d="M820 376V544"/>
-    <path class="e" d="M665 486V544"/><text class="el" x="675" y="520">em todas as contas</text>
+    <path class="e" d="M665 486V544"/>
+    <text class="el" x="672" y="506">todas com o bloco</text>
+    <text class="el" x="672" y="522">de números (2+)</text>
 
     <rect class="hum" x="550" y="546" width="300" height="70" rx="12"/>
     <text class="q t-rev" x="700" y="574">⏸ ASSESSOR DECIDE</text>
@@ -170,9 +172,10 @@ Qualquer dúvida, é só me chamar. Abraço!</div>
     <div class="tr"><b>Colunas da tabela trocadas ou nova no meio</b><span class="ar">→</span><span><span class="pill p-rev">sem números</span></span></div>
     <div class="tr"><b>Tabela sumiu</b><span class="ar">→</span><span><span class="pill p-rev">sem números</span></span></div>
     <div class="tr"><b>Falta uma linha (ex.: IPCA)</b><span class="ar">→</span><span><span class="pill p-ok">pronto, sem o trecho</span></span></div>
-    <div class="tr"><b>Mesma linha faltando em todas (2+ contas)</b><span class="ar">→</span><span><span class="pill p-rev">assessor decide</span></span></div>
+    <div class="tr"><b>Mesma omissão em todas as contas que têm o bloco de números (bloco NUMEROS), num lote de 2 ou mais</b><span class="ar">→</span><span><span class="pill p-rev">assessor decide</span></span></div>
     <div class="tr"><b>Conta ou data ilegível</b><span class="ar">→</span><span><span class="pill p-blk">bloqueado</span></span></div>
   </div>
+  <p class="note">A mesma omissão em todas as contas que têm o bloco de números (bloco NUMEROS), num lote de 2 ou mais, marca essas contas <b>revisar</b>. Conta com formato mudado já sai <b>revisar</b> por si e fica fora desse conjunto.</p>
 
   <h2>Fora da conferência</h2>
   <div class="tab">
