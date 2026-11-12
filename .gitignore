@@ -3,6 +3,13 @@
 .env.*
 !.env.example
 
+# Dado de cliente: nunca versionado
+*.csv
+*.pdf
+*.xls
+*.xlsx
+*.zip
+
 # OS and editor
 .DS_Store
 *.swp

@@ -46,5 +46,5 @@ Três blocos, nesta ordem, separados por uma linha em branco:
    - a contagem por bloco e total;
    - cada afirmação com a página do PDF que a sustenta;
    - o que ficou de fora e por quê (ex.: mudança que não vale para todos os perfis).
-5. Só com aprovação explícita: grave `discurso/discurso-macro.md` (UTF-8) com o texto aprovado, sem alterar nada, e rode `node scripts/validate-template.mjs`.
+5. Só com aprovação explícita: grave `discurso/discurso-macro.md` (UTF-8) com o texto aprovado, sem alterar nada, e rode `python scripts/check.py`.
 6. Commit na `main` com a skill `commit`. A promoção `git push origin main:stable` só com "go" explícito de Victor: é ela que faz o texto chegar aos bots no próximo lote.

@@ -1,0 +1,55 @@
+# Bots
+
+Cada bot do Grok Bot mantido neste repositório tem uma pasta aqui. Os computadores dos bots leem a branch `stable`. A `main` só chega neles quando o dono do repositório promove.
+
+## Pasta de um bot
+
+Bot é toda pasta que tem `bot.md`. Bots do mesmo produto ficam juntos (`assessor/envio`, `assessor/zap`); bot sozinho fica direto em `bots/<bot>/`.
+
+| Caminho | Conteúdo |
+| --- | --- |
+| `bot.md` | A ficha do bot: perfil, skills, rotinas e conexões. É o que o [`instalar.md`](instalar.md) lê |
+| `skills/<skill>/SKILL.md` | A skill completa. Script que só ela usa fica em `skills/<skill>/scripts/` |
+| `ponteiros/<skill>/SKILL.md` | Gerado por `python scripts/gerar-ponteiros.py`. Não editar à mão |
+| `README.md` | Opcional: o que as skills e os scripts fazem, para quem mantém o bot |
+| `tests/` | Testes em pytest, na pasta do bot ou na do produto |
+
+O que mais for só do bot fica na pasta dele: template de página, script de apoio, exemplo de saída.
+
+## bot.md
+
+O título é o nome do bot. As quatro seções existem sempre, com `Nenhuma.` quando não houver o que listar.
+
+- `## Perfil`: o texto do perfil do bot, copiado sem alteração na instalação. Mantenha curto e mande seguir a skill `<bot>-core`: a persona e as regras ficam nela, e assim chegam ao bot por download, sem reinstalar.
+- `## Skills`: uma linha por skill, no formato ``- `nome-da-skill`: quando usar``. A frase vira a description do ponteiro. A lista tem que bater com as pastas de `skills/`; o gerador para se sobrar ou faltar.
+- `## Rotinas`: cada rotina com horário e o que ela executa.
+- `## Conexões`: o que o dono precisa conectar ou guardar no vault do bot. De segredo, só o nome.
+
+O nome de cada skill é único no repositório. Comece pelo nome do bot ou do produto (`assessor-zap-enviar`).
+
+## Ponteiro
+
+O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado no bot é o perfil e a lista de ponteiros: mudar um dos dois pede rodar o [`instalar.md`](instalar.md) de novo.
+
+## O que não entra
+
+O repositório é público e o histórico não se apaga.
+
+- Segredo: chave de API, token, senha. Fica no vault do bot.
+- Dado de cliente: nome, conta, telefone, e-mail, valor, posição de carteira. PDF, planilha, CSV e zip não são versionados, e o `check` recusa esses formatos.
+- Nome, telefone ou e-mail de terceiro.
+- Amostra para teste usa valor fictício em tudo que é do cliente. De real, só o layout das linhas e o que é igual para todos.
+
+## Antes de abrir PR
+
+`python scripts/check.py`
+
+O mesmo comando roda em toda PR. Ele recusa arquivo de dado versionado, confere os ponteiros contra as skills e roda os testes. Ele não lê o texto dos arquivos atrás de dado de cliente: essa conferência é de quem abre e de quem revisa a PR.
+
+Uma PR mexe na pasta de um bot. Mudança em `scripts/` ou neste arquivo vai em PR separada.
+
+## Publicar
+
+A edição entra na `main` por PR. Quem promove é o dono do repositório:
+
+`git push origin main:stable`
