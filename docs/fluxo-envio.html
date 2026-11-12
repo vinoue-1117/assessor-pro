@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fluxo de envio</title>
+<style>
+:root{
+  --bg:#f7f7f5;--card:#fff;--ink:#1d1d1b;--mute:#6b6b66;--line:#e3e2dd;
+  --c-ass:#c77800;--c-env:#2563eb;--c-sh:#0f8a7a;--c-dk:#7c3aed;
+  --gate:#d43d3d;--ok:#1a8f4a;--bar:#d9d8d2;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141413;--card:#1e1e1c;--ink:#ecebe6;--mute:#9a9992;--line:#33332f;
+  --c-ass:#f0a030;--c-env:#6b9bff;--c-sh:#3cc7b3;--c-dk:#a98bff;
+  --gate:#ff6b6b;--ok:#4cc77e;--bar:#3a3a36;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413;--card:#1e1e1c;--ink:#ecebe6;--mute:#9a9992;--line:#33332f;
+  --c-ass:#f0a030;--c-env:#6b9bff;--c-sh:#3cc7b3;--c-dk:#a98bff;
+  --gate:#ff6b6b;--ok:#4cc77e;--bar:#3a3a36;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:26px;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 20px}
+.kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:150px}
+.kpi b{display:block;font-size:22px}
+.kpi span{color:var(--mute);font-size:13px}
+.kpi input{width:60px;font:inherit;font-size:20px;font-weight:700;background:transparent;color:var(--ink);border:none;border-bottom:1px dashed var(--mute)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-bottom:22px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.phase{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.phase h2{font-size:16px;margin:0 0 10px;display:flex;justify-content:space-between;gap:8px}
+.phase h2 small{color:var(--mute);font-weight:500}
+.loop{border:2px dashed var(--c-sh);border-radius:18px;padding:12px;margin:18px 0}
+.loop>.tag{display:inline-block;background:var(--c-sh);color:#fff;border-radius:999px;padding:3px 12px;font-weight:700;font-size:13px;margin-bottom:10px}
+.row{display:grid;grid-template-columns:14px 1fr 140px 44px 56px;gap:8px;align-items:center;padding:4px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:none}
+.lbl{min-width:0}
+.gate .lbl::before{content:"🔒 ";}
+.gate .lbl{color:var(--gate);font-weight:600}
+.track{height:8px;background:var(--bar);border-radius:4px;position:relative;overflow:hidden}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.track u{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:transparent;border:2px solid var(--ink);opacity:.7}
+.est{text-align:right;font-variant-numeric:tabular-nums;color:var(--mute);font-size:13px}
+.real{width:100%;font:inherit;font-size:13px;padding:2px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);text-align:right}
+.real.slow{border-color:var(--gate);color:var(--gate)}
+.real.fast{border-color:var(--ok);color:var(--ok)}
+.human{background:repeating-linear-gradient(45deg,var(--card),var(--card) 10px,var(--bg) 10px,var(--bg) 20px);text-align:center;font-weight:700;color:var(--c-ass)}
+.human small{display:block;color:var(--mute);font-weight:500}
+.arrow{text-align:center;color:var(--mute);font-size:20px;line-height:1;margin:2px 0}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden;margin:8px 0 4px;position:relative}
+.stack div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden}
+.limit{position:relative;height:18px;font-size:12px;color:var(--gate)}
+.stack .lim{position:absolute;top:0;bottom:0;border-left:3px dashed var(--gate)}
+.limit span{position:absolute;transform:translateX(-50%);top:0;white-space:nowrap}
+.hdr{display:grid;grid-template-columns:14px 1fr 140px 44px 56px;gap:8px;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}
+.hdr :nth-child(4),.hdr :nth-child(5){text-align:right}
+.note{color:var(--mute);font-size:13px;margin-top:16px}
+@media (max-width:560px){
+  .row,.hdr{grid-template-columns:12px 1fr 60px 38px 50px}
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>Fluxo de envio do relatório</h1>
+  <p class="sub">PDF da corretora → mensagem no WhatsApp do cliente. Tempos são estimativa; preencha a coluna <b>real</b> numa rodada de verdade.</p>
+
+  <div class="kpis">
+    <div class="kpi"><b id="k-prep">–</b><span>preparo</span></div>
+    <div class="kpi"><b id="k-cli">–</b><span>por cliente (est.)</span></div>
+    <div class="kpi"><b id="k-cli-real">–</b><span>por cliente (real, 11/11)</span></div>
+    <div class="kpi"><input id="n" type="number" min="1" value="30" aria-label="clientes"><span>clientes</span></div>
+    <div class="kpi"><b id="k-tot">–</b><span>lote inteiro (sem a aprovação)</span></div>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--c-ass)"></i>Assessor</span>
+    <span><i class="dot" style="background:var(--c-env)"></i>Bot Envio (Shell)</span>
+    <span><i class="dot" style="background:var(--c-sh)"></i>Bot Zap · Shell</span>
+    <span><i class="dot" style="background:var(--c-dk)"></i>Bot Zap · subagente desktop</span>
+    <span style="color:var(--gate)">🔒 gate: falhou = para</span>
+  </div>
+
+  <div id="flow"></div>
+
+  <div class="phase">
+    <h2><span>Onde vão os ~<span id="k-cli2"></span> de cada cliente</span><small>estimativa</small></h2>
+    <div class="stack" id="stack"></div>
+    <div class="limit" id="limit"></div>
+  </div>
+
+  <p class="note">Barra colorida = estimativa. Contorno = real. Real acima de 1,5× a estimativa fica vermelho. Os reais por fase e por cliente são a mediana das 3 rodadas de teste de 11/11/2026 (19:02 a 19:11, Brasília): 201s, 162s e 173s por cliente, todas com PDF e texto ✓✓ e conferir-caixa = bate. Os horários do desktop são anotados quando o relato volta ao Shell, então incluem a latência entre passos. O que você digitar na coluna real fica salvo só neste navegador.</p>
+</main>
+
+<script>
+// ator: a=assessor, e=bot envio, s=zap shell, d=zap desktop. g=gate. t=segundos estimados.
+const FLOW=[
+ {fase:'Preparo',steps:[
+  {id:'p1',a:'a',l:'Manda zip + planilha',t:0},
+  {id:'p2',a:'e',l:'pdftotext, assessor.py, discurso',t:20},
+  {id:'p3',a:'e',l:'Gera pacotes (PDF + texto)',t:20},
+  {id:'p4',a:'e',l:'Lê conferir-envios.csv',t:15},
+  {id:'p5',a:'e',g:1,l:'Exemplo bate com o PDF',t:30},
+  {id:'p6',a:'e',l:'Resumo do lote ao assessor',t:30},
+ ]},
+ {humano:'Aprovação do assessor',sub:'tempo humano'},
+ {fase:'Fila',steps:[
+  {id:'f1',a:'e',g:1,l:'aprovar (código do lote)',t:10},
+  {id:'f2',a:'e',l:'checar → fila ENVIAR',t:10},
+ ]},
+ {loop:true,grupos:[
+  {fase:'Pedido',cor:'--c-env',steps:[
+   {id:'c1',a:'e',l:'SendToAgent ao Bot Zap',t:10},
+   {id:'c2',a:'s',l:'Baixa assessor.py',t:10},
+   {id:'c3',a:'s',g:1,l:'copiar (arquivo existe)',t:8},
+   {id:'c4',a:'s',g:1,l:'Nome no texto = destino',t:15},
+  ]},
+  {fase:'Abrir',cor:'--c-dk',steps:[
+   {id:'c5',a:'d',l:'Abre conversa pelo telefone',t:20},
+   {id:'c6',a:'d',g:1,l:'Topo = destinatário',t:10},
+  ]},
+  {fase:'PDF',cor:'--c-sh',steps:[
+   {id:'c7',a:'d',g:1,l:'Topo de novo',t:10},
+   {id:'c8',a:'d',l:'Clipe → Documento → arquivo',t:45},
+   {id:'c9',a:'d',g:1,l:'Nome do arquivo na prévia',t:15},
+   {id:'c10',a:'d',l:'Envia PDF',t:5},
+  ]},
+  {fase:'Texto',cor:'--c-ass',steps:[
+   {id:'c11',a:'d',g:1,l:'Topo de novo',t:10},
+   {id:'c12',a:'s',l:'copiar',t:8},
+   {id:'c13',a:'d',l:'Limpa caixa, Ctrl+V',t:10},
+   {id:'c14',a:'s',l:'marcar',t:8},
+   {id:'c15',a:'d',l:'Ctrl+A, Ctrl+C',t:12},
+   {id:'c16',a:'s',g:1,l:'conferir-caixa = bate',t:8},
+   {id:'c17',a:'d',l:'Enter',t:5},
+  ]},
+  {fase:'Fechar',cor:'--mute',steps:[
+   {id:'c18',a:'d',l:'Espera os tiques',t:20},
+   {id:'c19',a:'d',l:'Fecha conversa',t:5},
+   {id:'c20',a:'s',l:'Responde ao Bot Envio',t:10},
+   {id:'c21',a:'e',l:'registrar no histórico',t:10},
+  ]},
+ ]},
+ {fase:'Fim',steps:[
+  {id:'z1',a:'e',l:'Resumo: enviados, falhas, pulados',t:20},
+ ]},
+];
+const COR={a:'--c-ass',e:'--c-env',s:'--c-sh',d:'--c-dk'};
+const LIMITE=600; // timeout do Bot Envio por cliente (assessor-enviar-relatorio, passo 4)
+const KEY='fluxo-envio-real';
+// medido em 11/11/2026, 19:02–19:11 (Brasília): mediana de 3 rodadas de teste, conta própria, chat "Você".
+// por passo só onde a marca do bot de WhatsApp separa o passo; o resto vai por fase (MEDIDO_FASE).
+const MEDIDO={c1:'19',c2:'1',c3:'0',c12:'0'};
+const MEDIDO_FASE={Pedido:19,Abrir:36,PDF:35,Texto:68,Fechar:15};
+const MEDIDO_CLI=173; // do pedido do Bot Envio até a resposta chegar nele
+const MEDIDO_NOTA={Abrir:'inclui os 2 passos; rodada 1 teve 49s por limpar rascunho',PDF:'clipe até sair do relógio, 3 rodadas: 43, 35, 32',Texto:'Ctrl+V e marcar 22s · Ctrl+A/C e conferir-caixa 20s · até o Enter 25s',Fechar:'Enter até a resposta chegar ao Bot Envio; registrar não medido'};
+let real={...MEDIDO};try{Object.assign(real,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(real))}catch(e){}};
+const all=FLOW.flatMap(b=>b.steps||(b.grupos||[]).flatMap(g=>g.steps));
+const MAX=Math.max(...all.map(s=>s.t));
+const fmt=s=>s>=60?`${Math.floor(s/60)}min${s%60?String(Math.round(s%60)).padStart(2,'0'):''}`:`${s}s`;
+const sum=st=>st.reduce((x,s)=>x+s.t,0);
+
+function rows(steps){
+  return `<div class="hdr"><span></span><span>etapa</span><span>tempo</span><span>est.</span><span>real (s)</span></div>`+steps.map(s=>`
+  <div class="row${s.g?' gate':''}">
+    <i class="dot" style="background:var(${COR[s.a]})"></i>
+    <span class="lbl">${s.l}</span>
+    <span class="track"><i style="width:${s.t/MAX*100}%;background:var(${COR[s.a]});opacity:.85"></i><u data-u="${s.id}"></u></span>
+    <span class="est">${s.t?s.t+'s':'–'}</span>
+    <input class="real" data-id="${s.id}" data-t="${s.t}" inputmode="numeric" value="${real[s.id]??''}">
+  </div>`).join('');
+}
+function phase(title,steps,extra=''){
+  const m=MEDIDO_FASE[title],n=MEDIDO_NOTA[title];
+  return `<div class="phase"${extra}><h2>${title}<small>~${fmt(sum(steps))} est.${m!=null?` · <b style="color:var(${m>sum(steps)*1.5?'--gate':m<=sum(steps)?'--ok':'--ink'})">${fmt(m)} real</b>`:''}</small></h2>${n?`<div class="note" style="margin:0 0 6px">${n}</div>`:''}${rows(steps)}</div>`;
+}
+const A='<div class="arrow">↓</div>';
+document.getElementById('flow').innerHTML=FLOW.map(b=>{
+  if(b.humano)return `<div class="phase human">⏸ ${b.humano}<small>${b.sub}</small></div>`;
+  if(b.loop){
+    const st=b.grupos.flatMap(g=>g.steps);
+    return `<div class="loop"><span class="tag">↻ para cada cliente · ~${fmt(sum(st))}</span>`+
+      b.grupos.map(g=>phase(g.fase,g.steps,` style="border-left:4px solid var(${g.cor})"`)).join(A)+`</div>`;
+  }
+  return phase(b.fase,b.steps);
+}).join(A);
+
+const cliSteps=FLOW.find(b=>b.loop).grupos;
+const prep=sum(FLOW[0].steps)+sum(FLOW[2].steps);
+const cli=sum(cliSteps.flatMap(g=>g.steps));
+document.getElementById('k-prep').textContent='~'+fmt(prep);
+document.getElementById('k-cli').textContent='~'+fmt(cli);
+document.getElementById('k-cli2').textContent=fmt(cli);
+document.getElementById('k-cli-real').textContent=fmt(MEDIDO_CLI);
+const tot=()=>{const n=+document.getElementById('n').value||0;
+  const s=prep+n*cli+sum(FLOW[4].steps);
+  document.getElementById('k-tot').textContent='~'+(s>=3600?`${Math.floor(s/3600)}h${String(Math.round(s%3600/60)).padStart(2,'0')}`:fmt(Math.round(s/60)*60));};
+document.getElementById('n').addEventListener('input',tot);tot();
+
+const span=Math.max(cli,LIMITE)*1.05;
+document.getElementById('stack').innerHTML=cliSteps.map(g=>{const s=sum(g.steps);
+  return `<div style="width:${s/span*100}%;background:var(${g.cor})" title="${g.fase} ${fmt(s)}">${g.fase} ${fmt(s)}</div>`}).join('')+
+  `<b class="lim" style="left:${LIMITE/span*100}%"></b>`;
+document.getElementById('limit').innerHTML=`<span style="left:${LIMITE/span*100}%">timeout 10 min</span>`;
+
+function paint(inp){
+  const v=parseFloat(inp.value),t=+inp.dataset.t,u=document.querySelector(`[data-u="${inp.dataset.id}"]`);
+  inp.classList.remove('slow','fast');
+  if(isNaN(v)){u.style.width='0';u.style.border='none';return}
+  u.style.border='';u.style.width=Math.min(v/MAX*100,100)+'%';
+  if(t&&v>t*1.5)inp.classList.add('slow');else if(t&&v<=t)inp.classList.add('fast');
+}
+document.querySelectorAll('.real').forEach(inp=>{paint(inp);inp.addEventListener('input',()=>{
+  const v=inp.value.trim();if(v==='')delete real[inp.dataset.id];else real[inp.dataset.id]=v;save();paint(inp);});});
+</script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layout do PDF mudou</title>
+<style>
+:root{
+  --bg:#f7f7f5;--card:#fff;--ink:#1d1d1b;--mute:#6b6b66;--line:#e3e2dd;
+  --c-ass:#c77800;--gate:#d43d3d;--ok:#1a8f4a;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141413;--card:#1e1e1c;--ink:#ecebe6;--mute:#9a9992;--line:#33332f;
+  --c-ass:#f0a030;--gate:#ff6b6b;--ok:#4cc77e;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413;--card:#1e1e1c;--ink:#ecebe6;--mute:#9a9992;--line:#33332f;
+  --c-ass:#f0a030;--gate:#ff6b6b;--ok:#4cc77e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:28px;margin:0 0 4px}
+h2{font-size:18px;margin:36px 0 12px}
+.sub{color:var(--mute);margin:0 0 18px;font-size:17px}
+.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px}
+svg{display:block;width:100%;min-width:680px;height:auto}
+svg text{font-family:inherit}
+.n{fill:var(--bg);stroke:var(--line);stroke-width:1.5}
+.q{font-weight:700;font-size:16px;fill:var(--ink);text-anchor:middle}
+.s{font-size:12.5px;fill:var(--mute);text-anchor:middle}
+.e{stroke:var(--mute);stroke-width:1.8;fill:none;marker-end:url(#ah)}
+.ahp{fill:var(--mute)}
+.el{font-size:12px;fill:var(--mute)}
+.ok{fill:color-mix(in srgb,var(--ok) 16%,var(--card));stroke:var(--ok);stroke-width:2}
+.rev{fill:color-mix(in srgb,var(--c-ass) 16%,var(--card));stroke:var(--c-ass);stroke-width:2}
+.blk{fill:color-mix(in srgb,var(--gate) 14%,var(--card));stroke:var(--gate);stroke-width:2}
+.hum{fill:var(--card);stroke:var(--c-ass);stroke-width:2;stroke-dasharray:7 5}
+.t-ok{fill:var(--ok)}.t-rev{fill:var(--c-ass)}.t-blk{fill:var(--gate)}
+.big{font-size:26px;font-weight:800;text-anchor:middle}
+.msgs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.msg{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.msg h3{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.bub{background:color-mix(in srgb,var(--ok) 12%,var(--card));border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:14px;white-space:pre-line}
+.num{display:block;border-left:4px solid var(--c-ass);background:color-mix(in srgb,var(--c-ass) 14%,transparent);padding:6px 10px;margin:8px 0;border-radius:0 8px 8px 0}
+.gone{display:block;border:2px dashed var(--c-ass);color:var(--c-ass);font-weight:700;text-align:center;padding:18px 10px;margin:8px 0;border-radius:8px;white-space:normal}
+.pill{display:inline-block;border-radius:999px;padding:3px 12px;font-weight:700;font-size:13px;white-space:nowrap}
+.p-ok{background:color-mix(in srgb,var(--ok) 18%,var(--card));color:var(--ok)}
+.p-rev{background:color-mix(in srgb,var(--c-ass) 18%,var(--card));color:var(--c-ass)}
+.p-blk{background:color-mix(in srgb,var(--gate) 16%,var(--card));color:var(--gate)}
+.tab{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tr{display:grid;grid-template-columns:1.4fr 22px 1fr;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid var(--line)}
+.tr:first-child{border-top:none}
+.tr b{font-size:15px}
+.tr .ar{color:var(--mute);text-align:center}
+.note{color:var(--mute);font-size:13px;margin:8px 0 0}
+@media (max-width:620px){.msgs{grid-template-columns:1fr}.tr{grid-template-columns:1fr;gap:4px}.tr .ar{display:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Layout do PDF mudou</h1>
+  <p class="sub">Na dúvida sobre o formato, a mensagem vai <b>sem números</b> e o assessor decide.</p>
+
+  <div class="wrap">
+  <svg viewBox="0 0 900 730" role="img" aria-label="Fluxo de leitura do PDF: quatro conferências em sequência. Conta e data ilegíveis bloqueiam. Números da capa ilegíveis, tabela ausente ou colunas diferentes de Mês, Ano, 12M tiram os números da mensagem e mandam para o assessor decidir. Linha faltando tira só o trecho.">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ahp"/></marker></defs>
+
+    <!-- espinha -->
+    <rect class="n" x="170" y="16" width="180" height="44" rx="22"/>
+    <text class="q" x="260" y="44">PDF do cliente</text>
+    <path class="e" d="M260 60V94"/>
+
+    <rect class="n" x="80" y="96" width="360" height="60" rx="12"/>
+    <text class="q" x="260" y="122">Conta e data legíveis?</text>
+    <text class="s" x="260" y="142">capa</text>
+    <path class="e" d="M260 156V204"/><text class="el" x="270" y="184">sim</text>
+
+    <rect class="n" x="80" y="206" width="360" height="60" rx="12"/>
+    <text class="q" x="260" y="232">3 números da capa legíveis?</text>
+    <text class="s" x="260" y="252">patrimônio · rentabilidade · ganho</text>
+    <path class="e" d="M260 266V314"/><text class="el" x="270" y="294">sim</text>
+
+    <rect class="n" x="80" y="316" width="360" height="60" rx="12"/>
+    <text class="q" x="260" y="342">Tabela: Mês · Ano · 12M?</text>
+    <text class="s" x="260" y="362">Referências (%)</text>
+    <path class="e" d="M260 376V424"/><text class="el" x="270" y="404">sim</text>
+
+    <rect class="n" x="80" y="426" width="360" height="60" rx="12"/>
+    <text class="q" x="260" y="452">Tabela com todas as linhas?</text>
+    <text class="s" x="260" y="472">Portfólio · CDI · Ibovespa · IPCA</text>
+    <path class="e" d="M260 486V534"/><text class="el" x="270" y="514">sim</text>
+
+    <rect class="ok" x="80" y="536" width="360" height="70" rx="12"/>
+    <text class="big t-ok" x="260" y="570">PRONTO</text>
+    <text class="s" x="260" y="592">mensagem completa</text>
+
+    <!-- saídas "não" -->
+    <path class="e" d="M440 126H548"/><text class="el" x="484" y="118">não</text>
+    <path class="e" d="M440 236H548"/><text class="el" x="484" y="228">não</text>
+    <path class="e" d="M440 346H548"/><text class="el" x="484" y="338">não</text>
+    <path class="e" d="M440 456H548"/><text class="el" x="484" y="448">não</text>
+
+    <rect class="blk" x="550" y="96" width="300" height="60" rx="12"/>
+    <text class="q t-blk" x="700" y="122">BLOQUEADO</text>
+    <text class="s" x="700" y="142">não envia</text>
+
+    <rect class="rev" x="550" y="206" width="300" height="170" rx="14"/>
+    <text class="big t-rev" x="700" y="288">SEM NÚMEROS</text>
+    <text class="s" x="700" y="314" style="font-size:14px">vai PDF + cenário do mês</text>
+
+    <rect class="rev" x="550" y="426" width="230" height="60" rx="12"/>
+    <text class="q t-rev" x="665" y="452">SEM O TRECHO</text>
+    <text class="s" x="665" y="472">pronto + aviso</text>
+
+    <!-- assessor -->
+    <path class="e" d="M820 376V544"/>
+    <path class="e" d="M665 486V544"/><text class="el" x="675" y="520">em todas as contas</text>
+
+    <rect class="hum" x="550" y="546" width="300" height="70" rx="12"/>
+    <text class="q t-rev" x="700" y="574">⏸ ASSESSOR DECIDE</text>
+    <text class="s" x="700" y="596">“Formato pode ter mudado. Envio assim?”</text>
+
+    <path class="e" d="M625 616V654"/><text class="el" x="633" y="640">sim</text>
+    <path class="e" d="M780 616V654"/><text class="el" x="788" y="640">não</text>
+
+    <rect class="ok" x="550" y="656" width="150" height="56" rx="12"/>
+    <text class="q t-ok" x="625" y="680">ENVIA</text>
+    <text class="s" x="625" y="700">mensagem reduzida</text>
+
+    <rect class="n" x="710" y="656" width="140" height="56" rx="12"/>
+    <text class="q" x="780" y="690">NÃO ENVIA</text>
+  </svg>
+  </div>
+
+  <h2>A mensagem</h2>
+  <div class="msgs">
+    <div class="msg">
+      <h3>Completa <span class="pill p-ok">pronto</span></h3>
+      <div class="bub">Olá, Ana!
+
+Segue seu relatório de outubro/2026. Resumo:<span class="num">📊 <b>No mês</b>
+• Carteira: <b>1,23%</b>
+• CDI: 1,00% | Ibovespa: 2,00% | IPCA: 0,40%
+
+📈 <b>No ano / 12M</b>
+• Carteira: 9,00% / 11,00%
+• CDI: 8,00% / 10,00%
+
+💰 Resultado no mês: <b>R$ 1.234,56</b>
+🏦 Patrimônio bruto: <b>R$ 100.000,00</b></span>🌎 <b>Cenário do mês</b>
+…
+
+Qualquer dúvida, é só me chamar. Abraço!</div>
+    </div>
+    <div class="msg">
+      <h3>Sem números <span class="pill p-rev">revisar</span></h3>
+      <div class="bub">Olá, Ana!
+
+Segue seu relatório de outubro/2026.<span class="gone">bloco inteiro fora</span>🌎 <b>Cenário do mês</b>
+…
+
+Qualquer dúvida, é só me chamar. Abraço!</div>
+    </div>
+  </div>
+
+  <h2>Se… então</h2>
+  <div class="tab">
+    <div class="tr"><b>Rótulo da capa mudou</b><span class="ar">→</span><span><span class="pill p-rev">sem números</span></span></div>
+    <div class="tr"><b>Colunas da tabela trocadas ou nova no meio</b><span class="ar">→</span><span><span class="pill p-rev">sem números</span></span></div>
+    <div class="tr"><b>Tabela sumiu</b><span class="ar">→</span><span><span class="pill p-rev">sem números</span></span></div>
+    <div class="tr"><b>Falta uma linha (ex.: IPCA)</b><span class="ar">→</span><span><span class="pill p-ok">pronto, sem o trecho</span></span></div>
+    <div class="tr"><b>Mesma linha faltando em todas (2+ contas)</b><span class="ar">→</span><span><span class="pill p-rev">assessor decide</span></span></div>
+    <div class="tr"><b>Conta ou data ilegível</b><span class="ar">→</span><span><span class="pill p-blk">bloqueado</span></span></div>
+  </div>
+
+  <h2>Fora da conferência</h2>
+  <div class="tab">
+    <div class="tr"><b>Rentabilidade da capa ≠ tabela</b><span class="ar">→</span><span><span class="pill p-ok">pronto, vai a da tabela</span></span></div>
+    <div class="tr"><b>Lote de 1 conta, trecho fora</b><span class="ar">→</span><span><span class="pill p-ok">pronto + aviso</span></span></div>
+  </div>
+  <p class="note">Valores de exemplo fictícios.</p>
+</main>
+</body>
+</html>
