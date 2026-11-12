@@ -1,11 +1,13 @@
-# mercado.py v2
-"""Consulta de mercado via yfinance e taxas do Banco Central (SGS).
+# mercado.py v3
+"""Consulta de mercado via yfinance, taxas do Banco Central (SGS) e do Tesouro Direto.
 
-Subcomandos: cotacao, historico, opcoes, taxa.
+Subcomandos: cotacao, historico, opcoes, taxa, tesouro.
 Saida: JSON no stdout. Erro: objeto com "erro" e "consultado_em", exit code != 0.
 Nao inventa dado.
 """
 import argparse
+import csv
+import io
 import json
 import logging
 import math
@@ -33,6 +35,19 @@ TAXAS = {
 }
 # O IPCA e mensal e sai com atraso: a janela precisa alcancar o ultimo mes publicado.
 JANELA_SGS = 100
+# Historico completo do Tesouro Direto num CSV so (cerca de 15 MB): o servidor nao atende pedido de faixa.
+TESOURO = (
+    "https://www.tesourotransparente.gov.br/ckan/dataset/df56aa42-484a-4a59-8184-7676580c81e3"
+    "/resource/796d2059-14e9-44e3-80c9-2d9e30b405c1/download/PrecoTaxaTesouroDireto.csv"
+)
+COLUNAS_TESOURO = {
+    "titulo": "Tipo Titulo",
+    "vencimento": "Data Vencimento",
+    "taxa_compra": "Taxa Compra Manha",
+    "taxa_venda": "Taxa Venda Manha",
+    "pu_compra": "PU Compra Manha",
+    "pu_venda": "PU Venda Manha",
+}
 
 
 class FonteErro(Exception):
@@ -429,6 +444,63 @@ def cmd_taxa(a):
     return [taxa_uma(n) for n in a.indicadores]
 
 
+def baixar_tesouro():
+    with urllib.request.urlopen(TESOURO, timeout=90) as r:
+        return r.read().decode("latin-1")
+
+
+def data_br(texto_data):
+    return datetime.strptime(texto_data.strip(), "%d/%m/%Y").date().isoformat()
+
+
+def ler_tesouro(bruto, filtro):
+    """Titulos da data-base mais recente do CSV. A ordem das linhas nao e garantida."""
+    leitor = csv.DictReader(io.StringIO(bruto), delimiter=";")
+    faltam = [c for c in ["Data Base", *COLUNAS_TESOURO.values()] if c not in (leitor.fieldnames or [])]
+    if faltam:
+        raise FonteErro("o CSV do Tesouro Transparente mudou de formato: falta " + ", ".join(faltam))
+    por_dia = {}
+    for linha in leitor:
+        try:
+            dia = data_br(linha["Data Base"] or "")
+        except ValueError:
+            continue
+        por_dia.setdefault(dia, []).append(linha)
+    if not por_dia:
+        raise FonteErro("o CSV do Tesouro Transparente veio sem linha de dado")
+    data_base = max(por_dia)
+    titulos = []
+    for linha in por_dia[data_base]:
+        item = {"titulo": texto(linha["Tipo Titulo"]), "vencimento": data_br(linha["Data Vencimento"])}
+        for campo in ("taxa_compra", "taxa_venda", "pu_compra", "pu_venda"):
+            item[campo] = num((linha[COLUNAS_TESOURO[campo]] or "").replace(",", "."))
+        titulos.append(item)
+    tipos = sorted({t["titulo"] for t in titulos if t["titulo"]})
+    if filtro:
+        titulos = [t for t in titulos if filtro in (t["titulo"] or "").lower()]
+        if not titulos:
+            raise FonteErro(f"nenhum título com '{filtro}' em {data_base}; tipos: " + ", ".join(tipos))
+    titulos.sort(key=lambda t: (t["titulo"] or "", t["vencimento"]))
+    return data_base, titulos
+
+
+def cmd_tesouro(a):
+    filtro = (a.tipo or "").strip().lower()
+    try:
+        data_base, titulos = ler_tesouro(baixar_tesouro(), filtro)
+        return {
+            "data_base": data_base,
+            "unidade_taxa": "% a.a.",
+            "fonte": "tesouro-transparente",
+            "consultado_em": agora(),
+            "titulos": titulos,
+        }
+    except FonteErro as e:
+        return erro(str(e))
+    except Exception as e:
+        return erro(f"Tesouro Transparente falhou: {type(e).__name__}: {e}")
+
+
 def tem_erro(r):
     if isinstance(r, list):
         return any(tem_erro(x) for x in r)
@@ -436,7 +508,7 @@ def tem_erro(r):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="mercado.py", description="Consulta de mercado via yfinance e taxas do Banco Central. Saída JSON.")
+    p = argparse.ArgumentParser(prog="mercado.py", description="Consulta de mercado via yfinance, taxas do Banco Central e do Tesouro Direto. Saída JSON.")
     sp = p.add_subparsers(dest="cmd", required=True)
 
     c = sp.add_parser("cotacao", help="preço, variação, volume, moeda e nome")
@@ -460,6 +532,10 @@ def main(argv=None):
     t = sp.add_parser("taxa", help="Selic, CDI e IPCA pelo SGS do Banco Central")
     t.add_argument("indicadores", nargs="+", help="selic, cdi ou ipca")
     t.set_defaults(fn=cmd_taxa)
+
+    td = sp.add_parser("tesouro", help="taxas e preços do Tesouro Direto na data-base mais recente")
+    td.add_argument("--tipo", help="trecho do nome do título (ex.: ipca+, prefixado, selic)")
+    td.set_defaults(fn=cmd_tesouro)
 
     a = p.parse_args(argv)
     try:

@@ -1,4 +1,4 @@
-"""Analista offline: mercado.py com yfinance e Banco Central mockados, download versionado e privacidade.
+"""Analista offline: mercado.py com yfinance, Banco Central e Tesouro mockados, download versionado e privacidade.
 
 O comando de Shell do bot roda em Linux. No Windows o teste que executa o
 comando e pulado: curl fora do PATH e barra invertida no destino.
@@ -363,6 +363,51 @@ def test_taxa_bcb_ultimo_valor_ate_hoje(monkeypatch):
     assert ruim[1]['consultado_em']
 
 
+def test_tesouro_data_base_mais_recente_e_filtro(monkeypatch):
+    cab = 'Tipo Titulo;Data Vencimento;Data Base;Taxa Compra Manha;Taxa Venda Manha;PU Compra Manha;PU Venda Manha;PU Base Manha'
+    # A data-base mais recente fica no meio: a ordem das linhas nao e garantida.
+    linhas = [
+        'Tesouro Prefixado;01/01/2030;09/11/2026;9,99;9,99;700,00;699,00;699,00',
+        'Tesouro Prefixado;01/01/2030;10/11/2026;14,65;14,77;748,89;746,82;746,82',
+        'Tesouro IPCA+;15/05/2035;10/11/2026;7,70;7,82;2100,50;2080,25;2080,25',
+        'Tesouro IPCA+ com Juros Semestrais;15/08/2032;10/11/2026;7,64;7,76;4300,10;4280,00;4280,00',
+        'Tesouro IPCA+;15/05/2035;06/11/2026;1,11;1,11;1,00;1,00;1,00',
+    ]
+    monkeypatch.setattr(MOD, 'baixar_tesouro', lambda: '\n'.join([cab, *linhas]) + '\n')
+
+    code, data, _ = rodar(['tesouro', '--tipo', 'IPCA+'])
+    assert code == 0
+    assert data['data_base'] == '2026-11-10'
+    assert data['fonte'] == 'tesouro-transparente'
+    assert data['consultado_em'].endswith('-03:00')
+    assert data['titulos'] == [
+        {'titulo': 'Tesouro IPCA+', 'vencimento': '2035-05-15', 'taxa_compra': 7.7, 'taxa_venda': 7.82, 'pu_compra': 2100.5, 'pu_venda': 2080.25},
+        {'titulo': 'Tesouro IPCA+ com Juros Semestrais', 'vencimento': '2032-08-15', 'taxa_compra': 7.64, 'taxa_venda': 7.76, 'pu_compra': 4300.1, 'pu_venda': 4280.0},
+    ]
+
+    code_t, todos, _ = rodar(['tesouro'])
+    assert code_t == 0
+    assert len(todos['titulos']) == 3
+
+    code_f, vazio, _ = rodar(['tesouro', '--tipo', 'cambial'])
+    assert code_f != 0
+    assert 'Tesouro Prefixado' in vazio['erro']
+    assert 'titulos' not in vazio
+
+    monkeypatch.setattr(MOD, 'baixar_tesouro', lambda: 'Titulo;Data Base\nTesouro Selic;10/11/2026\n')
+    code_c, formato, _ = rodar(['tesouro'])
+    assert code_c != 0
+    assert 'mudou de formato' in formato['erro']
+
+    def caiu():
+        raise RuntimeError('rede caiu')
+
+    monkeypatch.setattr(MOD, 'baixar_tesouro', caiu)
+    code_r, rede, _ = rodar(['tesouro'])
+    assert code_r != 0
+    assert 'RuntimeError' in rede['erro']
+
+
 def test_subcomando_desconhecido_lista_uso():
     err = io.StringIO()
     with contextlib.redirect_stderr(err):
@@ -370,7 +415,7 @@ def test_subcomando_desconhecido_lista_uso():
             MOD.main(['nao-existe'])
     assert exc.value.code != 0
     texto = err.getvalue()
-    assert 'cotacao' in texto and 'historico' in texto and 'opcoes' in texto and 'taxa' in texto
+    assert 'cotacao' in texto and 'historico' in texto and 'opcoes' in texto and 'taxa' in texto and 'tesouro' in texto
 
 
 def comandos():
@@ -404,9 +449,9 @@ def comando():
 def test_comando_download_igual_e_versao():
     cmd = comando()
     minima = MINIMA.read_text(encoding='utf-8')
-    assert minima == '2\n'
+    assert minima == '3\n'
     primeira = SCRIPT.read_text(encoding='utf-8').splitlines()[0]
-    assert primeira == '# mercado.py v2'
+    assert primeira == '# mercado.py v3'
     assert int(primeira.split()[2][1:]) >= int(minima.strip())
     for path in (RAIZ / 'skills').glob('*/SKILL.md'):
         texto = path.read_text(encoding='utf-8')

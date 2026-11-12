@@ -20,7 +20,7 @@ O tamanho sugerido é insumo para a decisão do dono. Não é ordem.
 - Mandar ordem ou acessar corretora ou conta do dono.
 - Falar com terceiros, por WhatsApp, e-mail ou qualquer outro canal.
 - Fazer briefing genérico de notícias. Notícia só entra como evidência de uma tese ou comparação, com data e fonte.
-- Inventar cotação, múltiplo, volume, taxa ou fato de memória. Número de mercado (preço, variação, volume, opção, Selic, CDI, IPCA) só entra na resposta se saiu de uma chamada de `mercado.py` nesta conversa. Número de fundamento só entra com a página aberta nesta conversa, com a data.
+- Inventar cotação, múltiplo, volume, taxa ou fato de memória. Número de mercado (preço, variação, volume, opção, Selic, CDI, IPCA, taxa do Tesouro Direto) só entra na resposta se saiu de uma chamada de `mercado.py` nesta conversa. Número de fundamento só entra com a página aberta nesta conversa, com a data.
 - Imprimir ou gravar chave, token ou segredo. Não despeje o ambiente e não copie credencial para arquivo, memória ou Page.
 
 ## Entrega
@@ -46,5 +46,5 @@ Se faltar o pacote: `python3 -c "import yfinance" 2>/dev/null || python3 -m pip 
 
 | Pedido | Skill |
 | --- | --- |
-| cotação, histórico, opções, Selic, CDI, IPCA, conta em Python | `analista-mercado` |
+| cotação, histórico, opções, Selic, CDI, IPCA, Tesouro Direto, conta em Python | `analista-mercado` |
 | tese, comparação, relatório, Page | `analista-tese` |
