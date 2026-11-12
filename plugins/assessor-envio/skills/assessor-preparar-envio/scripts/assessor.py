@@ -52,16 +52,21 @@ def ler_pdf(pdf):
         m=re.search(re.escape(rot)+r'\n('+rx+r')\n',t)
         if m:f[k]=m[1]
         else:err.append(k)
+    v='(?:'+P+'|-)'# conta sem histórico traz "-" em ano, 12M ou 24M; o mês é obrigatório
     for nome,k in IND.items():
-        m=re.search(r'^'+nome+' ('+P+')'+(r' ((?:'+P+r'|-))')*3+'$',t,re.M)# conta sem histórico traz "-" em ano, 12M ou 24M; o mês é obrigatório
-        if m:f.update({k+'_mes':m[1],k+'_ano':m[2],k+'_12m':m[3]})
+        # Ibovespa e IPCA entram na mensagem só com o mês: o resto da linha não é exigido
+        m=re.search(r'^'+nome+' ('+P+')'+(f' ({v}) ({v}) {v}$' if k in('cart','cdi') else ''),t,re.M)
+        if m:f.update(zip((k+'_mes',k+'_ano',k+'_12m'),m.groups()))
         else:err.append('referências '+nome)
-    for j,rot in JANELAS.items():
-        if f.get('cart_'+j,'-')!='-' and f.get('cdi_'+j)=='-':err.append('referências CDI sem '+rot.split()[-1])
+    for j in cobertas(f):
+        if f.get('cdi_'+j)=='-':err.append('referências CDI sem '+JANELAS[j].split()[-1])
     return f,err
+def cobertas(f):
+    """Janelas em que a carteira tem rentabilidade: as que a leitura confere no CDI e as que entram na mensagem."""
+    return [j for j in JANELAS if f.get('cart_'+j,'-')!='-']
 def janelas(f):
     """Bloco "No ano / 12M" só com as janelas em que a carteira tem rentabilidade: sem a carteira, o CDI da janela cobre outro período."""
-    js=[j for j in JANELAS if f.get('cart_'+j,'-')!='-']
+    js=cobertas(f)
     if not js:return ''
     lin=lambda k:' / '.join(f[k+'_'+j] for j in js)
     return f"📈 *{' / '.join(JANELAS[j] for j in js)}*\n• Carteira: {lin('cart')}\n• CDI: {lin('cdi')}\n\n"

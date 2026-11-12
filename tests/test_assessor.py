@@ -321,7 +321,7 @@ def test_ler_pdf_janelas_conforme_cobertura():
         return ('Conta Assessor Data de Referência\n123 Exclusive Assessor Teste 30/10/2026\n'
                 'PATRIMÔNIO TOTAL BRUTO:\nR$ 1.234,56\nRENTABILIDADE MÊS:\n1,11%\nGANHO MÊS:\nR$ 12,34\n'
                 f'Referências (%) Mês Ano 12M 24M\nPortfólio {cart}\nCDI {cdi}\n'
-                'Ibovespa -9,88% 4,22% - -\nIPCA 0,21% 4,17% 4,40% 4,40%\n')
+                'Ibovespa -9,88% n/d n/d n/d\nIPCA 0,21%\n')  # a mensagem usa só o mês destes dois
     orig = assessor.subprocess.run
     try:
         def ler(*a):
@@ -330,6 +330,7 @@ def test_ler_pdf_janelas_conforme_cobertura():
         completo = '📈 *No ano / 12M*\n• Carteira: 10,10% / 12,12%\n• CDI: 11,70% / 12,00%\n\n'
         f, err = ler('1,11% 10,10% 12,12% 25,25%')
         assert not err and assessor.janelas(f) == completo, (f, err)
+        assert (f['ibov_mes'], f['ipca_mes']) == ('-9,88%', '0,21%'), f
         f, err = ler('1,11% 10,10% 12,12% -')
         assert not err and assessor.janelas(f) == completo, (f, err)
         f, err = ler('1,11% 10,10% - -')
