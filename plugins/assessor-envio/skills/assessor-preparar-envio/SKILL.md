@@ -24,14 +24,15 @@ Se o comando falhar, pare e avise. Não use a cópia do disco. Nunca edite o scr
 2. Obtenha o script (seção acima) e o discurso.
 3. Rode: `python3 /workspace/assessor/assessor.py <zip> /workspace/assessor/clientes.csv /workspace/assessor/discurso.md`. Se ele parar com mensagem, repasse ao assessor em palavras simples o que falta (ex.: a coluna de telefone não foi encontrada) e pare. A última linha da saída é `CODIGO <código>`: guarde.
 4. Leia `/workspace/assessor/lote-<ref>/conferir-envios.csv`. Status:
-   - `pronto`: pacote ok. Coluna `aviso` preenchida (sem apelido → usou o 1º nome) não muda o status.
-   - `revisar`: pacote gerado, com problema (nome do arquivo ≠ planilha; conta repetida no zip). Só vai se o assessor aprovar explicitamente.
-   - `bloqueado`: não vai (sem PDF, PDF sem linha na planilha, sem telefone/telefone inválido, métrica não lida, conta repetida na planilha, data diferente do lote, mensagem acima de 1.024 caracteres).
+   - `pronto`: pacote ok. Coluna `aviso` preenchida não muda o status: `sem apelido` (usou o 1º nome) ou `mensagem sem: …` (o script não leu aquele dado no PDF e a mensagem saiu sem o trecho, sem traço nem espaço no lugar).
+   - `revisar`: pacote gerado, com problema (nome do arquivo ≠ planilha; conta repetida no zip; `mensagem sem … em todas as contas lidas do lote`). Só vai se o assessor aprovar explicitamente. Quando o problema é o de todas as contas, diga ao assessor, antes da pergunta, que o relatório da corretora pode ter mudado de formato ou que o dado ainda não saiu, e qual trecho as mensagens perderam.
+   - `bloqueado`: não vai (sem PDF, PDF sem linha na planilha, sem telefone/telefone inválido, patrimônio, rentabilidade do mês ou resultado não lidos, conta repetida na planilha, data diferente do lote, mensagem acima de 1.024 caracteres).
 5. Abra 1 `mensagem.txt` de exemplo e confira, contra `pdftotext -raw -f 1 -l 2 relatorio.pdf -`, patrimônio, rentabilidade do mês e resultado. Se não bater, pare e reporte.
 6. Mande ao assessor UM resumo do lote:
    - referência, código do lote, total de PDFs, quantos `pronto` / `revisar` / `bloqueado`;
    - a mensagem de exemplo completa (de um cliente pronto);
    - quantos clientes estão sem apelido e vão receber "Olá, <primeiro nome>!", com a lista;
+   - quantos clientes têm `mensagem sem: …` na coluna `aviso`, com a lista (conta, nome, o que ficou de fora);
    - a lista de `revisar` e `bloqueado` com o problema de cada um (conta, nome, problema);
    - a pergunta única: "Aprovo o envio dos N prontos do lote <código>? (e quais dos `revisar` incluir)".
 7. Guarde na memória `assessor_lote_pendente = <ref>` e o código. O envio é com `assessor-enviar-relatorio`, só depois do "sim", que registra a aprovação com esse código.
@@ -40,4 +41,4 @@ Se o comando falhar, pare e avise. Não use a cópia do disco. Nunca edite o scr
 - Nunca edite `mensagem.txt` à mão nem reescreva o texto; para mudar, corrija planilha/discurso e rode de novo.
 - Não corrija números, não adivinhe conta/telefone, não preencha dado faltante: reporte.
 - Rodar de novo é seguro: a pasta do lote é recriada do zero.
-- Modelo da mensagem: constante `MODELO` no script (placeholders `{apelido}`, `{mes_ano}`, `{cart_mes}`, `{cdi_mes}`, `{ibov_mes}`, `{ipca_mes}`, `{janelas}`, `{resultado}`, `{patrimonio}`, `{discurso_macro}`; `{janelas}` é o bloco "No ano / 12M" só com as janelas em que a carteira tem rentabilidade). Mudança no modelo é feita no repositório do plugin, não aqui.
+- Modelo da mensagem: constante `MODELO` no script (placeholders `{apelido}`, `{mes_ano}`, `{cart_mes}`, `{comparativos}`, `{janelas}`, `{resultado}`, `{patrimonio}`, `{discurso_macro}`; `{comparativos}` é a linha de CDI, Ibovespa e IPCA do mês só com os índices lidos, e `{janelas}` é o bloco "No ano / 12M" só com as janelas em que a carteira tem rentabilidade). Mudança no modelo é feita no repositório do plugin, não aqui.

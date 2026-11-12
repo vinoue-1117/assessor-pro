@@ -284,20 +284,22 @@ def test_xclip_ausente_mensagem_clara():
 
 
 def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
-    """Discurso acima do teto para o preparo; mensagem acima do limite da legenda bloqueia só aquela conta; o bloco de janelas entra na mensagem sem linha em branco sobrando nem faltando."""
+    """Discurso acima do teto para o preparo; mensagem acima do limite da legenda bloqueia só aquela conta; a linha de comparativos e o bloco de janelas entram na mensagem sem linha em branco sobrando nem faltando, e o que ficou de fora vai para a coluna aviso; omissão igual em todas as contas lidas deixa o lote em revisar."""
     campos = {k: '1,23%' for k in ('cart_mes', 'cdi_mes', 'ibov_mes', 'ipca_mes', 'cart_ano', 'cart_12m', 'cdi_ano', 'cdi_12m')}
     campos.update(resultado='R$ 1,00', patrimonio='R$ 2,00', data=('2026', '09', '30'))
     orig = assessor.ler_pdf
+    falta = {'74': ('cdi_mes', 'ibov_mes', 'ipca_mes', 'cdi_12m')}
     def ler(pdf):
         c = pdf.name.split()[2]
-        return {**campos, **({'cart_ano': '-', 'cart_12m': '-'} if c == '73' else {}), 'conta': c}, []
+        f = {**campos, **({'cart_ano': '-', 'cart_12m': '-'} if c == '73' else {}), 'conta': c}
+        return {k: v for k, v in f.items() if k not in falta.get(c, ()) + falta.get('todas', ())}, []
     assessor.ler_pdf = ler
     try:
         zp, plan, disc, out = BASE / 'tam.zip', BASE / 'tam.csv', BASE / 'tam.md', BASE / 'lote-2026-09-30'
         with zipfile.ZipFile(zp, 'w') as z:
-            for c, n in (('71', 'ANA'), ('72', 'BIA'), ('73', 'CAIO')):
+            for c, n in (('71', 'ANA'), ('72', 'BIA'), ('73', 'CAIO'), ('74', 'DUDA')):
                 z.writestr(f'XPerformance - {c} {n} - Ref.pdf', b'%PDF')
-        plan.write_text('conta,telefone,nome,apelido\n71,11 98765-4321,Ana,Ana\n73,11 98765-4323,Caio,Caio\n72,11 98765-4322,Bia,' + 'B' * 700 + '\n', encoding='utf-8')
+        plan.write_text('conta,telefone,nome,apelido\n71,11 98765-4321,Ana,Ana\n73,11 98765-4323,Caio,Caio\n74,11 98765-4324,Duda,Duda\n72,11 98765-4322,Bia,' + 'B' * 700 + '\n', encoding='utf-8')
         disc.write_text('<!-- referência: 09/2026 -->\n' + 'x' * (assessor.TETO_DISCURSO + 1), encoding='utf-8')
         saida, cod = rodar(assessor.main, zp, plan, disc)
         assert 'teto' in str(cod) and not out.exists(), (saida, cod)
@@ -305,40 +307,53 @@ def test_preparo_confere_tamanho_do_discurso_e_da_mensagem():
         saida, cod = rodar(assessor.main, zp, plan, disc)
         assert cod == 0, saida
         with open(out / 'conferir-envios.csv', encoding='utf-8', newline='') as fh:
-            st = {r[0]: (r[4], r[5]) for r in csv.reader(fh)}
-        assert st['71'] == ('pronto', '') and st['73'] == ('pronto', '') and st['72'][0] == 'bloqueado' and 'limite de 1024' in st['72'][1], st
+            st = {r[0]: (r[4], r[5], r[6]) for r in csv.reader(fh)}
+        assert st['71'] == ('pronto', '', '') and st['73'] == ('pronto', '', '') and st['72'][0] == 'bloqueado' and 'limite de 1024' in st['72'][1], st
+        assert st['74'] == ('pronto', '', 'mensagem sem: CDI do mês, Ibovespa do mês, IPCA do mês, CDI das janelas'), st
+        assert 'AVISO: 1 com a mensagem sem algum trecho' in saida and saida.rstrip().splitlines()[-2].endswith(': 74'), saida
         msg = lambda c: (out / c / 'mensagem.txt').read_text(encoding='utf-8')
-        assert '| IPCA: 1,23%\n\n📈 *No ano / 12M*\n• Carteira: 1,23% / 1,23%\n• CDI: 1,23% / 1,23%\n\n💰 Resultado' in msg('71'), msg('71')
+        bloco = '📈 *No ano / 12M*\n• Carteira: 1,23% / 1,23%\n• CDI: 1,23% / 1,23%\n\n💰 Resultado'
+        assert '• Carteira: *1,23%*\n• CDI: 1,23% | Ibovespa: 1,23% | IPCA: 1,23%\n\n' + bloco in msg('71'), msg('71')
         assert '| IPCA: 1,23%\n\n💰 Resultado' in msg('73'), msg('73')
+        assert '• Carteira: *1,23%*\n\n📈 *No ano / 12M*\n• Carteira: 1,23% / 1,23%\n\n💰 Resultado' in msg('74'), msg('74')
+        falta['todas'] = ('ibov_mes',)  # a mesma omissão em todas as contas lidas: o lote pede revisão
+        saida, cod = rodar(assessor.main, zp, plan, disc)
+        with open(out / 'conferir-envios.csv', encoding='utf-8', newline='') as fh:
+            st = {r[0]: (r[4], r[5]) for r in csv.reader(fh)}
+        motivo = 'mensagem sem Ibovespa do mês em todas as contas lidas do lote'
+        assert st['71'] == ('revisar', motivo) and st['74'] == ('revisar', motivo) and st['72'][0] == 'bloqueado' and motivo not in st['72'][1], st
     finally:
         assessor.ler_pdf = orig
 
 
 def test_ler_pdf_janelas_conforme_cobertura():
-    """Conta sem histórico traz "-" na tabela de referências: sai lida, e a mensagem mostra só as janelas em que a carteira tem valor."""
-    def texto(cart, cdi='1,07% 11,70% 12,00% 12,00%'):
-        # pdftotext -raw das páginas 1-2, anonimizado: só capa, campos e tabela de referências
+    """A tabela de referências não bloqueia a conta: "-" na carteira é conta sem histórico, e o que não for lido fica fora da mensagem e entra em omitidos. Sem patrimônio, rentabilidade do mês ou resultado, a conta não é lida."""
+    def texto(cart, cdi='1,07% 11,70% 12,00% 12,00%', resto='Ibovespa -9,88% n/d n/d n/d\nIPCA 0,21%\n', sem=''):
+        # pdftotext -raw das páginas 1-2, anonimizado: capa, campos e tabela de referências.
+        # As linhas "CDI", "Ibovespa" e "IPCA" antes do cabeçalho são de outro quadro e não podem ser lidas.
         return ('Conta Assessor Data de Referência\n123 Exclusive Assessor Teste 30/10/2026\n'
                 'PATRIMÔNIO TOTAL BRUTO:\nR$ 1.234,56\nRENTABILIDADE MÊS:\n1,11%\nGANHO MÊS:\nR$ 12,34\n'
-                f'Referências (%) Mês Ano 12M 24M\nPortfólio {cart}\nCDI {cdi}\n'
-                'Ibovespa -9,88% 4,22% - -\nIPCA 0,21% 4,17% 4,40% 4,40%\n')
+                'CDI 100,00%\nIbovespa 50,00%\nIPCA 4,50%\n'
+                f'Referências (%) Mês Ano 12M 24M\nPortfólio {cart}\nCDI {cdi}\n{resto}').replace(sem, '')
     orig = assessor.subprocess.run
     try:
-        def ler(*a):
-            assessor.subprocess.run = lambda *x, **k: type('R', (), {'stdout': texto(*a)})()
-            return assessor.ler_pdf('x.pdf')
+        def ler(*a, **k):
+            assessor.subprocess.run = lambda *x, **kw: type('R', (), {'stdout': texto(*a, **k)})()
+            f, err = assessor.ler_pdf('x.pdf')
+            return err, assessor.comparativos(f), assessor.janelas(f), assessor.omitidos(f)
+        mes = '• CDI: 1,07% | Ibovespa: -9,88% | IPCA: 0,21%\n'
         completo = '📈 *No ano / 12M*\n• Carteira: 10,10% / 12,12%\n• CDI: 11,70% / 12,00%\n\n'
-        f, err = ler('1,11% 10,10% 12,12% 25,25%')
-        assert not err and assessor.janelas(f) == completo, (f, err)
-        f, err = ler('1,11% 10,10% 12,12% -')
-        assert not err and assessor.janelas(f) == completo, (f, err)
-        f, err = ler('1,11% 10,10% - -')
-        assert not err and assessor.janelas(f) == '📈 *No ano*\n• Carteira: 10,10%\n• CDI: 11,70%\n\n', (f, err)
-        f, err = ler('1,11% - - -')
-        assert not err and assessor.janelas(f) == '', (f, err)
-        assert ler('- 10,10% 12,12% -')[1] == ['referências Portfólio']
-        assert ler('1,11% 10,10% 12,12% -', '1,07% 11,70% - -')[1] == ['referências CDI sem 12M']
-        assert ler('1,11% 10,10% - -', '1,07% - - -')[1] == ['referências CDI sem ano']
+        assert ler('1,11% 10,10% 12,12% 25,25%') == ([], mes, completo, [])
+        assert ler('1,11% 10,10% 12,12% -') == ([], mes, completo, [])
+        assert ler('1,11% 10,10% - -') == ([], mes, '📈 *No ano*\n• Carteira: 10,10%\n• CDI: 11,70%\n\n', [])
+        assert ler('1,11% - 12,12% -') == ([], mes, '📈 *12M*\n• Carteira: 12,12%\n• CDI: 12,00%\n\n', [])
+        assert ler('1,11% - - -') == ([], mes, '', [])
+        assert ler('- 10,10% 12,12% -') == ([], mes, '', ['carteira do ano', 'carteira de 12M'])
+        assert ler('1,11% 10,10% 12,12% -', '1,07% 11,70% - -', 'IPCA 0,21%\n') == (
+            [], '• CDI: 1,07% | IPCA: 0,21%\n', '📈 *No ano / 12M*\n• Carteira: 10,10% / 12,12%\n\n', ['Ibovespa do mês', 'CDI das janelas'])
+        assert ler('1,11% 10,10% - -', 'n/d n/d n/d n/d', 'IPCA –\n') == (
+            [], '', '📈 *No ano*\n• Carteira: 10,10%\n\n', ['CDI do mês', 'Ibovespa do mês', 'IPCA do mês', 'CDI das janelas'])
+        assert ler('1,11% 10,10% 12,12% 25,25%', sem='GANHO MÊS:\nR$ 12,34\n')[0] == ['resultado']
     finally:
         assessor.subprocess.run = orig
 

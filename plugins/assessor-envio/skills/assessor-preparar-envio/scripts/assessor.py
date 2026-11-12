@@ -22,15 +22,15 @@ MESES='janeiro fevereiro março abril maio junho julho agosto setembro outubro n
 P=r'-?\d{1,3}(?:\.\d{3})*,\d{2}%';R=r'-?R\$ ?\d{1,3}(?:\.\d{3})*,\d{2}'
 CAMPOS={'patrimonio':('PATRIMÔNIO TOTAL BRUTO:',R),'cart_mes':('RENTABILIDADE MÊS:',P),'resultado':('GANHO MÊS:',R)}
 IND={'Portfólio':'cart','CDI':'cdi','Ibovespa':'ibov','IPCA':'ipca'}
-JANELAS={'ano':'No ano','12m':'12M'}
+JANELAS={'ano':'No ano','12m':'12M'}# título do bloco na mensagem
+ROT_AVISO={'ano':'do ano','12m':'de 12M'}# nome da janela na coluna aviso do conferir-envios.csv
 MODELO="""Olá, {apelido}!
 
 Segue seu relatório de {mes_ano}. Resumo:
 
 📊 *No mês*
 • Carteira: *{cart_mes}*
-• CDI: {cdi_mes} | Ibovespa: {ibov_mes} | IPCA: {ipca_mes}
-
+{comparativos}
 {janelas}💰 Resultado no mês: *{resultado}*
 🏦 Patrimônio bruto: *{patrimonio}*
 
@@ -52,19 +52,41 @@ def ler_pdf(pdf):
         m=re.search(re.escape(rot)+r'\n('+rx+r')\n',t)
         if m:f[k]=m[1]
         else:err.append(k)
+    # A tabela de referências não bloqueia a conta: o que não for lido fica fora da mensagem (omitidos).
+    # Só valem as 6 linhas abaixo do cabeçalho (a tabela tem 5): linha de mesmo nome em outro quadro não entra.
+    m=re.search(r'^Refer\w+ \(%\).*\n((?:.*(?:\n|$)){0,6})',t,re.M);tab=m[1] if m else ''
     for nome,k in IND.items():
-        m=re.search(r'^'+nome+' ('+P+')'+(r' ((?:'+P+r'|-))')*3+'$',t,re.M)# conta sem histórico traz "-" em ano, 12M ou 24M; o mês é obrigatório
-        if m:f.update({k+'_mes':m[1],k+'_ano':m[2],k+'_12m':m[3]})
-        else:err.append('referências '+nome)
-    for j,rot in JANELAS.items():
-        if f.get('cart_'+j,'-')!='-' and f.get('cdi_'+j)=='-':err.append('referências CDI sem '+rot.split()[-1])
+        m=re.search(r'^'+nome+' ('+P+r')((?: \S+){0,3})$',tab,re.M)# mês em percentual e até 3 colunas
+        if not m:continue
+        f[k+'_mes']=m[1]
+        # Ibovespa e IPCA entram na mensagem só com o mês. Conta sem histórico traz "-" na janela.
+        if k in('cart','cdi'):f.update((k+'_'+j,x) for j,x in zip(JANELAS,m[2].split()) if re.fullmatch(P+'|-',x))
     return f,err
+tem=lambda f,k:f.get(k,'-')!='-'
+def cobertas(f):
+    """Janelas em que a carteira tem rentabilidade: são as que entram na mensagem."""
+    return [j for j in JANELAS if tem(f,'cart_'+j)]
+def sem_cdi(f):
+    """Janelas da mensagem sem CDI lido: com alguma, a linha do CDI sai do bloco."""
+    return [j for j in cobertas(f) if not tem(f,'cdi_'+j)]
+def indices(f,lido=True):
+    """Índices do mês (CDI, Ibovespa, IPCA) lidos no PDF, ou os não lidos: a linha da mensagem e o aviso saem daqui."""
+    return [(n,k) for n,k in IND.items() if k!='cart' and (k+'_mes' in f)==lido]
+def comparativos(f):
+    """Linha "CDI | Ibovespa | IPCA" do mês só com os índices lidos; sem nenhum, a linha some."""
+    c=' | '.join(f'{n}: {f[k+"_mes"]}' for n,k in indices(f))
+    return f'• {c}\n' if c else ''
 def janelas(f):
     """Bloco "No ano / 12M" só com as janelas em que a carteira tem rentabilidade: sem a carteira, o CDI da janela cobre outro período."""
-    js=[j for j in JANELAS if f.get('cart_'+j,'-')!='-']
+    js=cobertas(f)
     if not js:return ''
     lin=lambda k:' / '.join(f[k+'_'+j] for j in js)
-    return f"📈 *{' / '.join(JANELAS[j] for j in js)}*\n• Carteira: {lin('cart')}\n• CDI: {lin('cdi')}\n\n"
+    return f"📈 *{' / '.join(JANELAS[j] for j in js)}*\n• Carteira: {lin('cart')}\n"+('' if sem_cdi(f) else f"• CDI: {lin('cdi')}\n")+'\n'
+def omitidos(f):
+    """O que fica fora da mensagem por não ter sido lido no PDF. "-" na janela da carteira é conta sem histórico e não entra aqui."""
+    o=[n+' do mês' for n,_ in indices(f,False)]+['carteira '+ROT_AVISO[j] for j in JANELAS if 'cart_'+j not in f]
+    if sem_cdi(f):o.append('CDI das janelas')
+    return o
 def ler_planilha(p):
     p=Path(p)
     if p.suffix.lower()=='.xlsx':
@@ -322,16 +344,16 @@ def main(zp,planilha,disc):
         shutil.rmtree(tmp,ignore_errors=True)
         sys.exit(f'discurso do mes {mref[0]:02d}/{mref[1]} e lote do mes {me}/{a}: publique o discurso do mes antes de preparar' if mref else 'discurso sem a linha "referencia: MM/AAAA": nao da para saber o mes dele')
     shutil.rmtree(out,ignore_errors=True);out.mkdir(parents=True)
-    linhas=ler_planilha(planilha);cont=Counter(re.sub(r'\D','',l['conta_xp']) for l in linhas);res=[]
+    linhas=ler_planilha(planilha);cont=Counter(re.sub(r'\D','',l['conta_xp']) for l in linhas);res,sem_ap,fora,oms=[],[],[],{}
     for l in linhas:
-        c=re.sub(r'\D','',l['conta_xp']);bloq,rev,aviso=[],[],''
+        c=re.sub(r'\D','',l['conta_xp']);bloq,rev,av=[],[],[]
         if cont[c]>1:bloq.append('conta repetida na planilha')
         tel,erro=tel_br(l['telefone'])
         if erro:bloq.append(erro)
         ap=l['apelido']
         if not ap:
             ap=(l['nome'].split() or [''])[0];ap=ap.capitalize() if ap.isupper() else ap
-            aviso=f'sem apelido, usado "{ap}"'
+            av.append(f'sem apelido, usado "{ap}"');sem_ap.append(f'{c} {ap}')
         if c not in pdfs:bloq.append('sem PDF no lote')
         else:
             d,f,err=pdfs.pop(c)
@@ -341,10 +363,17 @@ def main(zp,planilha,disc):
             nn=norm(l['nome']).split()
             if nomes[c] and (not nn or norm(nomes[c]).split()[0]!=nn[0]):rev.append(f'nome no PDF "{nomes[c]}" ≠ planilha "{l["nome"]}"')
             if not err:
-                msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,janelas=janelas(f),**f)
+                msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,comparativos=comparativos(f),janelas=janelas(f),**f)
                 if tam(msg)>LIMITE_MSG:bloq.append(f'mensagem com {tam(msg)} caracteres, acima do limite de {LIMITE_MSG}')
+                oms[c]=omitidos(f);o=', '.join(oms[c])
+                if o:av.append('mensagem sem: '+o)
+                if o and not bloq:fora.append(c)
                 p=out/c;p.mkdir();shutil.copy(d,p/'relatorio.pdf');(p/'mensagem.txt').write_text(msg,encoding='utf-8')
-        res.append([c,l['nome'],ap,tel or l['telefone'],'bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev),aviso])
+        res.append([c,l['nome'],ap,tel or l['telefone'],'bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev),'; '.join(av)])
+    # A mesma omissão em todas as contas lidas é sinal de layout mudado, não de dado que falta numa conta: o assessor decide.
+    comum=[x for x in next(iter(oms.values()),[]) if all(x in o for o in oms.values())] if len(oms)>1 else []
+    for r in res:
+        if comum and r[0] in oms and r[4]!='bloqueado':r[4]='revisar';r[5]='; '.join(filter(None,[r[5],f'mensagem sem {", ".join(comum)} em todas as contas lidas do lote']))
     for c,(d,f,err) in pdfs.items():res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha',''])
     with open(out/'conferir-envios.csv','w',newline='',encoding='utf-8') as fh:
         w=csv.writer(fh);w.writerow(CAB_LOTE);w.writerows(res)
@@ -352,8 +381,8 @@ def main(zp,planilha,disc):
     print(f'LOTE {ref} -> {out}');print(dict(Counter(r[4] for r in res)))
     for r in res:
         if r[5]:print(f'{r[0]} {r[1]}: {r[4]} - {r[5]}')
-    sem=[r for r in res if r[6]]
-    if sem:print(f'AVISO: {len(sem)} sem apelido, usado o primeiro nome: '+'; '.join(f'{r[0]} {r[2]}' for r in sem))
+    if sem_ap:print(f'AVISO: {len(sem_ap)} sem apelido, usado o primeiro nome: '+'; '.join(sem_ap))
+    if fora:print(f'AVISO: {len(fora)} com a mensagem sem algum trecho, por dado nao lido no PDF (detalhe na coluna aviso do conferir-envios.csv): '+', '.join(fora))
     print(f'CODIGO {codigo(out)}')
 if __name__=='__main__':
     cmd={'importar':importar,'aprovar':aprovar,'checar':checar,'registrar':registrar,'copiar':copiar,'marcar':marcar,'conferir-caixa':conferir_caixa}
