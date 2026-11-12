@@ -22,7 +22,8 @@ MESES='janeiro fevereiro março abril maio junho julho agosto setembro outubro n
 P=r'-?\d{1,3}(?:\.\d{3})*,\d{2}%';R=r'-?R\$ ?\d{1,3}(?:\.\d{3})*,\d{2}'
 CAMPOS={'patrimonio':('PATRIMÔNIO TOTAL BRUTO:',R),'cart_mes':('RENTABILIDADE MÊS:',P),'resultado':('GANHO MÊS:',R)}
 IND={'Portfólio':'cart','CDI':'cdi','Ibovespa':'ibov','IPCA':'ipca'}
-JANELAS={'ano':'No ano','12m':'12M'}
+JANELAS={'ano':'No ano','12m':'12M'}# título do bloco na mensagem
+ROT_AVISO={'ano':'do ano','12m':'de 12M'}# nome da janela na coluna aviso do conferir-envios.csv
 MODELO="""Olá, {apelido}!
 
 Segue seu relatório de {mes_ano}. Resumo:
@@ -52,9 +53,10 @@ def ler_pdf(pdf):
         if m:f[k]=m[1]
         else:err.append(k)
     # A tabela de referências não bloqueia a conta: o que não for lido fica fora da mensagem (omitidos).
+    # Só valem as 6 linhas abaixo do cabeçalho (a tabela tem 5): linha de mesmo nome em outro quadro não entra.
+    m=re.search(r'^Refer\w+ \(%\).*\n((?:.*(?:\n|$)){0,6})',t,re.M);tab=m[1] if m else ''
     for nome,k in IND.items():
-        # mês em percentual e até 3 colunas: a linha mensal de mesmo nome, na página 2, tem mais colunas e não casa
-        m=re.search(r'^'+nome+' ('+P+r')((?: \S+){0,3})$',t,re.M)
+        m=re.search(r'^'+nome+' ('+P+r')((?: \S+){0,3})$',tab,re.M)# mês em percentual e até 3 colunas
         if not m:continue
         f[k+'_mes']=m[1]
         # Ibovespa e IPCA entram na mensagem só com o mês. Conta sem histórico traz "-" na janela.
@@ -67,9 +69,12 @@ def cobertas(f):
 def sem_cdi(f):
     """Janelas da mensagem sem CDI lido: com alguma, a linha do CDI sai do bloco."""
     return [j for j in cobertas(f) if not tem(f,'cdi_'+j)]
+def indices(f,lido=True):
+    """Índices do mês (CDI, Ibovespa, IPCA) lidos no PDF, ou os não lidos: a linha da mensagem e o aviso saem daqui."""
+    return [(n,k) for n,k in IND.items() if k!='cart' and (k+'_mes' in f)==lido]
 def comparativos(f):
     """Linha "CDI | Ibovespa | IPCA" do mês só com os índices lidos; sem nenhum, a linha some."""
-    c=' | '.join(f'{n}: {f[k+"_mes"]}' for n,k in IND.items() if k!='cart' and k+'_mes' in f)
+    c=' | '.join(f'{n}: {f[k+"_mes"]}' for n,k in indices(f))
     return f'• {c}\n' if c else ''
 def janelas(f):
     """Bloco "No ano / 12M" só com as janelas em que a carteira tem rentabilidade: sem a carteira, o CDI da janela cobre outro período."""
@@ -79,8 +84,7 @@ def janelas(f):
     return f"📈 *{' / '.join(JANELAS[j] for j in js)}*\n• Carteira: {lin('cart')}\n"+('' if sem_cdi(f) else f"• CDI: {lin('cdi')}\n")+'\n'
 def omitidos(f):
     """O que fica fora da mensagem por não ter sido lido no PDF. "-" na janela da carteira é conta sem histórico e não entra aqui."""
-    o=[n+' do mês' for n,k in IND.items() if k+'_mes' not in f]
-    if any('cart_'+j not in f for j in JANELAS):o.append('janelas da carteira')
+    o=[n+' do mês' for n,_ in indices(f,False)]+['carteira '+ROT_AVISO[j] for j in JANELAS if 'cart_'+j not in f]
     if sem_cdi(f):o.append('CDI das janelas')
     return o
 def ler_planilha(p):
@@ -340,7 +344,7 @@ def main(zp,planilha,disc):
         shutil.rmtree(tmp,ignore_errors=True)
         sys.exit(f'discurso do mes {mref[0]:02d}/{mref[1]} e lote do mes {me}/{a}: publique o discurso do mes antes de preparar' if mref else 'discurso sem a linha "referencia: MM/AAAA": nao da para saber o mes dele')
     shutil.rmtree(out,ignore_errors=True);out.mkdir(parents=True)
-    linhas=ler_planilha(planilha);cont=Counter(re.sub(r'\D','',l['conta_xp']) for l in linhas);res,sem_ap,fora=[],[],[]
+    linhas=ler_planilha(planilha);cont=Counter(re.sub(r'\D','',l['conta_xp']) for l in linhas);res,sem_ap,fora,oms=[],[],[],{}
     for l in linhas:
         c=re.sub(r'\D','',l['conta_xp']);bloq,rev,av=[],[],[]
         if cont[c]>1:bloq.append('conta repetida na planilha')
@@ -361,10 +365,15 @@ def main(zp,planilha,disc):
             if not err:
                 msg=MODELO.format(apelido=ap,mes_ano=f'{MESES[int(me)-1]}/{a}',discurso_macro=discurso,comparativos=comparativos(f),janelas=janelas(f),**f)
                 if tam(msg)>LIMITE_MSG:bloq.append(f'mensagem com {tam(msg)} caracteres, acima do limite de {LIMITE_MSG}')
-                o=', '.join(omitidos(f))
-                if o:av.append('mensagem sem: '+o);fora.append(f'{c} ({o})')
+                oms[c]=omitidos(f);o=', '.join(oms[c])
+                if o:av.append('mensagem sem: '+o)
+                if o and not bloq:fora.append(c)
                 p=out/c;p.mkdir();shutil.copy(d,p/'relatorio.pdf');(p/'mensagem.txt').write_text(msg,encoding='utf-8')
         res.append([c,l['nome'],ap,tel or l['telefone'],'bloqueado' if bloq else 'revisar' if rev else 'pronto','; '.join(bloq+rev),'; '.join(av)])
+    # A mesma omissão em todas as contas lidas é sinal de layout mudado, não de dado que falta numa conta: o assessor decide.
+    comum=[x for x in next(iter(oms.values()),[]) if all(x in o for o in oms.values())] if len(oms)>1 else []
+    for r in res:
+        if comum and r[0] in oms and r[4]!='bloqueado':r[4]='revisar';r[5]='; '.join(filter(None,[r[5],f'mensagem sem {", ".join(comum)} em todas as contas lidas do lote']))
     for c,(d,f,err) in pdfs.items():res.append([c,nomes[c],'','','bloqueado','PDF sem linha na planilha',''])
     with open(out/'conferir-envios.csv','w',newline='',encoding='utf-8') as fh:
         w=csv.writer(fh);w.writerow(CAB_LOTE);w.writerows(res)
@@ -373,7 +382,7 @@ def main(zp,planilha,disc):
     for r in res:
         if r[5]:print(f'{r[0]} {r[1]}: {r[4]} - {r[5]}')
     if sem_ap:print(f'AVISO: {len(sem_ap)} sem apelido, usado o primeiro nome: '+'; '.join(sem_ap))
-    if fora:print(f'AVISO: {len(fora)} com a mensagem sem algum trecho, por dado nao lido no PDF: '+'; '.join(fora))
+    if fora:print(f'AVISO: {len(fora)} com a mensagem sem algum trecho, por dado nao lido no PDF (detalhe na coluna aviso do conferir-envios.csv): '+', '.join(fora))
     print(f'CODIGO {codigo(out)}')
 if __name__=='__main__':
     cmd={'importar':importar,'aprovar':aprovar,'checar':checar,'registrar':registrar,'copiar':copiar,'marcar':marcar,'conferir-caixa':conferir_caixa}
