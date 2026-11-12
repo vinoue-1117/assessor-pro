@@ -11,7 +11,7 @@ Bot é toda pasta que tem `bot.md`. Bots do mesmo produto ficam juntos (`assesso
 | `bot.md` | A ficha do bot: perfil, skills, rotinas e conexões. É o que o [`instalar.md`](instalar.md) lê |
 | `skills/<skill>/SKILL.md` | A skill completa. Script que só ela usa fica em `skills/<skill>/scripts/` |
 | `ponteiros/<skill>/SKILL.md` | Gerado por `python scripts/gerar-ponteiros.py`. Não editar à mão |
-| `README.md` | Opcional: o que as skills e os scripts fazem, para quem mantém o bot |
+| `README.md` | O prompt de instalação, na seção `## Instalar`. Para quem mantém o bot, o que as skills e os scripts fazem |
 | `tests/` | Testes em pytest, na pasta do bot ou na do produto. Um arquivo de teste não importa outro: o `check` roda o pytest com `--import-mode=importlib` |
 
 O que mais for só do bot fica na pasta dele: template de página, script de apoio, exemplo de saída.
@@ -30,6 +30,16 @@ O nome de cada skill é único no repositório. Comece pelo nome do bot ou do pr
 ## Ponteiro
 
 O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado no bot é o perfil e a lista de ponteiros: mudar um dos dois pede colar de novo o prompt desse bot no chat dele. O bot segue o [`instalar.md`](instalar.md) e se ajusta.
+
+## Prompt de instalação
+
+Fica no `README.md` da pasta do bot, na seção `## Instalar`, e em nenhum outro arquivo. O dono cola no chat do bot para instalar ou atualizar. Formato:
+
+```
+você é o bot <quem>; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot <caminho>. Não apague nada do workspace.
+```
+
+`<caminho>` é a pasta do bot dentro de `bots/`. O gerador para se o README do bot não tiver o prompt com esse caminho.
 
 ## O que não entra
 

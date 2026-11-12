@@ -76,6 +76,10 @@ def carregar():
     esperado, nomes = {}, set()
     for ficha in sorted(BOTS.rglob("bot.md")):
         bot = ficha.parent
+        prompt = f"{RAW}/bots/instalar.md para o bot {bot.relative_to(BOTS).as_posix()}."
+        leiame = bot / "README.md"
+        if not leiame.is_file() or prompt not in leiame.read_text(encoding="utf-8"):
+            sys.exit(f"sem prompt de instalacao em {rel(bot)}/README.md, falta: {prompt}")
         descr = descricoes(ficha)
         achadas = set()
         for path in sorted(bot.glob("skills/*/SKILL.md")):

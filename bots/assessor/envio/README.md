@@ -4,6 +4,14 @@ Bot **Relatórios - Assessor Pro**: prepara e confere o lote mensal do relatóri
 
 Ficha do bot: [`bot.md`](bot.md).
 
+## Instalar
+
+Cole no chat deste bot. O mesmo prompt atualiza um bot já instalado.
+
+```
+você é o bot de Relatórios do Assessor Pro; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot assessor/envio. Não apague nada do workspace.
+```
+
 ## Skills
 | Skill | Quando |
 | --- | --- |

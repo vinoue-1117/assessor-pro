@@ -17,21 +17,9 @@ Fluxo: assessor manda zip + planilha → Relatórios - Assessor Pro prepara e mo
 
 ## Como usar
 
-O dono dá um prompt por bot. Cole o prompt no chat desse bot. O bot ajusta a si mesmo.
+Cada bot se instala e se atualiza sozinho: o dono cola no chat dele o prompt que está no README da pasta do bot.
 
-No chat do bot Relatórios - Assessor Pro:
-
-```
-você é o bot de Relatórios do Assessor Pro; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot assessor/envio. Não apague nada do workspace.
-```
-
-No chat do bot Whatsapp - Assessor Pro:
-
-```
-você é o bot de WhatsApp do Assessor Pro; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot assessor/zap. Não apague nada do workspace.
-```
-
-1. Cole cada prompt no chat do bot correspondente.
+1. Cole no chat de cada bot o prompt dele: [Relatórios - Assessor Pro](bots/assessor/envio/README.md#instalar) e [Whatsapp - Assessor Pro](bots/assessor/zap/README.md#instalar).
 2. No bot Whatsapp - Assessor Pro, conecte o WhatsApp Web lendo o QR code.
 3. No bot Relatórios - Assessor Pro, mande a planilha (`conta_xp, telefone, nome, apelido`; `conta_xp` é o número da conta na corretora) e, todo mês, o zip do lote.
 

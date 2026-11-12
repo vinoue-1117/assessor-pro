@@ -28,6 +28,12 @@ def test_bot_md_e_skills_precisam_bater(tmp_path):
     escrever(bot / 'bot.md', ficha)
     escrever(bot / 'skills/exemplo-core/SKILL.md', SKILL.format(nome='exemplo-core'))
 
+    # sem o prompt de instalação no README do bot, com o caminho da pasta dele
+    escrever(bot / 'README.md', f'{mod.RAW}/bots/instalar.md para o bot outro.')
+    with pytest.raises(SystemExit, match='prompt de instalacao'):
+        mod.carregar()
+    escrever(bot / 'README.md', f'{mod.RAW}/bots/instalar.md para o bot exemplo.')
+
     esperado = mod.carregar()
     mod.gravar(esperado)
     mod.conferir(esperado)

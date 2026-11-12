@@ -4,6 +4,14 @@ Bot **Whatsapp - Assessor Pro**: a porta do WhatsApp do dono para os outros bots
 
 Ficha do bot: [`bot.md`](bot.md).
 
+## Instalar
+
+Cole no chat deste bot. O mesmo prompt atualiza um bot já instalado.
+
+```
+você é o bot de WhatsApp do Assessor Pro; se não for, pare e diga que este prompt é para outro bot. Atualize suas skills seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md para o bot assessor/zap. Não apague nada do workspace.
+```
+
 ## Skills
 | Skill | Quando |
 | --- | --- |
