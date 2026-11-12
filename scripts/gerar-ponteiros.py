@@ -93,7 +93,7 @@ def carregar():
             esperado[dest] = ponteiro(nome, nome_linha, rel(path), descr[nome])
         extras = sorted(set(descr) - achadas)
         if extras:
-            sys.exit(f"{rel(ficha)} lista skill que não existe: " + ", ".join(extras))
+            sys.exit(f"{rel(ficha)} lista skill que nao existe:" + ", ".join(extras))
     if not esperado:
         sys.exit(f"nenhum bot.md em {rel(BOTS)}")
     return esperado

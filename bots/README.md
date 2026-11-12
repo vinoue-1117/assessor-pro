@@ -12,7 +12,7 @@ Bot é toda pasta que tem `bot.md`. Bots do mesmo produto ficam juntos (`assesso
 | `skills/<skill>/SKILL.md` | A skill completa. Script que só ela usa fica em `skills/<skill>/scripts/` |
 | `ponteiros/<skill>/SKILL.md` | Gerado por `python scripts/gerar-ponteiros.py`. Não editar à mão |
 | `README.md` | Opcional: o que as skills e os scripts fazem, para quem mantém o bot |
-| `tests/` | Testes em pytest, na pasta do bot ou na do produto |
+| `tests/` | Testes em pytest, na pasta do bot ou na do produto. Um arquivo de teste não importa outro: o `check` roda o pytest com `--import-mode=importlib` |
 
 O que mais for só do bot fica na pasta dele: template de página, script de apoio, exemplo de saída.
 
@@ -44,7 +44,7 @@ O repositório é público e o histórico não se apaga.
 
 `python scripts/check.py`
 
-O mesmo comando roda em toda PR. Ele recusa arquivo de dado versionado, confere os ponteiros contra as skills e roda os testes. Ele não lê o texto dos arquivos atrás de dado de cliente: essa conferência é de quem abre e de quem revisa a PR.
+O mesmo comando roda em toda PR. Ele recusa arquivo de dado versionado, confere os ponteiros contra as skills e roda os testes. A recusa de arquivo de dado roda também num segundo workflow (`dados.yml`), com o `check.py` da branch de destino sobre a lista de arquivos da PR: mexer no `check.py` na mesma PR não a desliga. Ele não lê o texto dos arquivos atrás de dado de cliente: essa conferência é de quem abre e de quem revisa a PR.
 
 Uma PR mexe na pasta de um bot. Mudança em `scripts/` ou neste arquivo vai em PR separada.
 

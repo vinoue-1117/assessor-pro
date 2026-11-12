@@ -24,4 +24,4 @@ Nenhuma.
 
 ## Conexões
 
-Nenhuma. Os envios saem pelo bot Whatsapp - Assessor Pro ([`../zap`](../zap/bot.md)), que precisa existir para o mesmo dono.
+O bot Whatsapp - Assessor Pro (`assessor/zap`) precisa existir para o mesmo dono: os envios saem por ele.
