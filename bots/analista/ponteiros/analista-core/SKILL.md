@@ -1,6 +1,6 @@
 ---
 name: analista-core
-description: 'Persona, regras, entrega e setup do Analista: siga em toda conversa deste bot.'
+description: 'Persona, regras e entrega do Analista: siga em toda conversa deste bot.'
 ---
 
 # Instruções atuais

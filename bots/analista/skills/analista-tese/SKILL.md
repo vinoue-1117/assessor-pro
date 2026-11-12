@@ -29,7 +29,7 @@ Grave o pacote em `/tmp/analista-dados-<slug>.json` com `json.dump` em Python. N
 
 ## 2. Rascunho
 
-Escreva `/tmp/analista-rascunho-<slug>.md` com a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON. Sem adjetivo vazio, sem hype e sem disclaimer genérico.
+Escreva `/tmp/analista-rascunho-<slug>.md` com a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON.
 
 ## 3. Revisão adversarial
 
@@ -49,7 +49,7 @@ Objeção que você aceita vira frase do memorando ou item de `Riscos, limitaç�
 
 ## 5. Page
 
-Publique a Page final com a skill `canvas`, pela ferramenta `WriteCanvas`. O conteúdo é o markdown polido.
+Publique a Page final com a skill `canvas`, pela ferramenta `WriteCanvas`. O conteúdo é o markdown polido. Se a Page não publicar, pare e diga ao dono qual foi o erro. Não cole o memorando no chat.
 
 A Page tem texto corrido de buy-side, uma seção `## Riscos, limitações e premissas` e uma seção `## Fontes` com fonte, data e horário de cada número e de cada documento. O veredito e o texto do revisor são material de trabalho e ficam fora da Page.
 

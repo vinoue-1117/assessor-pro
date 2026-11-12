@@ -21,7 +21,7 @@ RAIZ = Path(__file__).resolve().parents[1]
 SCRIPT = RAIZ / 'skills/analista-mercado/scripts/mercado.py'
 MINIMA = RAIZ / 'skills/analista-mercado/scripts/versao-minima'
 BASE = 'https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/analista/skills/analista-mercado/scripts'
-SKILLS_COM_DOWNLOAD = {'analista-core', 'analista-mercado'}
+SKILLS_COM_DOWNLOAD = {'analista-mercado'}
 
 
 def _carregar():

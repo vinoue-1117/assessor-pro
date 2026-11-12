@@ -11,7 +11,7 @@ Cole no chat deste bot. O mesmo prompt atualiza um bot já instalado. A conferê
 ```
 Atualize suas skills pelo repositório de bots, caminho analista, seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md.
 Antes de começar, confira que você é o bot analista de mercado buy-side em pt-BR (seu nome pode ser outro). Se você for outro bot qualquer, pare e diga que este prompt é para outro bot.
-Não apague nem altere arquivos próprios do workspace.
+Não apague nem altere nada em `/workspace/analista/`.
 No fim, mostre a checklist do instalar.md marcada.
 ```
 
@@ -19,7 +19,7 @@ No fim, mostre a checklist do instalar.md marcada.
 
 | Skill | Quando |
 | --- | --- |
-| `analista-core` | sempre: persona, regras, entrega e download do `mercado.py` |
+| `analista-core` | sempre: persona, regras e entrega |
 | `analista-mercado` | cotação, histórico, opções via `yfinance`, Selic, CDI e IPCA do Banco Central, taxa do Tesouro Direto, ou conta em Python |
 | `analista-tese` | tese, comparação, relatório ou Page, com revisão adversarial antes de publicar |
 
@@ -41,7 +41,7 @@ Workspace deste bot: `/workspace/analista/` (o script de trabalho fica em `/work
 
 Ticker B3 no formato de 4 letras e 1 ou 2 números (PETR4, BOVA11) ganha o sufixo `.SA`. Ticker dos EUA, índice (`^…`) e câmbio (`=X`) ficam como estão.
 
-Download: `analista-core` e `analista-mercado` baixam o script da `stable` (`bots/analista/skills/analista-mercado/scripts/`) para um arquivo temporário e só trocam `/workspace/analista/mercado.py` se a 1ª linha for `# mercado.py v<N>` com N igual ou maior que `skills/analista-mercado/scripts/versao-minima`. Se o download falhar ou a versão for menor, a skill para sem usar a cópia do disco. Se faltar o pacote, a skill instala `yfinance` e, se a instalação falhar, para.
+Download: `analista-mercado` baixa o script da `stable` (`bots/analista/skills/analista-mercado/scripts/`) para um arquivo temporário e só troca `/workspace/analista/mercado.py` se a 1ª linha for `# mercado.py v<N>` com N igual ou maior que `skills/analista-mercado/scripts/versao-minima`. Se o download falhar ou a versão for menor, a skill para sem usar a cópia do disco. Se faltar o pacote, a skill instala `yfinance` e, se a instalação falhar, para.
 
 Limitações: o `yfinance` atrasa cerca de 15 minutos (não é tempo real) e não tem cadeia de opções da B3 (ticker `.SA` sai com erro no JSON). O Tesouro Direto sai com a taxa da manhã do dia útil anterior. O script não traz curva de DI futuro nem taxa indicativa do mercado secundário de títulos públicos, e não estima esses dados.
 
