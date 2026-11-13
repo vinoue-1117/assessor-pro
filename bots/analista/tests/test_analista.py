@@ -560,6 +560,66 @@ def test_download_versao_menor_nao_troca_e_maior_troca():
     assert sobras2 == []
 
 
+def test_eval_revisor_casos_por_braco_e_rascunho_e_soma_da_regua(tmp_path):
+    caminho = RAIZ / 'evals/revisor/rodar.py'
+    spec = importlib.util.spec_from_file_location('rodar_eval_revisor', caminho)
+    rodar_eval = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rodar_eval)
+
+    rodar_eval.montar(tmp_path, 5)
+    casos = tmp_path / 'evals'
+    assert sorted(p.name for p in casos.iterdir()) == ['advogado', 'advogado-limpo', 'conferente', 'conferente-limpo']
+    pasta = RAIZ / 'evals/revisor'
+    papeis, entradas, usados = {}, {}, set()
+    for sufixo, (_, arquivo, gab) in rodar_eval.RASCUNHOS.items():
+        # Cada criterio do gabarito confere um trecho que existe uma vez no rascunho dele.
+        gabarito = rodar_eval.gabarito(gab)
+        rascunho = (pasta / arquivo).read_text(encoding='utf-8')
+        for nome, trecho in gabarito.items():
+            assert nome == 'aprova' or rascunho.count(trecho) == 1, nome
+        usados |= set(gabarito)
+        for braco in ('advogado', 'conferente'):
+            caso = casos / (braco + sufixo)
+            cabeca, entradas[caso.name] = (caso / 'prompt.md').read_text(encoding='utf-8').split('## Rascunho', 1)
+            assert 'runs: 5' in cabeca
+            papeis[caso.name] = cabeca.split('Papel: ', 1)[1].strip()
+            assert sorted(p.stem for p in (caso / 'graders').iterdir()) == sorted(gabarito)
+    assert usados == {p.stem for p in (pasta / 'graders').iterdir()}
+    # Os dois bracos de um rascunho recebem a mesma entrada; o rascunho sem erro nao traz nenhum erro plantado.
+    assert entradas['advogado'] == entradas['conferente'] != entradas['advogado-limpo'] == entradas['conferente-limpo']
+    assert '"contas"' in entradas['advogado']
+    for nome, trecho in rodar_eval.gabarito('gabarito.json').items():
+        assert nome.startswith('erro-') != (trecho in entradas['advogado-limpo']), nome
+    # O braco A e o papel que a skill passa ao revisor, lido da propria skill.
+    assert f"- o papel: {papeis['advogado']}\n" in (RAIZ / 'skills/analista-tese/SKILL.md').read_text(encoding='utf-8')
+    assert papeis['conferente'].startswith('conferente factual')
+    assert papeis['advogado-limpo'] == papeis['advogado'] and papeis['conferente-limpo'] == papeis['conferente']
+
+    pagina = rodar_eval.relatorio_entrada(tmp_path, 5).read_text(encoding='utf-8')
+    assert pagina.count('<mark class="erro" title=') == 6 and pagina.count('<mark class="correta" title=') == 12
+    assert papeis['conferente'] in pagina
+
+    def criterio(nome, passou):
+        return {'name': nome, 'passed': passou, 'evidence': 'resposta'}
+
+    soma = rodar_eval.somar({'cases': [
+        {'name': 'advogado', 'arms': {'with': [
+            {'error': None, 'graders': [
+                criterio('erro-a', True), criterio('erro-b', False),
+                criterio('correta-a', False), criterio('correta-b', True),
+            ]},
+            {'error': 'timeout', 'graders': []},
+        ]}},
+        {'name': 'advogado-limpo', 'arms': {'with': [
+            {'error': None, 'graders': [criterio('aprova', False), criterio('correta-a', True)]},
+        ]}},
+    ]})
+    assert soma == {
+        'advogado': [{'erros': 1, 'de_erros': 2, 'contestadas': 1, 'de_corretas': 2, 'aprovou': None, 'resposta': 'resposta'}],
+        'advogado-limpo': [{'erros': 0, 'de_erros': 0, 'contestadas': 0, 'de_corretas': 1, 'aprovou': False, 'resposta': 'resposta'}],
+    }
+
+
 def test_sem_referencias_proibidas_e_lf():
     proibidos = [
         'OPLAB_' + 'ACCESS_TOKEN',
