@@ -23,7 +23,11 @@ AQUI = Path(__file__).resolve().parent
 SKILL = AQUI.parents[1] / "skills/analista-tese/SKILL.md"
 MODELO = "sonnet"
 PAPEL = re.compile(r"^- o papel: (.+)$", re.M)
-VEREDITO = re.compile(r"veredito|resultado", re.I)
+# A palavra "veredito" ou "resultado" seguida do termo, so com pontuacao ou marca no meio.
+# "o resultado confere com o JSON", no corpo da resposta, nao casa.
+VEREDITO = re.compile(
+    r"(?:veredito|resultado)(?: final)?[ \t*`_]*[:\n—–-][\s*`_]*(s[oó]lida|fr[aá]gil|refazer|confere|reescrever)\b", re.I
+)
 # Sufixo do nome do caso: (titulo, rascunho, gabarito).
 RASCUNHOS = {
     "": ("Rascunho com erros plantados", "rascunho.md", "gabarito.json"),
@@ -58,6 +62,8 @@ def bracos():
     m = PAPEL.search(SKILL.read_text(encoding="utf-8"))
     if not m:
         sys.exit(f"sem a linha '- o papel: ...' em {SKILL}")
+    if "advogado do diabo" not in m[1]:
+        sys.exit(f"o papel em {SKILL} nao e mais o advogado do diabo: rever os bracos deste eval")
     return {"advogado": m[1], "conferente": ler("papel-conferente.md")}
 
 
@@ -133,14 +139,42 @@ O juiz recebe a resposta do revisor e um critério por vez, e vota três vezes.<
     return caminho
 
 
+def veredito(resposta):
+    """O ultimo veredito ou resultado que a resposta declara, ou None."""
+    achados = VEREDITO.findall(resposta)
+    return achados[-1].lower() if achados else None
+
+
+def descarte(execucao):
+    """Motivo para a execucao ficar fora da soma, ou None.
+
+    Resposta sem veredito (vazia ou cortada) fica fora: os criterios `correta-*`
+    passam quando a resposta nao menciona o trecho.
+    """
+    if execucao.get("error"):
+        return f"erro: {execucao['error']}"
+    graders = execucao.get("graders") or []
+    if not graders:
+        return "nenhum criterio julgado"
+    sem = [g["name"] for g in graders if not isinstance(g.get("passed"), bool)]
+    if sem:
+        return f"criterio sem julgamento: {', '.join(sem)}"
+    # O `evidence` de todo criterio e a resposta inteira do revisor.
+    resposta = graders[0].get("evidence") or ""
+    if not veredito(resposta):
+        return f"resposta sem veredito: {resposta[:200]!r}"
+    return None
+
+
 def somar(resultado):
-    """Por caso, uma linha por execucao: erros pegos, corretas contestadas, aprovou (None sem o criterio) e a resposta."""
+    """Por caso, uma linha por execucao: erros pegos, corretas contestadas, aprovou (None sem o criterio), o veredito e a resposta."""
     saida = {}
     for caso in resultado["cases"]:
         linhas = []
         for execucao in caso["arms"]["with"]:
-            if execucao.get("error"):
-                print(f"execucao com erro em {caso['name']}, fora da soma: {execucao['error']}", file=sys.stderr)
+            motivo = descarte(execucao)
+            if motivo:
+                print(f"execucao de {caso['name']} fora da soma: {motivo}", file=sys.stderr)
                 continue
             linha = {"erros": 0, "de_erros": 0, "contestadas": 0, "de_corretas": 0, "aprovou": None}
             for g in execucao["graders"]:
@@ -155,6 +189,7 @@ def somar(resultado):
                 else:
                     sys.exit(f"criterio fora da regua: {g['name']}")
             linha["resposta"] = execucao["graders"][0]["evidence"]
+            linha["veredito"] = veredito(linha["resposta"])
             linhas.append(linha)
         saida[caso["name"]] = linhas
     return saida
@@ -178,8 +213,7 @@ def relatar(soma, dest):
             print(f"  execucoes em que o revisor aprovou a tese: {sum(l['aprovou'] for l in linhas)} de {len(linhas)}")
         for i, linha in enumerate(linhas, 1):
             (respostas / f"{caso}-{i}.md").write_text(linha["resposta"], encoding="utf-8", newline="\n")
-            veredito = next((l.strip() for l in linha["resposta"].splitlines() if VEREDITO.search(l)), "(sem linha de veredito)")
-            print(f"  veredito {i}: {veredito[:100]}")
+            print(f"  veredito {i}: {linha['veredito']}")
     print(f"\nafirmacoes de fora do rascunho e do JSON: contar a mao nas respostas em {respostas}")
 
 
@@ -192,6 +226,8 @@ def main():
     p.add_argument("--so-entrada", action="store_true", help="monta os casos e o entrada.html, sem rodar o eval")
     a = p.parse_args()
     dest = Path(a.saida).resolve() if a.saida else Path(tempfile.mkdtemp(prefix="eval-revisor-"))
+    if (dest / "evals").exists():
+        sys.exit(f"{dest} ja tem casos montados: passe em --saida uma pasta nova")
     montar(dest, a.runs)
     print(f"entrada: {relatorio_entrada(dest, a.runs)}")
     if a.so_entrada:

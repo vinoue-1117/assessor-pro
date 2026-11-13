@@ -15,8 +15,7 @@
 ## Riscos, limitações e premissas
 
 - Os vencimentos não coincidem: o prefixado vence em 01/01/2029 e o IPCA+ em 15/05/2029. A inflação implícita é aproximada.
-- A variação da última semana não foi conferida: o script traz só a taxa mais recente, da data-base 12/11/2026.
-- As taxas são as da manhã do Tesouro Direto, não a taxa indicativa do mercado secundário.
+- A variação da última semana não foi conferida: há só a taxa da data-base 12/11/2026.
 - O orçamento de perda de 0,25% da carteira é premissa sua. O tamanho muda na mesma proporção se ele mudar.
 
 ## Fontes
