@@ -33,7 +33,7 @@ O bot instalado guarda só ponteiros: cada skill baixa a versão completa da bra
 
 `git push origin main:stable`
 
-O que fica gravado é o perfil e a lista de ponteiros. No bot de time, os ponteiros ficam no escopo do bot. No bot pessoal, ficam na biblioteca de skills do dono, compartilhada pelos bots pessoais dele; atualizar um não apaga o ponteiro de outro. Skill nova ou perfil alterado pedem colar de novo o prompt desse bot no chat dele. O bot segue o [`bots/instalar.md`](bots/instalar.md) e se ajusta.
+O que fica gravado é o perfil e a lista de ponteiros. No bot de time, os ponteiros ficam no escopo do bot. No bot pessoal, a plataforma recusa esse escopo e o instalar grava os ponteiros na biblioteca de skills do dono. Essa biblioteca, segundo a plataforma, é compartilhada pelos bots dele; dois bots pessoais nela não foram testados, então o instalar grava um bot deste repositório e para se já houver ponteiro de outro. Mais de um bot usa o escopo de time. Skill nova ou perfil alterado pedem colar de novo o prompt desse bot no chat dele. O bot segue o [`bots/instalar.md`](bots/instalar.md) e se ajusta.
 
 A description de cada ponteiro é fixa (quando usar a skill) e fica na seção `## Skills` do `bot.md`. Mudar a description da skill completa não muda o ponteiro, então uma promoção para `stable` não exige atualizar as skills já instaladas nos bots.
 
