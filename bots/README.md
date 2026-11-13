@@ -25,11 +25,13 @@ O título é o nome do bot no repositório. Na instalação ele não é comparad
 - `## Rotinas`: cada rotina com horário e o que ela executa.
 - `## Conexões`: o que o dono precisa conectar.
 
-O nome de cada skill é único no repositório. Comece pelo nome do bot ou do produto (`assessor-zap-enviar`).
+O nome de cada skill é único no repositório: no plano particular, os ponteiros de todos os bots do dono ficam na mesma biblioteca. Comece pelo nome do bot ou do produto (`assessor-zap-enviar`).
 
 ## Ponteiro
 
-O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado no bot é o perfil e a lista de ponteiros: mudar um dos dois pede colar de novo o prompt desse bot no chat dele. O bot segue o [`instalar.md`](instalar.md) e se ajusta.
+O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado é o perfil do bot e a lista de ponteiros: mudar um dos dois pede colar de novo o prompt desse bot no chat dele. O bot segue o [`instalar.md`](instalar.md) e se ajusta.
+
+Onde o ponteiro fica depende do plano. Bot de time guarda os ponteiros nas skills próprias, que só ele vê. Bot do plano particular não guarda skill própria: os ponteiros vão para a biblioteca de skills do dono, e todo bot pessoal do dono vê os ponteiros de todos. O bot reconhece os seus pela pasta na URL (`bots/<caminho>/skills/`).
 
 ## Prompt de instalação
 
