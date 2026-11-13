@@ -1,0 +1,13 @@
+{
+ "erro-taxa-prefixado": "O Prefixado 2029 paga 13,70% a.a.",
+ "erro-perda-choque": "uma alta de 1 p.p. tira 1,2%",
+ "erro-selic-focus": "o Focus projeta 9,50% para o fim de 2027",
+ "erro-ata-sem-fonte": "O Copom sinalizou na última ata que começa a cortar em janeiro.",
+ "erro-tendencia-sem-serie": "A taxa do Prefixado 2029 subiu 0,60 p.p. nas últimas quatro semanas",
+ "erro-linha-de-corte": "Se o IPCA médio até o vencimento ficar acima de 4,20% a.a., o IPCA+ 2029 passa a render mais que o prefixado.",
+ "correta-taxa-ipca": "o IPCA+ 2029 paga 7,10% a.a. de juro real",
+ "correta-implicita": "inflação implícita de 5,88% a.a.",
+ "correta-folga-focus": "1,68 p.p. acima do IPCA de 4,20% que o boletim Focus projeta para 2027",
+ "correta-selic-meta": "A Selic meta está em 12,25% a.a.",
+ "correta-ipca-12m": "O IPCA acumulado em 12 meses está em 4,80%"
+}

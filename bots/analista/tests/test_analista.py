@@ -560,6 +560,90 @@ def test_download_versao_menor_nao_troca_e_maior_troca():
     assert sobras2 == []
 
 
+def _rodar_eval():
+    spec = importlib.util.spec_from_file_location('rodar_eval_revisor', RAIZ / 'evals/revisor/rodar.py')
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_eval_revisor_monta_um_caso_por_braco_e_rascunho(tmp_path, monkeypatch):
+    rodar_eval = _rodar_eval()
+    rodar_eval.montar(tmp_path, 5)
+    casos = tmp_path / 'evals'
+    assert sorted(p.name for p in casos.iterdir()) == ['advogado', 'advogado-limpo', 'conferente', 'conferente-limpo']
+    pasta = RAIZ / 'evals/revisor'
+    papeis, entradas, usados = {}, {}, set()
+    for sufixo, (_, arquivo, gab) in rodar_eval.RASCUNHOS.items():
+        # Cada criterio do gabarito confere um trecho que existe uma vez no rascunho dele.
+        gabarito = rodar_eval.gabarito(gab)
+        rascunho = (pasta / arquivo).read_text(encoding='utf-8')
+        for nome, trecho in gabarito.items():
+            assert nome == 'aprova' or rascunho.count(trecho) == 1, nome
+        usados |= set(gabarito)
+        for braco in ('advogado', 'conferente'):
+            caso = casos / (braco + sufixo)
+            cabeca, entradas[caso.name] = (caso / 'prompt.md').read_text(encoding='utf-8').split('## Rascunho', 1)
+            assert 'runs: 5' in cabeca
+            papeis[caso.name] = cabeca.split('Papel: ', 1)[1].strip()
+            assert sorted(p.stem for p in (caso / 'graders').iterdir()) == sorted(gabarito)
+    assert usados == {p.stem for p in (pasta / 'graders').iterdir()}
+    # Os dois bracos de um rascunho recebem a mesma entrada; o rascunho sem erro nao traz nenhum erro plantado.
+    assert entradas['advogado'] == entradas['conferente'] != entradas['advogado-limpo'] == entradas['conferente-limpo']
+    assert '"contas"' in entradas['advogado']
+    for nome, trecho in rodar_eval.gabarito('gabarito.json').items():
+        assert nome.startswith('erro-') != (trecho in entradas['advogado-limpo']), nome
+    # O braco A e o papel que a skill passa ao revisor, lido da propria skill.
+    assert f"- o papel: {papeis['advogado']}\n" in (RAIZ / 'skills/analista-tese/SKILL.md').read_text(encoding='utf-8')
+    assert papeis['conferente'].startswith('conferente factual')
+    assert papeis['advogado-limpo'] == papeis['advogado'] and papeis['conferente-limpo'] == papeis['conferente']
+    # Papel trocado na skill: o eval para, em vez de rodar o braco `advogado` com outro papel.
+    trocada = tmp_path / 'SKILL.md'
+    trocada.write_text('- o papel: conferente factual. Conferir cada numero.\n', encoding='utf-8')
+    monkeypatch.setattr(rodar_eval, 'SKILL', trocada)
+    with pytest.raises(SystemExit, match='advogado do diabo'):
+        rodar_eval.bracos()
+
+
+def test_eval_revisor_relatorio_de_entrada_marca_o_gabarito(tmp_path):
+    rodar_eval = _rodar_eval()
+    pagina = rodar_eval.relatorio_entrada(tmp_path, 5).read_text(encoding='utf-8')
+    nomes = [n for _, _, gab in rodar_eval.RASCUNHOS.values() for n in rodar_eval.gabarito(gab)]
+    for tipo in ('erro', 'correta'):
+        assert pagina.count(f'<mark class="{tipo}" title=') == sum(n.startswith(tipo) for n in nomes) > 0
+    assert rodar_eval.ler('papel-conferente.md') in pagina
+
+
+def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys):
+    rodar_eval = _rodar_eval()
+    # Vale o veredito declarado: "resultado" no corpo da resposta ou em cabecalho de tabela nao conta.
+    refazer = 'O resultado da conta diverge do JSON.\n\n# Veredito: `refazer`'
+    fragil = '| Item | Resultado |\n| taxa | confere |\n\n## Veredito\n\n**frágil**'
+
+    def execucao(resposta, criterios, erro=None):
+        return {'error': erro, 'graders': [{'name': n, 'passed': p, 'evidence': resposta} for n, p in criterios.items()]}
+
+    soma = rodar_eval.somar({'cases': [
+        {'name': 'advogado', 'arms': {'with': [
+            execucao(refazer, {'erro-a': True, 'erro-b': False, 'correta-a': False, 'correta-b': True}),
+            execucao('', {}, erro='timeout'),
+            execucao(refazer, {}),
+            execucao(refazer, {'erro-a': None, 'correta-a': True}),
+            execucao('O resultado da conta', {'erro-a': False, 'correta-a': True}),
+        ]}},
+        {'name': 'advogado-limpo', 'arms': {'with': [execucao(fragil, {'aprova': False, 'correta-a': True})]}},
+    ]})
+    assert soma == {
+        'advogado': [{'erros': 1, 'de_erros': 2, 'contestadas': 1, 'de_corretas': 2, 'aprovou': None,
+                      'resposta': refazer, 'veredito': 'refazer'}],
+        'advogado-limpo': [{'erros': 0, 'de_erros': 0, 'contestadas': 0, 'de_corretas': 1, 'aprovou': False,
+                            'resposta': fragil, 'veredito': 'frágil'}],
+    }
+    fora = capsys.readouterr().err
+    for motivo in ('erro: timeout', 'nenhum criterio julgado', 'criterio sem julgamento: erro-a', 'resposta sem veredito'):
+        assert motivo in fora, motivo
+
+
 def test_sem_referencias_proibidas_e_lf():
     proibidos = [
         'OPLAB_' + 'ACCESS_TOKEN',

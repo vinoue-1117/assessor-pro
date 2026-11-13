@@ -1,0 +1,91 @@
+{
+ "mercado": [
+  {
+   "data_base": "2026-11-12",
+   "unidade_taxa": "% a.a.",
+   "fonte": "tesouro-transparente",
+   "consultado_em": "2026-11-13T09:02:11-03:00",
+   "titulos": [
+    {
+     "titulo": "Tesouro IPCA+",
+     "vencimento": "2029-05-15",
+     "taxa_compra": 7.1,
+     "taxa_venda": 7.22,
+     "pu_compra": 3650.12,
+     "pu_venda": 3640.8
+    },
+    {
+     "titulo": "Tesouro Prefixado",
+     "vencimento": "2029-01-01",
+     "taxa_compra": 13.4,
+     "taxa_venda": 13.52,
+     "pu_compra": 764.05,
+     "pu_venda": 762.32
+    }
+   ]
+  },
+  [
+   {
+    "indicador": "selic",
+    "meta": {
+     "valor": 12.25,
+     "unidade": "% a.a.",
+     "data": "2026-11-13",
+     "serie_sgs": 432
+    },
+    "efetiva": {
+     "valor": 12.15,
+     "unidade": "% a.a. (base 252)",
+     "data": "2026-11-12",
+     "serie_sgs": 1178
+    },
+    "fonte": "bcb-sgs",
+    "consultado_em": "2026-11-13T09:02:40-03:00"
+   },
+   {
+    "indicador": "ipca",
+    "mes": {
+     "valor": 0.38,
+     "unidade": "% no mês",
+     "data": "2026-10-01",
+     "serie_sgs": 433
+    },
+    "acumulado_12m": {
+     "valor": 4.8,
+     "unidade": "% em 12 meses",
+     "data": "2026-10-01",
+     "serie_sgs": 13522
+    },
+    "fonte": "bcb-sgs",
+    "consultado_em": "2026-11-13T09:02:40-03:00"
+   }
+  ]
+ ],
+ "web": [
+  {
+   "titulo": "Boletim Focus",
+   "url": "https://example.com/focus-2026-11-09",
+   "data": "2026-11-09",
+   "numeros": {
+    "ipca_2027_pct": 4.2,
+    "ipca_2028_pct": 3.9,
+    "selic_fim_2027_pct_aa": 10.5
+   }
+  }
+ ],
+ "contas": {
+  "inflacao_implicita_pct_aa": 5.88,
+  "implicita_menos_focus_ipca_2027_pp": 1.68,
+  "prefixado_2029": {
+   "prazo_anos": 2.14,
+   "ganho_queda_1pp_pct": 1.91,
+   "perda_alta_1pp_pct": -1.86
+  },
+  "tamanho": {
+   "orcamento_perda_pct_carteira": 0.25,
+   "origem_orcamento": "informado pelo dono",
+   "choque_pp": 1.0,
+   "tamanho_pct_carteira": 13.4
+  }
+ }
+}
