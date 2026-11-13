@@ -66,3 +66,5 @@ Uma PR mexe na pasta de um bot. Mudança em `scripts/` ou neste arquivo vai em P
 A edição entra na `main` por PR. Quem promove é o dono do repositório:
 
 `git push origin main:stable`
+
+A promoção nunca vai por PR, e agente não abre PR para a `stable`. O repositório só aceita squash, e o squash criaria na `stable` um commit que a `main` não tem. O push seguinte deixaria de ser fast-forward e seria recusado, porque a `stable` não aceita force push.
