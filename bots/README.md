@@ -29,7 +29,9 @@ O nome de cada skill é único no repositório. Comece pelo nome do bot ou do pr
 
 ## Ponteiro
 
-O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado no bot é o perfil e a lista de ponteiros: mudar um dos dois pede colar de novo o prompt desse bot no chat dele. O bot segue o [`instalar.md`](instalar.md) e se ajusta.
+O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado é o perfil e a lista de ponteiros: mudar um dos dois pede colar de novo o prompt desse bot no chat dele. O bot segue o [`instalar.md`](instalar.md) e se ajusta.
+
+Bot de time guarda os ponteiros no escopo `bot`. Bot pessoal não tem esse escopo: a plataforma recusa skill própria, e o `instalar.md` grava os ponteiros na biblioteca de skills do dono (sem `scope`, o escopo `user`), compartilhada pelos bots pessoais dele. Nesse escopo, órfã é só o ponteiro cuja URL é `bots/<caminho>/skills/<nome>/SKILL.md` da pasta deste bot e cujo `<nome>` saiu da seção `## Skills`. Ponteiro de outra pasta, skill sem a URL do repositório e citação de `/scripts/` ficam.
 
 ## Prompt de instalação
 
