@@ -10,7 +10,7 @@ O `bot.md` dessa pasta é a única lista do que você instala: perfil, skills, r
 
 ## Onde gravar
 
-Bot de time guarda skills próprias, que só ele vê. Bot do plano particular não guarda: a plataforma recusa skill própria, e as skills dele ficam na biblioteca de skills do dono, que todos os bots pessoais do dono veem. Grave os ponteiros no lugar mais restrito que a plataforma aceitar para você, e todos no mesmo lugar.
+Bot de time guarda skills próprias, que só ele vê. Bot do plano particular não guarda: a plataforma recusa skill própria, e as skills dele ficam na biblioteca de skills do dono, que todos os bots pessoais do dono veem. Grave os ponteiros nas suas skills próprias, todos no mesmo lugar. Só a recusa de skill própria leva à biblioteca do dono. Outra recusa: pare e avise o dono. O escopo global nunca recebe estes ponteiros.
 
 ## Suas skills e as dos outros
 
@@ -18,20 +18,23 @@ Skill sua deste repositório é a que aponta para `bots/<caminho>/skills/<nome>/
 
 Três limites protegem o que não é seu:
 
-- Não apague nem sobrescreva skill que não aponta para a sua pasta, mesmo que tenha o nome de uma linha da `## Skills`: skill pessoal do dono com esse nome é dele. Confira os nomes antes de gravar o primeiro ponteiro. Se algum já existe sem apontar para a sua pasta, não grave nada e mostre o nome ao dono. Nas skills próprias de um bot de time, ponteiro antigo deste repositório com nome da `## Skills` (o que aponta para `plugins/`) também é seu.
+- Não apague nem sobrescreva skill que não aponta para a sua pasta, mesmo que tenha o nome de uma linha da `## Skills`: skill pessoal do dono com esse nome é dele. A conferência dos nomes é o passo 3.
 - Skill órfã é a que aponta para a sua pasta com um `<nome>` fora da `## Skills`. Mostre o nome ao dono e só apague com o ok dele. Sem o ok, deixe a skill.
 - Cada ponteiro fica gravado como skill. Ponteiro lido e guardado só na memória da conversa não existe na próxima.
+
+Nas skills próprias de um bot de time, toda skill com a marca do repositório (`raw.githubusercontent.com/vinoue-1117/assessor-pro` no texto) é sua, mesmo a que aponta para `plugins/`: com nome da `## Skills`, dá lugar ao ponteiro; com outro nome, é órfã. Na biblioteca do dono vale só a pasta.
 
 ## Passos
 
 1. Baixe `bot.md` do endereço acima. Se o download falhar ou vier vazio, pare e avise o dono.
 2. Identidade, antes de instalar. Vale a função, nunca o título nem o nome. A função está no prompt e no `bot.md` (o texto de abertura e `## Perfil`); o nome que aparecer nesse texto não precisa ser o seu. Se você guarda skills próprias deste repositório (com `raw.githubusercontent.com/vinoue-1117/assessor-pro` no texto), elas também confirmam: alguma tem nome da `## Skills`. Na biblioteca do dono essa conferência não vale, porque ela tem os ponteiros dos outros bots dele. Se a função for de outro bot, ou se as suas skills próprias deste repositório não têm nenhum nome da `## Skills`, pare e diga que este prompt é para outro bot. Não instale.
-3. Perfil: o texto da seção `## Perfil`, inteiro e sem alterar, no seu próprio perfil.
-4. Skills: para cada linha da seção `## Skills`, baixe `ponteiros/<skill>/SKILL.md` e grave esse conteúdo, sem alterar, como skill. Ponteiro seu que já existe com o mesmo nome dá lugar ao conteúdo atual. Não instale o arquivo de `skills/`: o ponteiro baixa a skill completa a cada uso, e é assim que você recebe as atualizações. Se o download de algum ponteiro falhar ou vier vazio, pare e avise o dono.
-5. Rotinas e conexões: faça o que as seções `## Rotinas` e `## Conexões` disserem. Com `Nenhuma`, não crie nada.
-6. Higiene: apague só as cópias baixadas pelos ponteiros, os arquivos `/workspace/assessor-pro/*.md`. O ponteiro grava cada skill nesse caminho (`/workspace/assessor-pro/<skill>.md`). Ponteiro antigo, que baixava de `plugins/**`, gravava o mesmo arquivo. Liste cada um que apagar; se não houver, diga que não havia. Não toque em planilha, histórico de envios, contatos nem em qualquer outro arquivo.
-7. Teste rápido: carregue pelo ponteiro a skill core que o `## Perfil` manda seguir e confirme que o download e a conferência do frontmatter funcionam. Se falhar, pare e avise o dono.
-8. Devolva a checklist abaixo marcada. Se ficou skill órfã, diga os nomes junto.
+3. Nomes, antes de mudar qualquer coisa: para cada linha da `## Skills`, veja se já existe skill com esse nome no lugar onde você vai gravar. Se alguma existe e não é sua (seção acima), não mude o perfil nem grave ponteiro: mostre o nome ao dono e pare.
+4. Perfil: o texto da seção `## Perfil`, inteiro e sem alterar, no seu próprio perfil.
+5. Skills: para cada linha da seção `## Skills`, baixe `ponteiros/<skill>/SKILL.md` e grave esse conteúdo, sem alterar, como skill. Ponteiro seu que já existe com o mesmo nome dá lugar ao conteúdo atual. Não instale o arquivo de `skills/`: o ponteiro baixa a skill completa a cada uso, e é assim que você recebe as atualizações. Se o download de algum ponteiro falhar ou vier vazio, pare e avise o dono.
+6. Rotinas e conexões: faça o que as seções `## Rotinas` e `## Conexões` disserem. Com `Nenhuma`, não crie nada.
+7. Higiene: apague só as cópias baixadas pelos ponteiros, os arquivos `/workspace/assessor-pro/*.md`. O ponteiro grava cada skill nesse caminho (`/workspace/assessor-pro/<skill>.md`). Ponteiro antigo, que baixava de `plugins/**`, gravava o mesmo arquivo. Liste cada um que apagar; se não houver, diga que não havia. Não toque em planilha, histórico de envios, contatos nem em qualquer outro arquivo.
+8. Teste rápido: carregue pelo ponteiro a skill core que o `## Perfil` manda seguir e confirme que o download e a conferência do frontmatter funcionam. Se falhar, pare e avise o dono.
+9. Devolva a checklist abaixo marcada. Se ficou skill órfã, diga os nomes junto.
 
 ## Checklist
 
