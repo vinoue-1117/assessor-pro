@@ -33,13 +33,15 @@ Um ator faz o papel do bot sobre um cenário, e um avaliador lê o transcript. A
 
 ### O ator
 
-`claude -p`, headless, com Sonnet, pelo login do plano. Ele roda numa pasta de execução fora do repositório, com as skills da branch copiadas para `.claude/skills/`. O prompt de sistema é o do Claude Code com o `## Perfil` do `bot.md` e a seção `## Plataforma` do cenário. As skills são as da branch, não as da `stable`: o cenário troca o endereço do download pelo `file:///` do repositório.
+`claude -p`, headless, com Sonnet, pelo login do plano. O script tira a `ANTHROPIC_API_KEY` do ambiente do ator e do avaliador: com ela definida, o `claude -p` se autentica pela chave e cobra pela API. Ele roda numa pasta de execução fora do repositório, com as skills da branch copiadas para `.claude/skills/`. O prompt de sistema é o do Claude Code com o `## Perfil` do `bot.md` e a seção `## Plataforma` do cenário. As skills são as da branch, não as da `stable`: o cenário troca o endereço do download pelo `file:///` do repositório.
 
 As instruções de quem roda ficam fora do contexto do ator: `--setting-sources project` tira as skills e as rules do usuário, e o `claudeMdExcludes` tira o `~/.claude/CLAUDE.md`. As skills que vêm com o Claude Code continuam visíveis para ele. Ferramentas: Bash (o do Git for Windows), leitura e escrita de arquivo, `WebSearch`, `WebFetch`, `Agent` e `Skill`; o que pediria permissão fora dessa lista é negado e aparece no transcript. O subagente roda em primeiro plano, como o `Task` da plataforma.
 
 O ator usa o `{python}` do cenário, que é o Python que roda o `dry-run.py`. Esse Python precisa ter o `yfinance`: o `python3` do Git Bash no Windows não tem.
 
 ### O avaliador
+
+Se o ator sai com código diferente de zero, a rodada fica incompleta: o script grava o transcript e para sem chamar o avaliador, porque um relatório sobre um fluxo cortado mediria a queda e não a skill.
 
 O agente `avaliador-transcript`, com Opus, roda a partir da raiz do repositório e lê só arquivos. Ele escreve o relatório de desvios: cada desvio com o passo do transcript e a instrução da skill, as entradas do `erros.md` que não apareceram, as lacunas da skill e o que a rodada não mediu. Não há nota nem régua automática.
 
@@ -53,6 +55,7 @@ Uma pasta temporária nova por rodada, ou a de `--saida`. O script recusa pasta 
 | `transcript.md` | a versão legível: um passo por chamada de ferramenta, bloco longo cortado com a linha do jsonl |
 | `page.md` | a Page, se o ator publicou |
 | `relatorio.md` | o relatório do avaliador |
+| `sistema.md` | o que foi acrescentado ao prompt de sistema do ator (`--append-system-prompt-file`) |
 | `ator.err` | o stderr do ator |
 | `workspace/`, `tmp/` | o que o ator gravou no lugar de `/workspace/` e `/tmp/` |
 

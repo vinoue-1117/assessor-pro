@@ -43,32 +43,56 @@ def secoes(texto):
 
 def pasta_do_bot(fluxo):
     """evals/<bot>/fluxo/<fluxo> -> bots/<bot>. O <bot> pode ter mais de um nível (assessor/envio)."""
-    partes = fluxo.relative_to(ROOT / "evals").parts
+    try:
+        partes = fluxo.relative_to(ROOT / "evals").parts
+    except ValueError:
+        partes = ()
     if "fluxo" not in partes or partes.index("fluxo") == 0:
         sys.exit(f"{fluxo} nao esta em evals/<bot>/fluxo/<fluxo>")
     return ROOT / "bots" / Path(*partes[: partes.index("fluxo")])
+
+
+def secao(arquivo, titulo):
+    """Texto da seção `## <titulo>` do arquivo. Para com mensagem se o arquivo ou a seção faltar."""
+    if not arquivo.is_file():
+        sys.exit(f"{arquivo} nao existe")
+    texto = secoes(arquivo.read_text(encoding="utf-8")).get(titulo)
+    if texto is None:
+        sys.exit(f"{arquivo} sem a secao '## {titulo}'")
+    return texto
+
+
+def ler_fluxo(fluxo):
+    """(pasta do bot, pedido, prompt de sistema) do ator, lidos antes de criar a pasta de execução."""
+    bot = pasta_do_bot(fluxo)
+    cenario = fluxo / "cenario.md"
+    sistema = f"{secao(bot / 'bot.md', 'Perfil')}\n\n{secao(cenario, 'Plataforma')}"
+    return bot, secao(cenario, "Pedido"), sistema
 
 
 def barra(caminho):
     return str(caminho).replace("\\", "/")
 
 
-def montar(fluxo, dest):
-    """Prepara a pasta de execução e devolve (pedido, prompt de sistema) do ator."""
-    bot = pasta_do_bot(fluxo)
-    cenario = secoes((fluxo / "cenario.md").read_text(encoding="utf-8"))
-    perfil = secoes((bot / "bot.md").read_text(encoding="utf-8"))["Perfil"]
+def montar(bot, pedido, sistema, dest):
+    """Prepara a pasta de execução e devolve o pedido e o prompt de sistema com os caminhos preenchidos."""
     shutil.copytree(bot / "skills", dest / ".claude" / "skills")
     for pasta in ("workspace", "tmp"):
         (dest / pasta).mkdir()
-    trocas = {"{execucao}": barra(dest), "{repo}": barra(ROOT), "{python}": barra(sys.executable)}
+    # as_uri codifica espaço e acento, que o curl recusa crus num file:///.
+    trocas = {"{execucao}": barra(dest), "{repo_url}": ROOT.as_uri(), "{python}": barra(sys.executable)}
 
     def preencher(texto):
         for chave, valor in trocas.items():
             texto = texto.replace(chave, valor)
         return texto
 
-    return preencher(cenario["Pedido"]), preencher(f"{perfil}\n\n{cenario['Plataforma']}")
+    return preencher(pedido), preencher(sistema)
+
+
+def ambiente(**extra):
+    """O ambiente de quem roda, sem a chave de API: com ela, o claude -p se autentica pela API e não pelo plano."""
+    return {**{k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}, **extra}
 
 
 def comando_ator(claude, fluxo, sistema, skills):
@@ -78,7 +102,7 @@ def comando_ator(claude, fluxo, sistema, skills):
     comando = [
         claude, "-p", "--model", ATOR, "--setting-sources", "project", "--settings", json.dumps(excluir),
         "--strict-mcp-config", "--tools", ",".join(FERRAMENTAS), "--allowedTools", *permitidas,
-        "--permission-mode", "dontAsk", "--append-system-prompt", sistema,
+        "--permission-mode", "dontAsk", "--append-system-prompt-file", str(sistema),
         "--output-format", "stream-json", "--verbose", "--forward-subagent-text", "--no-session-persistence",
     ]
     agentes = fluxo / "agentes.json"
@@ -114,7 +138,12 @@ def legivel(linhas):
     for n, linha in enumerate(linhas, 1):
         if not linha.strip():
             continue
-        evento = json.loads(linha)
+        try:
+            evento = json.loads(linha)
+        except json.JSONDecodeError:
+            # Aviso em texto no stdout ou última linha cortada: entra como está.
+            saida.append(f"## linha {n} fora do JSON\n\n```\n{cortar(linha, n)}\n```")
+            continue
         tipo = evento.get("type")
         if tipo == "system" and evento.get("subtype") == "init":
             saida.append(
@@ -136,9 +165,10 @@ def legivel(linhas):
             if pai:
                 p, nome = chamadas.get(pai, ("?", "?"))
                 quem = f"subagente {nome} do passo {p}"
-            for bloco in evento["message"].get("content", []):
-                if isinstance(bloco, str):
-                    bloco = {"type": "text", "text": bloco}
+            blocos = evento["message"].get("content", [])
+            if isinstance(blocos, str):  # mensagem em texto puro, sem lista de blocos
+                blocos = [{"type": "text", "text": blocos}]
+            for bloco in blocos:
                 b = bloco.get("type")
                 if b == "tool_use":
                     passo += 1
@@ -179,7 +209,7 @@ def avaliar(claude, fluxo, dest):
         claude, "-p", "--agent", "avaliador-transcript", "--model", AVALIADOR, "--add-dir", str(dest),
         "--allowedTools", "Read", "Grep", "Glob", "--permission-mode", "dontAsk", "--no-session-persistence",
     ]
-    r = subprocess.run(comando, cwd=ROOT, input=pedido, capture_output=True, text=True, encoding="utf-8")
+    r = subprocess.run(comando, cwd=ROOT, input=pedido, env=ambiente(), capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0 or not r.stdout.strip():
         sys.exit(f"o avaliador falhou (exit {r.returncode}): {r.stderr.strip()[:2000]}")
     return r.stdout
@@ -192,33 +222,40 @@ def main():
     p.add_argument("--saida", help="pasta nova, fora do repositorio (padrao: pasta temporaria)")
     a = p.parse_args()
     fluxo = Path(a.fluxo).resolve()
-    if a.saida:
-        dest = Path(a.saida).resolve()
-        if dest.exists():
-            sys.exit(f"{dest} ja existe: passe em --saida uma pasta nova")
-        dest.mkdir(parents=True)
-    else:
-        dest = Path(tempfile.mkdtemp(prefix=f"dry-run-{fluxo.name}-"))
-    # O repositório é público: transcript e relatório nunca ficam dentro dele.
-    if dest == ROOT or ROOT in dest.parents:
-        sys.exit(f"{dest} fica dentro do repositorio: use uma pasta de fora")
+    bot, pedido, sistema = ler_fluxo(fluxo)
     claude = shutil.which("claude")
     if not claude:
         sys.exit("claude fora do PATH")
-    pedido, sistema = montar(fluxo, dest)
+    base = Path(a.saida).resolve() if a.saida else Path(tempfile.gettempdir()).resolve()
+    # O repositório é público: transcript e relatório nunca ficam dentro dele.
+    if base == ROOT or ROOT in base.parents:
+        sys.exit(f"{base} fica dentro do repositorio: use uma pasta de fora")
+    if a.saida:
+        if base.exists():
+            sys.exit(f"{base} ja existe: passe em --saida uma pasta nova")
+        base.mkdir(parents=True)
+        dest = base
+    else:
+        dest = Path(tempfile.mkdtemp(prefix=f"dry-run-{fluxo.name}-", dir=base))
+    pedido, sistema = montar(bot, pedido, sistema, dest)
+    arquivo_sistema = dest / "sistema.md"
+    arquivo_sistema.write_text(sistema, encoding="utf-8", newline="\n")
     skills = sorted(d.name for d in (dest / ".claude" / "skills").iterdir())
-    # Sem subagente em segundo plano: na plataforma, o Task devolve a resposta do subagente na própria chamada.
-    ambiente = {**os.environ, "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1"}
     print(f"execucao: {dest}", flush=True)
     jsonl = dest / "transcript.jsonl"
     with open(jsonl, "w", encoding="utf-8") as saida, open(dest / "ator.err", "w", encoding="utf-8") as erros:
-        r = subprocess.run(comando_ator(claude, fluxo, sistema, skills), cwd=dest, input=pedido, env=ambiente,
+        # Sem subagente em segundo plano: na plataforma, o Task devolve a resposta do subagente na própria chamada.
+        r = subprocess.run(comando_ator(claude, fluxo, arquivo_sistema, skills), cwd=dest, input=pedido,
+                           env=ambiente(CLAUDE_CODE_DISABLE_BACKGROUND_TASKS="1"),
                            stdout=saida, stderr=erros, text=True, encoding="utf-8")
     linhas = jsonl.read_text(encoding="utf-8").splitlines()
     if not linhas:
         sys.exit(f"o ator nao gravou transcript (exit {r.returncode}); veja {dest / 'ator.err'}")
     (dest / "transcript.md").write_text(legivel(linhas), encoding="utf-8", newline="\n")
     print(f"ator: exit {r.returncode}, transcript em {dest / 'transcript.md'}", flush=True)
+    # Ator que caiu no meio deixa um fluxo truncado: um relatório sobre ele mediria a queda, não a skill.
+    if r.returncode != 0:
+        sys.exit(f"rodada incompleta: o ator saiu com exit {r.returncode}, sem avaliacao; veja {dest / 'ator.err'}")
     (dest / "relatorio.md").write_text(avaliar(claude, fluxo, dest), encoding="utf-8", newline="\n")
     print(f"relatorio: {dest / 'relatorio.md'}")
 

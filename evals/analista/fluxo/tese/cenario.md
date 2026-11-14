@@ -6,7 +6,7 @@ O dono pede uma tese sobre títulos do Tesouro Direto, e o ator faz o papel do b
 - `## Plataforma`: vai para o prompt de sistema do ator, depois do `## Perfil` do `bot.md`. Diz o que substitui cada parte da plataforma que o computador de teste não tem.
 - `## Para o avaliador`: só o avaliador lê.
 
-Nas seções do ator, o script troca `{execucao}` pela pasta da execução, `{repo}` pela raiz do repositório e `{python}` pelo Python que roda o script. Os três caminhos usam barra normal (`C:/...`).
+Nas seções do ator, o script troca `{execucao}` pela pasta da execução e `{python}` pelo Python que roda o script, os dois com barra normal (`C:/...`), e `{repo_url}` pelo endereço `file:///` da raiz do repositório.
 
 ## Pedido
 
@@ -21,7 +21,7 @@ Esta conversa roda num computador de teste, não na plataforma do bot. O perfil 
 | `/workspace/` | `{execucao}/workspace/` |
 | `/tmp/` | `{execucao}/tmp/` |
 | `python3` | `{python}`, que já tem o `yfinance` |
-| `https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/`, no comando de download | `file:///{repo}/`. O resto do comando fica igual, com o `curl` |
+| `https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/`, no comando de download | `{repo_url}/`. O resto do comando fica igual, com o `curl` |
 | ferramenta `Task` com `subagent_type` `knowledgeWork` | ferramenta `Agent` com `subagent_type` `knowledgeWork` |
 | skill `canvas` e ferramenta `WriteCanvas` | ferramenta `Write`, gravando o markdown da Page em `{execucao}/page.md`. O link da Page é esse caminho |
 | busca e leitura web nativas | ferramentas `WebSearch` e `WebFetch` |
