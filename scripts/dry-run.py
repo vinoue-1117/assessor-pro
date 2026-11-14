@@ -223,13 +223,16 @@ def avaliar(claude, fluxo, dest):
 
 
 def pasta_de_dados(arquivo=ROOT / ".env"):
-    """Pasta de dados privada (`ASSESSOR_EVALS_DADOS` no .env da raiz), ou None se a linha não existir."""
+    """Pasta de dados privada (`ASSESSOR_EVALS_DADOS` no .env da raiz), ou None se a linha não existir.
+
+    Caminho relativo vale a partir da pasta do .env, não de onde o script foi chamado.
+    """
     if not arquivo.is_file():
         return None
     for linha in arquivo.read_text(encoding="utf-8").splitlines():
         chave, _, valor = linha.partition("=")
         if chave.strip() == VAR_DADOS and valor.strip():
-            return Path(valor.strip().strip("\"'")).resolve()
+            return (arquivo.parent / valor.strip().strip("\"'")).resolve()
     return None
 
 
@@ -297,7 +300,11 @@ def main():
     finally:
         # A rodada que parou no meio também é copiada: o transcript dela explica a parada.
         if dados:
-            print(f"copia: {arquivar(dest, bot, fluxo, dados)}", flush=True)
+            try:
+                print(f"copia: {arquivar(dest, bot, fluxo, dados)}", flush=True)
+            except OSError as e:
+                # Falha da cópia não esconde o motivo da parada da rodada, que sai logo depois.
+                print(f"copia falhou ({e}); a rodada continua em {dest}", file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":

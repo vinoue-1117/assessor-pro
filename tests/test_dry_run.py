@@ -80,6 +80,9 @@ def test_copia_da_rodada_para_a_pasta_de_dados(tmp_path):
     dados.mkdir()
     env.write_text(f'OUTRA=1\n{dry.VAR_DADOS}="{dados}"\n', encoding='utf-8')
     assert dry.pasta_de_dados(env) == dados.resolve()
+    # Caminho relativo vale a partir da pasta do .env.
+    env.write_text(f'{dry.VAR_DADOS}=dados com espaço\n', encoding='utf-8')
+    assert dry.pasta_de_dados(env) == dados.resolve()
 
     execucao = tmp_path / 'execucao'
     (execucao / 'tmp').mkdir(parents=True)
