@@ -49,6 +49,8 @@ O agente `avaliador-transcript`, com Opus, roda a partir da raiz do repositório
 
 Uma pasta temporária nova por rodada, ou a de `--saida`. O script recusa pasta dentro do repositório.
 
+Para guardar as rodadas, crie o `.env` na raiz do repositório a partir do [`.env.example`](../.env.example), com a pasta de dados privada em `ASSESSOR_EVALS_DADOS`. No fim de cada rodada, completa ou incompleta, o script copia a pasta de execução inteira para `<pasta de dados>/execucoes/<bot>/<data>-<fluxo>-dry-run`; a segunda rodada do dia ganha o sufixo `-2`. O ator roda sempre na pasta de execução, nunca na pasta de dados, que só armazena. Sem o `.env`, nada é copiado. O `.env` não é versionado.
+
 | Arquivo | Conteúdo |
 | --- | --- |
 | `transcript.jsonl` | o stream do ator (`--output-format stream-json`), com o texto dos subagentes |

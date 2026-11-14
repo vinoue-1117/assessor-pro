@@ -70,3 +70,26 @@ def test_pasta_do_bot_e_fluxo_invalido(tmp_path):
     (tmp_path / 'cenario.md').write_text('## Pedido\n\noi\n', encoding='utf-8')
     with pytest.raises(SystemExit, match="sem a secao '## Plataforma'"):
         dry.secao(tmp_path / 'cenario.md', 'Plataforma')
+
+
+def test_copia_da_rodada_para_a_pasta_de_dados(tmp_path):
+    dry = _dry_run()
+    env = tmp_path / '.env'
+    assert dry.pasta_de_dados(env) is None
+    dados = tmp_path / 'dados com espaço'
+    dados.mkdir()
+    env.write_text(f'OUTRA=1\n{dry.VAR_DADOS}="{dados}"\n', encoding='utf-8')
+    assert dry.pasta_de_dados(env) == dados.resolve()
+
+    execucao = tmp_path / 'execucao'
+    (execucao / 'tmp').mkdir(parents=True)
+    (execucao / 'tmp' / 'rascunho.md').write_text('tese', encoding='utf-8')
+    bot, fluxo = RAIZ / 'bots/assessor/envio', RAIZ / 'evals/assessor/envio/fluxo/preparo'
+    primeira = dry.arquivar(execucao, bot, fluxo, dados)
+    segunda = dry.arquivar(execucao, bot, fluxo, dados)
+
+    # A pasta do bot de dois níveis é mantida, e a segunda rodada do dia não sobrescreve a primeira.
+    assert primeira.parent == dados / 'execucoes' / 'assessor' / 'envio'
+    assert primeira.name == f'{dry.date.today().isoformat()}-preparo-dry-run'
+    assert segunda.name == primeira.name + '-2'
+    assert (primeira / 'tmp' / 'rascunho.md').read_text(encoding='utf-8') == 'tese'
