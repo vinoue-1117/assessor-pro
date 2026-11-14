@@ -12,7 +12,8 @@ Uma mudança de skill é avaliada por três eixos independentes:
 
 ```text
 evals/<bot>/
-  fluxo/<fluxo>/   cenario.md, erros.md e, se o fluxo usar subagente, agentes.json
+  fluxo/<fluxo>/      cenario.md, erros.md e, se o fluxo usar subagente, agentes.json
+  gosto/<pergunta>/   cenario.md, variantes/<nome>/ e, depois que o dono decide, decisao.md
 ```
 
 O eixo de acerto do Analista está em [`bots/analista/evals/revisor/`](../bots/analista/evals/revisor), pelo `claude plugin eval`.
@@ -68,3 +69,29 @@ O repositório é público: transcript e relatório não entram nele.
 - O ator é Claude, não o modelo do bot. O dry run compara versões de uma skill. O comportamento absoluto é o do bot real.
 - O fluxo usa dado público de verdade (Banco Central, Tesouro Transparente, busca na web). A mesma rodada não se repete igual de um dia para o outro.
 - A plataforma não roda: o download da `stable`, a Page e o subagente da plataforma são substituídos pelo que o cenário descreve.
+
+## Gosto: variantes lidas pelo dono
+
+N variantes de uma instrução do bot geram amostras sobre a mesma entrada, e o dono lê e escolhe. A pergunta muda a cada rodada (layout, persona, template de blocos, playbook), então cada rodada começa numa sessão que decide com o dono:
+
+- a pergunta e as variantes;
+- o ponto de partida: o fluxo inteiro, ou só a escrita sobre arquivos congelados de uma rodada anterior;
+- o número de amostras de cada variante;
+- onde o dono lê (o navegador do computador, no caso de uma Page em HTML).
+
+O que não muda entre rodadas:
+
+- Todas as variantes recebem a mesma entrada: o mesmo `## Pedido`, a mesma `## Plataforma` e, se houver, a mesma pasta de partida. A diferença entre as amostras é só a sobreposição.
+- As amostras, os transcripts e os arquivos congelados ficam fora do repositório, na pasta de dados.
+- A decisão do dono entra em `gosto/<pergunta>/decisao.md`: a pergunta, as variantes, o que ele viu e o que entra na skill.
+
+`python scripts/dry-run.py evals/analista/gosto/layout --variantes --amostras 2 --partida <pasta>`
+
+| Peça | O que é |
+| --- | --- |
+| `variantes/<nome>/` | só os arquivos que mudam em `bots/<bot>/`: `bot.md` (o `## Perfil` dele vai para o prompt de sistema no lugar do perfil do bot) ou arquivos de `skills/<skill>/`, que substituem os da cópia das skills. A variante vazia, com só um `.gitkeep`, é o bot de hoje. Arquivo que o bot não tem, com o mesmo caminho e as mesmas maiúsculas, para o script antes de rodar |
+| `--variantes [NOME ...]` | as variantes da rodada; sem nome, todas as pastas de `variantes/`. Sem avaliador |
+| `--amostras M` | amostras de cada variante, rodadas uma de cada variante por volta |
+| `--partida PASTA` | os arquivos congelados, só nas pastas `tmp/` e `workspace/`, copiados sobre as da pasta de execução antes de o ator rodar. Qualquer outra coisa na pasta (o `.claude/` de uma rodada anterior, por exemplo) para o script antes de rodar. Cenário com a seção `## Partida` exige essa opção; a seção diz o que a pasta tem que ter |
+
+Cada amostra roda na sua pasta de execução, `<variante>-<n>`, dentro da pasta da rodada, com os mesmos arquivos do dry run de fluxo. A pasta da rodada tem um `index.html`, uma linha por variante e uma coluna por amostra, com o link da `page.html`, o tempo e o transcript de cada uma. Com o `.env`, a rodada inteira é copiada para `<pasta de dados>/execucoes/<bot>/<data>-<pergunta>-gosto`; sem ele, fica na pasta temporária.

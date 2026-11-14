@@ -1,6 +1,7 @@
 """O dry run: transcript legível a partir do stream do ator e a pasta do bot a partir da pasta do fluxo."""
 import importlib.util
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -96,3 +97,72 @@ def test_copia_da_rodada_para_a_pasta_de_dados(tmp_path):
     assert primeira.name == f'{dry.date.today().isoformat()}-preparo-dry-run'
     assert segunda.name == primeira.name + '-2'
     assert (primeira / 'tmp' / 'rascunho.md').read_text(encoding='utf-8') == 'tese'
+
+
+def _escrever(caminho, texto):
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    caminho.write_text(texto, encoding='utf-8')
+
+
+def test_gosto_sobrepoe_variante_copia_partida_e_indexa(tmp_path, monkeypatch):
+    dry = _dry_run()
+    monkeypatch.setattr(dry, 'ROOT', tmp_path)
+    bot, pergunta = tmp_path / 'bots/bot', tmp_path / 'evals/bot/gosto/pergunta'
+    _escrever(bot / 'bot.md', '## Perfil\n\nperfil do bot\n')
+    _escrever(bot / 'skills/um/SKILL.md', 'um original')
+    _escrever(bot / 'skills/dois/SKILL.md', 'dois original')
+    _escrever(pergunta / 'cenario.md', '## Pedido\n\npedido\n\n## Plataforma\n\nplataforma em {execucao}\n')
+    _escrever(pergunta / 'variantes/base/.gitkeep', '')
+    _escrever(pergunta / 'variantes/nova/skills/um/SKILL.md', 'um da variante')
+    _escrever(pergunta / 'variantes/persona/bot.md', '## Perfil\n\nperfil da variante\n')
+    variantes = dry.ler_variantes(pergunta, bot, [])
+    assert [v[0] for v in variantes] == ['base', 'nova', 'persona']
+    # O ## Perfil do bot.md da variante vai para o prompt de sistema no lugar do perfil do bot.
+    assert variantes[2][3].startswith('perfil da variante') and variantes[0][3].startswith('perfil do bot')
+
+    # Recusas antes de qualquer amostra: variante repetida, arquivo que o bot não tem
+    # (inclusive só com maiúsculas diferentes) e partida com algo além de tmp/ e workspace/.
+    with pytest.raises(SystemExit, match='repetida'):
+        dry.ler_variantes(pergunta, bot, ['nova', 'nova'])
+    for errado in ('skills/um/SKILL.md.bak', 'skills/um/skill.md', 'skills/tres/SKILL.md'):
+        _escrever(tmp_path / 'errada' / errado, 'x')
+        with pytest.raises(SystemExit, match='so sobrepoe'):
+            dry.arquivos_da_variante(tmp_path / 'errada', bot)
+        (tmp_path / 'errada' / errado).unlink()
+    partida = tmp_path / 'partida'
+    _escrever(partida / '.claude/skills/um/SKILL.md', 'um de outra rodada')
+    with pytest.raises(SystemExit, match=r'tire: \.claude'):
+        dry.ler_partida(partida)
+    shutil.rmtree(partida / '.claude')
+    _escrever(partida / 'tmp/rascunho.md', 'rascunho congelado')
+    assert dry.ler_partida(partida) == partida
+
+    vistos = []
+
+    def ator_falso(claude, fluxo, pedido, sistema, dest):
+        vistos.append(dest.name)
+        assert pedido == 'pedido' and sistema.endswith(f'plataforma em {dest.as_posix()}')
+        if dest.name != 'persona-2':
+            (dest / 'page.html').write_text('<p>page</p>', encoding='utf-8')
+            (dest / 'transcript.md').write_text('t', encoding='utf-8')
+        return 0
+
+    monkeypatch.setattr(dry, 'atuar', ator_falso)
+    rodada = tmp_path / 'rodada'
+    rodada.mkdir()
+    dry.gosto('claude', pergunta, bot, variantes, 2, partida, rodada)
+
+    # Uma amostra de cada variante por volta.
+    assert vistos == ['base-1', 'nova-1', 'persona-1', 'base-2', 'nova-2', 'persona-2']
+    for nome in vistos:
+        skills = rodada / nome / '.claude/skills'
+        um = 'um da variante' if nome.startswith('nova') else 'um original'
+        assert (skills / 'um/SKILL.md').read_text(encoding='utf-8') == um
+        assert (skills / 'dois/SKILL.md').read_text(encoding='utf-8') == 'dois original'
+        assert (rodada / nome / 'tmp/rascunho.md').read_text(encoding='utf-8') == 'rascunho congelado'
+        assert (rodada / nome / 'workspace').is_dir()
+    indice = (rodada / 'index.html').read_text(encoding='utf-8')
+    assert '<a href="nova-1/page.html">nova-1</a>' in indice and '<a href="nova-1/transcript.md">' in indice
+    # Amostra que caiu sem transcript aponta o ator.err.
+    assert 'persona-2: sem page.html' in indice and '<a href="persona-2/ator.err">' in indice
+    assert indice.index('<th>base</th>') < indice.index('base-2/page.html') < indice.index('<th>nova</th>')
