@@ -12,6 +12,10 @@ Depois o agente `avaliador-transcript` lê o transcript contra as skills e o
 execução: transcript.jsonl (o stream do ator), transcript.md (a versão
 legível), page.md (se o ator publicou) e relatorio.md.
 
+Se o `.env` da raiz do repositório tiver a linha `ASSESSOR_EVALS_DADOS=<pasta>`,
+a pasta de execução é copiada no fim da rodada para
+`<pasta>/execucoes/<bot>/<data>-<fluxo>-dry-run`. O ator nunca roda dentro dela.
+
 Roda pelo login do plano do Claude Code, sem chave de API.
 
 Uso:
@@ -25,12 +29,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ATOR = "sonnet"
 AVALIADOR = "opus"
 FERRAMENTAS = ["Bash", "Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch", "Agent", "Skill"]
+# Linha do .env da raiz com a pasta de dados privada, que recebe a cópia de cada rodada.
+VAR_DADOS = "ASSESSOR_EVALS_DADOS"
 # Caracteres de cada bloco no transcript legível. A íntegra fica no transcript.jsonl.
 LIMITE = 4000
 
@@ -215,6 +222,34 @@ def avaliar(claude, fluxo, dest):
     return r.stdout
 
 
+def pasta_de_dados(arquivo=ROOT / ".env"):
+    """Pasta de dados privada (`ASSESSOR_EVALS_DADOS` no .env da raiz), ou None se a linha não existir.
+
+    Caminho relativo vale a partir da pasta do .env, não de onde o script foi chamado.
+    """
+    if not arquivo.is_file():
+        return None
+    for linha in arquivo.read_text(encoding="utf-8").splitlines():
+        chave, _, valor = linha.partition("=")
+        if chave.strip() == VAR_DADOS and valor.strip():
+            return (arquivo.parent / valor.strip().strip("\"'")).resolve()
+    return None
+
+
+def arquivar(dest, bot, fluxo, dados):
+    """Copia a pasta de execução para <dados>/execucoes/<bot>/<data>-<fluxo>-dry-run e devolve o destino.
+
+    Segunda rodada no mesmo dia ganha o sufixo -2, a terceira -3.
+    """
+    base = dados / "execucoes" / bot.relative_to(ROOT / "bots") / f"{date.today().isoformat()}-{fluxo.name}-dry-run"
+    alvo, n = base, 1
+    while alvo.exists():
+        n += 1
+        alvo = base.with_name(f"{base.name}-{n}")
+    shutil.copytree(dest, alvo)
+    return alvo
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description="Dry run de um fluxo de bot com avaliacao do transcript.")
@@ -230,6 +265,9 @@ def main():
     # O repositório é público: transcript e relatório nunca ficam dentro dele.
     if base == ROOT or ROOT in base.parents:
         sys.exit(f"{base} fica dentro do repositorio: use uma pasta de fora")
+    dados = pasta_de_dados()
+    if dados and (not dados.is_dir() or dados == ROOT or ROOT in dados.parents):
+        sys.exit(f"{VAR_DADOS} do .env ({dados}) tem que ser uma pasta que existe, fora do repositorio")
     if a.saida:
         if base.exists():
             sys.exit(f"{base} ja existe: passe em --saida uma pasta nova")
@@ -248,16 +286,25 @@ def main():
         r = subprocess.run(comando_ator(claude, fluxo, arquivo_sistema, skills), cwd=dest, input=pedido,
                            env=ambiente(CLAUDE_CODE_DISABLE_BACKGROUND_TASKS="1"),
                            stdout=saida, stderr=erros, text=True, encoding="utf-8")
-    linhas = jsonl.read_text(encoding="utf-8").splitlines()
-    if not linhas:
-        sys.exit(f"o ator nao gravou transcript (exit {r.returncode}); veja {dest / 'ator.err'}")
-    (dest / "transcript.md").write_text(legivel(linhas), encoding="utf-8", newline="\n")
-    print(f"ator: exit {r.returncode}, transcript em {dest / 'transcript.md'}", flush=True)
-    # Ator que caiu no meio deixa um fluxo truncado: um relatório sobre ele mediria a queda, não a skill.
-    if r.returncode != 0:
-        sys.exit(f"rodada incompleta: o ator saiu com exit {r.returncode}, sem avaliacao; veja {dest / 'ator.err'}")
-    (dest / "relatorio.md").write_text(avaliar(claude, fluxo, dest), encoding="utf-8", newline="\n")
-    print(f"relatorio: {dest / 'relatorio.md'}")
+    try:
+        linhas = jsonl.read_text(encoding="utf-8").splitlines()
+        if not linhas:
+            sys.exit(f"o ator nao gravou transcript (exit {r.returncode}); veja {dest / 'ator.err'}")
+        (dest / "transcript.md").write_text(legivel(linhas), encoding="utf-8", newline="\n")
+        print(f"ator: exit {r.returncode}, transcript em {dest / 'transcript.md'}", flush=True)
+        # Ator que caiu no meio deixa um fluxo truncado: um relatório sobre ele mediria a queda, não a skill.
+        if r.returncode != 0:
+            sys.exit(f"rodada incompleta: o ator saiu com exit {r.returncode}, sem avaliacao; veja {dest / 'ator.err'}")
+        (dest / "relatorio.md").write_text(avaliar(claude, fluxo, dest), encoding="utf-8", newline="\n")
+        print(f"relatorio: {dest / 'relatorio.md'}")
+    finally:
+        # A rodada que parou no meio também é copiada: o transcript dela explica a parada.
+        if dados:
+            try:
+                print(f"copia: {arquivar(dest, bot, fluxo, dados)}", flush=True)
+            except OSError as e:
+                # Falha da cópia não esconde o motivo da parada da rodada, que sai logo depois.
+                print(f"copia falhou ({e}); a rodada continua em {dest}", file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":
