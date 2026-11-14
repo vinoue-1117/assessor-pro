@@ -1,6 +1,6 @@
 # Erros já vistos no fluxo da tese
 
-Falhas que o fluxo da tese do Analista já teve, num ensaio fora da plataforma ou no bot real. É a régua de regressão do dry run: o avaliador procura cada uma no transcript. A falha nova que um relatório apontar entra aqui, com o mesmo formato.
+Falhas que o fluxo da tese do Analista já teve, num ensaio fora da plataforma, num dry run ou no bot real. É a régua de regressão do dry run: o avaliador procura cada uma no transcript. A falha nova que um relatório apontar entra aqui, com o mesmo formato.
 
 Cada entrada diz como a falha aparece no transcript e qual instrução da skill ela contraria.
 
@@ -51,3 +51,33 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 - **No transcript:** a `page.md` traz selo ou menção do veredito, uma seção de resposta à revisão, texto do revisor, ou ressalvas espalhadas pelos parágrafos em vez de reunidas em `## Riscos, limitações e premissas`.
 - **Contraria:** `analista-tese`, seções 4 e 5 ("O veredito e o texto do revisor são material de trabalho e ficam fora da Page"; a objeção aceita "não fica como comentário de corretor").
 - **Visto:** no bot real, numa Page de 13 páginas com selo de veredito no topo e uma seção de resposta à revisão.
+
+## 9. Regra legal de memória no ator
+
+- **No transcript:** o script de conta do ator traz uma alíquota de imposto (`0.85`, `15%`) ou outra regra legal sem `WebFetch` da página que a sustente nesta rodada, e a Page a apresenta como "regra legal" ou "premissa externa", sem a fonte em `## Fontes`. Os números que dependem dela (retorno líquido, vantagem líquida) herdam a falta de fonte.
+- **Contraria:** `analista-core`, Anti-jobs ("Inventar cotação, múltiplo, volume, taxa ou fato de memória"; "Número de fundamento só entra com a página aberta nesta conversa, com a data"), e `analista-tese`, seção 5 ("`## Fontes` com fonte, data e horário de cada número e de cada documento").
+- **Visto:** num dry run. O ator usou o IR de 15% de memória, e todos os retornos líquidos da Page dependiam dele.
+
+## 10. Chat repete o memorando e a crítica
+
+- **No transcript:** a mensagem final ao dono traz, além do link da Page e da decisão, uma lista de justificativas com números ou uma ressalva em vários itens com as objeções da revisão.
+- **Contraria:** `analista-tese`, seção 6 ("Entregue o link da Page e a decisão de alocação (lado, tamanho sugerido, horizonte), curta. Se restou limitação de dado ou ressalva importante, uma linha curta a mais"; "Não cole o rascunho nem a crítica no chat"), e `analista-core`, Entrega ("acrescente uma linha curta. O resto fica na Page").
+- **Visto:** num dry run.
+
+## 11. Conta de cabeça e taxa digitada no script
+
+- **No transcript:** a Page traz uma diferença ou razão (pp, "x vezes") que nenhuma saída de Python imprimiu e que não tem chave em `contas`. Ou o script de conta recebe uma taxa do JSON digitada como literal (`pre=15.03`), em vez de lida do arquivo.
+- **Contraria:** `analista-tese`, abertura ("Conta em Python, não de cabeça"), e `analista-mercado`, Regras ("Conta (variação, múltiplo, assimetria, tamanho, spread) é feita em Python, com o JSON da chamada como entrada. Não faça a conta de cabeça e não arredonde para a conta fechar").
+- **Visto:** num dry run. Os valores batiam com o JSON, mas três números da Page não tinham conta registrada para o revisor conferir.
+
+## 12. `tesouro` rodado mais de uma vez
+
+- **No transcript:** duas ou mais chamadas de `mercado.py tesouro` na mesma conversa, em geral uma por `--tipo`.
+- **Contraria:** `analista-mercado`, Comandos, `tesouro` ("A chamada baixa cerca de 15 MB e leva alguns segundos: rode uma vez e filtre o JSON").
+- **Visto:** num dry run.
+
+## 13. Comando de download alterado
+
+- **No transcript:** o comando de download difere do da skill em algo além do endereço trocado pelo cenário: um passo tirado da cadeia de `&&`, a mensagem de falha encurtada (sem "Pare e não use a cópia do disco."), um comando acrescentado.
+- **Contraria:** `analista-mercado`, Script (o comando é o da skill; "Se falhar, pare e avise. Não use a cópia do disco"). No dry run, a tabela de `## Plataforma` do cenário troca só o endereço: "O resto do comando fica igual, com o `curl`".
+- **Visto:** num dry run. O download deu certo, mas uma falha teria saído sem a ordem de parar.
