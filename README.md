@@ -40,6 +40,7 @@ A description de cada ponteiro é fixa (quando usar a skill) e fica na seção `
 ## Manutenção
 - Valide antes de cada commit: `python scripts/check.py`. Ele recusa arquivo de dado versionado, confere os ponteiros e roda os testes (os que executam o comando de download requerem `bash` e `curl` e são pulados no Windows). O mesmo comando roda em toda PR.
 - Criou, removeu ou renomeou uma skill, ou mudou a linha dela no `bot.md`? Rode `python scripts/gerar-ponteiros.py`.
+- Avaliação de mudança de skill (dry run do fluxo com avaliação do transcript): [`evals/`](evals/README.md).
 - Skill passou a depender de algo novo no `assessor.py` (um subcomando, por exemplo)? Suba a versão na 1ª linha do script e o número em `bots/assessor/envio/skills/assessor-preparar-envio/scripts/versao-minima` na mesma mudança, e ajuste o número fixo em `bots/assessor/tests/test_baixar_assessor.py`. Sem isso, um bot com download falho aceita a versão anterior. O `mercado.py` do Analista segue a mesma regra, descrita no [README dele](bots/analista/README.md).
 - Nunca coloque dado de cliente neste repositório (nomes, contas, telefones, PDFs, planilhas). Ele é público. A lista do que não entra está em [`bots/README.md`](bots/README.md).
 - Só o dono do repositório deve ter escrita nele.
