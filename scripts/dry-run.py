@@ -16,12 +16,24 @@ Se o `.env` da raiz do repositório tiver a linha `ASSESSOR_EVALS_DADOS=<pasta>`
 a pasta de execução é copiada no fim da rodada para
 `<pasta>/execucoes/<bot>/<data>-<fluxo>-dry-run`. O ator nunca roda dentro dela.
 
+Com `--variantes`, o script roda o eixo de gosto sobre um cenário de
+`evals/<bot>/gosto/<pergunta>/`: cada variante de `variantes/<nome>/` (só os
+arquivos que mudam em `bots/<bot>/`, `bot.md` ou `skills/<skill>/...`) é
+sobreposta à cópia do bot, e o ator roda M vezes com cada uma, sem avaliador.
+Cada amostra tem a sua pasta de execução, `<variante>-<n>`, dentro da pasta da
+rodada, que ganha um `index.html` com o link da `page.html` de cada amostra.
+Com `--partida`, a pasta dada (os arquivos congelados que o cenário manda usar)
+é copiada sobre cada pasta de execução antes de o ator rodar. A pasta da rodada
+é copiada para `<pasta>/execucoes/<bot>/<data>-<pergunta>-gosto`.
+
 Roda pelo login do plano do Claude Code, sem chave de API.
 
 Uso:
   python scripts/dry-run.py evals/analista/fluxo/tese [--saida PASTA]
+  python scripts/dry-run.py evals/analista/gosto/layout --variantes [NOME ...] [--amostras M] [--partida PASTA] [--saida PASTA]
 """
 import argparse
+import html
 import json
 import os
 import re
@@ -29,6 +41,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from datetime import date
 from pathlib import Path
 
@@ -49,14 +62,15 @@ def secoes(texto):
 
 
 def pasta_do_bot(fluxo):
-    """evals/<bot>/fluxo/<fluxo> -> bots/<bot>. O <bot> pode ter mais de um nível (assessor/envio)."""
+    """evals/<bot>/fluxo/<fluxo> ou evals/<bot>/gosto/<pergunta> -> bots/<bot>. O <bot> pode ter mais de um nível (assessor/envio)."""
     try:
         partes = fluxo.relative_to(ROOT / "evals").parts
     except ValueError:
         partes = ()
-    if "fluxo" not in partes or partes.index("fluxo") == 0:
-        sys.exit(f"{fluxo} nao esta em evals/<bot>/fluxo/<fluxo>")
-    return ROOT / "bots" / Path(*partes[: partes.index("fluxo")])
+    eixo = next((i for i, parte in enumerate(partes) if parte in ("fluxo", "gosto")), 0)
+    if eixo == 0:
+        sys.exit(f"{fluxo} nao esta em evals/<bot>/fluxo/<fluxo> nem em evals/<bot>/gosto/<pergunta>")
+    return ROOT / "bots" / Path(*partes[:eixo])
 
 
 def secao(arquivo, titulo):
@@ -69,23 +83,53 @@ def secao(arquivo, titulo):
     return texto
 
 
-def ler_fluxo(fluxo):
-    """(pasta do bot, pedido, prompt de sistema) do ator, lidos antes de criar a pasta de execução."""
+def ler_fluxo(fluxo, variante=None):
+    """(pasta do bot, pedido, prompt de sistema) do ator, lidos antes de criar a pasta de execução.
+
+    O `## Perfil` vem do `bot.md` da variante, se ela tiver um, e do bot se não tiver.
+    """
     bot = pasta_do_bot(fluxo)
+    ficha = variante / "bot.md" if variante and (variante / "bot.md").is_file() else bot / "bot.md"
     cenario = fluxo / "cenario.md"
-    sistema = f"{secao(bot / 'bot.md', 'Perfil')}\n\n{secao(cenario, 'Plataforma')}"
+    sistema = f"{secao(ficha, 'Perfil')}\n\n{secao(cenario, 'Plataforma')}"
     return bot, secao(cenario, "Pedido"), sistema
+
+
+def arquivos_da_variante(variante, bot):
+    """Arquivos da variante, relativos a ela. Para com mensagem se algum não sobrepõe nada no bot.
+
+    Vale `bot.md` ou arquivo dentro de `skills/<skill>/` de uma skill que o bot tem: nome errado
+    viraria skill nova em silêncio. O `.gitkeep`, que guarda no git a variante vazia, fica de fora.
+    """
+    if not variante.is_dir():
+        sys.exit(f"variante {variante} nao existe")
+    arquivos = [p.relative_to(variante) for p in sorted(variante.rglob("*")) if p.is_file() and p.name != ".gitkeep"]
+    for rel in arquivos:
+        p = rel.parts
+        if rel != Path("bot.md") and not (len(p) > 2 and p[0] == "skills" and (bot / "skills" / p[1]).is_dir()):
+            sys.exit(f"{variante / rel}: a variante so sobrepoe bot.md ou arquivo de skills/<skill>/ de uma skill do bot")
+    return arquivos
 
 
 def barra(caminho):
     return str(caminho).replace("\\", "/")
 
 
-def montar(bot, pedido, sistema, dest):
-    """Prepara a pasta de execução e devolve o pedido e o prompt de sistema com os caminhos preenchidos."""
+def montar(bot, pedido, sistema, dest, variante=None, partida=None):
+    """Prepara a pasta de execução e devolve o pedido e o prompt de sistema com os caminhos preenchidos.
+
+    Os arquivos de `skills/` da variante substituem os da cópia do bot. A pasta de partida é
+    copiada por cima da pasta de execução, com a mesma estrutura (`tmp/`, `workspace/`).
+    """
     shutil.copytree(bot / "skills", dest / ".claude" / "skills")
+    for rel in arquivos_da_variante(variante, bot) if variante else []:
+        if rel.parts[0] == "skills":
+            (dest / ".claude" / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(variante / rel, dest / ".claude" / rel)
     for pasta in ("workspace", "tmp"):
         (dest / pasta).mkdir()
+    if partida:
+        shutil.copytree(partida, dest, dirs_exist_ok=True)
     # as_uri codifica espaço e acento, que o curl recusa crus num file:///.
     trocas = {"{execucao}": barra(dest), "{repo_url}": ROOT.as_uri(), "{python}": barra(sys.executable)}
 
@@ -236,12 +280,14 @@ def pasta_de_dados(arquivo=ROOT / ".env"):
     return None
 
 
-def arquivar(dest, bot, fluxo, dados):
-    """Copia a pasta de execução para <dados>/execucoes/<bot>/<data>-<fluxo>-dry-run e devolve o destino.
+
+
+def arquivar(dest, bot, fluxo, dados, sufixo="dry-run"):
+    """Copia a pasta de execução para <dados>/execucoes/<bot>/<data>-<fluxo>-<sufixo> e devolve o destino.
 
     Segunda rodada no mesmo dia ganha o sufixo -2, a terceira -3.
     """
-    base = dados / "execucoes" / bot.relative_to(ROOT / "bots") / f"{date.today().isoformat()}-{fluxo.name}-dry-run"
+    base = dados / "execucoes" / bot.relative_to(ROOT / "bots") / f"{date.today().isoformat()}-{fluxo.name}-{sufixo}"
     alvo, n = base, 1
     while alvo.exists():
         n += 1
@@ -250,14 +296,127 @@ def arquivar(dest, bot, fluxo, dados):
     return alvo
 
 
+def guardar(dest, bot, fluxo, dados, sufixo="dry-run"):
+    """Copia a rodada para a pasta de dados, se houver uma, e devolve o destino (None sem cópia)."""
+    if not dados:
+        return None
+    try:
+        alvo = arquivar(dest, bot, fluxo, dados, sufixo)
+    except OSError as e:
+        # Falha da cópia não esconde o motivo da parada da rodada, que sai logo depois.
+        print(f"copia falhou ({e}); a rodada continua em {dest}", file=sys.stderr, flush=True)
+        return None
+    print(f"copia: {alvo}", flush=True)
+    return alvo
+
+
+def atuar(claude, fluxo, pedido, sistema, dest):
+    """Roda o ator na pasta de execução montada e devolve o exit dele.
+
+    Grava sistema.md, transcript.jsonl e ator.err e, se o ator gravou algum evento, transcript.md.
+    """
+    arquivo_sistema = dest / "sistema.md"
+    arquivo_sistema.write_text(sistema, encoding="utf-8", newline="\n")
+    skills = sorted(d.name for d in (dest / ".claude" / "skills").iterdir())
+    jsonl = dest / "transcript.jsonl"
+    with open(jsonl, "w", encoding="utf-8") as saida, open(dest / "ator.err", "w", encoding="utf-8") as erros:
+        # Sem subagente em segundo plano: na plataforma, o Task devolve a resposta do subagente na própria chamada.
+        r = subprocess.run(comando_ator(claude, fluxo, arquivo_sistema, skills), cwd=dest, input=pedido,
+                           env=ambiente(CLAUDE_CODE_DISABLE_BACKGROUND_TASKS="1"),
+                           stdout=saida, stderr=erros, text=True, encoding="utf-8")
+    linhas = jsonl.read_text(encoding="utf-8").splitlines()
+    if linhas:
+        (dest / "transcript.md").write_text(legivel(linhas), encoding="utf-8", newline="\n")
+    return r.returncode
+
+
+def indice(rodada, titulo, feitas):
+    """Grava o index.html da rodada: uma linha por variante, uma coluna por amostra, com o link da page.html."""
+    linhas = {}
+    for variante, n, codigo, segundos in feitas:
+        nome = html.escape(f"{variante}-{n}")
+        celula = f'<a href="{nome}/page.html">{nome}</a>' if (rodada / f"{variante}-{n}" / "page.html").is_file() else f"{nome}: sem page.html"
+        if codigo != 0:
+            celula += f" (exit {codigo})"
+        celula += f' <small>{segundos:.0f} s, <a href="{nome}/transcript.md">transcript</a></small>'
+        linhas.setdefault(variante, []).append(f"<td>{celula}</td>")
+    corpo = "\n".join(f"<tr><th>{html.escape(v)}</th>{''.join(c)}</tr>" for v, c in linhas.items())
+    t = html.escape(titulo)
+    (rodada / "index.html").write_text(
+        f'<!doctype html>\n<meta charset="utf-8">\n<title>{t}</title>\n<h1>{t}</h1>\n<table>\n{corpo}\n</table>\n',
+        encoding="utf-8", newline="\n",
+    )
+
+
+def gosto(claude, fluxo, bot, variantes, amostras, partida, rodada):
+    """Roda M amostras de cada variante, cada uma em <rodada>/<variante>-<n>, e devolve (variante, n, exit, segundos).
+
+    O index.html é regravado depois de cada amostra, para a rodada interrompida ainda abrir o que saiu.
+    """
+    feitas = []
+    for n in range(1, amostras + 1):
+        # Uma amostra de cada variante por volta: a rodada que parar no meio ainda compara todas.
+        for nome, variante, pedido, sistema in variantes:
+            dest = rodada / f"{nome}-{n}"
+            dest.mkdir()
+            ped, sis = montar(bot, pedido, sistema, dest, variante, partida)
+            print(f"amostra: {dest}", flush=True)
+            inicio = time.monotonic()
+            codigo = atuar(claude, fluxo, ped, sis, dest)
+            feitas.append((nome, n, codigo, time.monotonic() - inicio))
+            indice(rodada, fluxo.name, feitas)
+            pagina = "sim" if (dest / "page.html").is_file() else "nao"
+            print(f"  exit {codigo}, {feitas[-1][3]:.0f} s, page.html: {pagina}", flush=True)
+    return feitas
+
+
+def ler_variantes(fluxo, bot, nomes):
+    """(nome, pasta, pedido, prompt de sistema) de cada variante, conferidas antes de qualquer amostra rodar.
+
+    Sem nomes, valem todas as pastas de <cenario>/variantes/.
+    """
+    pasta = fluxo / "variantes"
+    if not pasta.is_dir():
+        sys.exit(f"{fluxo} sem a pasta variantes/")
+    nomes = nomes or sorted(d.name for d in pasta.iterdir() if d.is_dir())
+    if not nomes:
+        sys.exit(f"{pasta} sem variante")
+    variantes = []
+    for nome in nomes:
+        arquivos_da_variante(pasta / nome, bot)
+        _, pedido, sistema = ler_fluxo(fluxo, pasta / nome)
+        variantes.append((nome, pasta / nome, pedido, sistema))
+    return variantes
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
-    p = argparse.ArgumentParser(description="Dry run de um fluxo de bot com avaliacao do transcript.")
-    p.add_argument("fluxo", help="pasta do fluxo, por exemplo evals/analista/fluxo/tese")
+    p = argparse.ArgumentParser(description="Dry run de um fluxo de bot com avaliacao do transcript, ou amostras de gosto.")
+    p.add_argument("fluxo", help="pasta do cenario: evals/<bot>/fluxo/<fluxo>, ou evals/<bot>/gosto/<pergunta> com --variantes")
     p.add_argument("--saida", help="pasta nova, fora do repositorio (padrao: pasta temporaria)")
+    p.add_argument("--variantes", nargs="*", metavar="NOME",
+                   help="gosto: variantes de <cenario>/variantes/ (so a opcao: todas); sem avaliador")
+    p.add_argument("--amostras", type=int, default=1, help="gosto: amostras de cada variante (padrao: 1)")
+    p.add_argument("--partida", help="gosto: pasta copiada sobre cada pasta de execucao antes do ator (arquivos congelados)")
     a = p.parse_args()
     fluxo = Path(a.fluxo).resolve()
-    bot, pedido, sistema = ler_fluxo(fluxo)
+    if a.variantes is None:
+        if (fluxo / "variantes").is_dir():
+            sys.exit(f"{fluxo} tem variantes/: passe --variantes")
+        if a.partida or a.amostras != 1:
+            sys.exit("--amostras e --partida so valem com --variantes")
+        bot, pedido, sistema = ler_fluxo(fluxo)
+    else:
+        bot = pasta_do_bot(fluxo)
+        variantes = ler_variantes(fluxo, bot, a.variantes)
+        if a.amostras < 1:
+            sys.exit("--amostras tem que ser 1 ou mais")
+        partida = Path(a.partida).resolve() if a.partida else None
+        if partida and not partida.is_dir():
+            sys.exit(f"--partida {partida} nao e uma pasta")
+        # Cenário que parte de arquivos congelados tem a seção ## Partida: sem eles, o ator não tem de onde escrever.
+        if not partida and "Partida" in secoes((fluxo / "cenario.md").read_text(encoding="utf-8")):
+            sys.exit(f"{fluxo / 'cenario.md'} tem '## Partida': passe --partida com os arquivos congelados")
     claude = shutil.which("claude")
     if not claude:
         sys.exit("claude fora do PATH")
@@ -274,37 +433,36 @@ def main():
         base.mkdir(parents=True)
         dest = base
     else:
-        dest = Path(tempfile.mkdtemp(prefix=f"dry-run-{fluxo.name}-", dir=base))
+        prefixo = "dry-run" if a.variantes is None else "gosto"
+        dest = Path(tempfile.mkdtemp(prefix=f"{prefixo}-{fluxo.name}-", dir=base))
+
+    if a.variantes is not None:
+        print(f"rodada: {dest}", flush=True)
+        try:
+            feitas = gosto(claude, fluxo, bot, variantes, a.amostras, partida, dest)
+        finally:
+            alvo = guardar(dest, bot, fluxo, dados, "gosto")
+        print(f"indice: {(alvo or dest) / 'index.html'}")
+        falhas = [f"{v}-{n}" for v, n, codigo, _ in feitas if codigo != 0 or not (dest / f"{v}-{n}" / "page.html").is_file()]
+        if falhas:
+            sys.exit(f"amostras com exit diferente de zero ou sem page.html: {', '.join(falhas)}")
+        return
+
     pedido, sistema = montar(bot, pedido, sistema, dest)
-    arquivo_sistema = dest / "sistema.md"
-    arquivo_sistema.write_text(sistema, encoding="utf-8", newline="\n")
-    skills = sorted(d.name for d in (dest / ".claude" / "skills").iterdir())
     print(f"execucao: {dest}", flush=True)
-    jsonl = dest / "transcript.jsonl"
-    with open(jsonl, "w", encoding="utf-8") as saida, open(dest / "ator.err", "w", encoding="utf-8") as erros:
-        # Sem subagente em segundo plano: na plataforma, o Task devolve a resposta do subagente na própria chamada.
-        r = subprocess.run(comando_ator(claude, fluxo, arquivo_sistema, skills), cwd=dest, input=pedido,
-                           env=ambiente(CLAUDE_CODE_DISABLE_BACKGROUND_TASKS="1"),
-                           stdout=saida, stderr=erros, text=True, encoding="utf-8")
     try:
-        linhas = jsonl.read_text(encoding="utf-8").splitlines()
-        if not linhas:
-            sys.exit(f"o ator nao gravou transcript (exit {r.returncode}); veja {dest / 'ator.err'}")
-        (dest / "transcript.md").write_text(legivel(linhas), encoding="utf-8", newline="\n")
-        print(f"ator: exit {r.returncode}, transcript em {dest / 'transcript.md'}", flush=True)
+        codigo = atuar(claude, fluxo, pedido, sistema, dest)
+        if not (dest / "transcript.md").is_file():
+            sys.exit(f"o ator nao gravou transcript (exit {codigo}); veja {dest / 'ator.err'}")
+        print(f"ator: exit {codigo}, transcript em {dest / 'transcript.md'}", flush=True)
         # Ator que caiu no meio deixa um fluxo truncado: um relatório sobre ele mediria a queda, não a skill.
-        if r.returncode != 0:
-            sys.exit(f"rodada incompleta: o ator saiu com exit {r.returncode}, sem avaliacao; veja {dest / 'ator.err'}")
+        if codigo != 0:
+            sys.exit(f"rodada incompleta: o ator saiu com exit {codigo}, sem avaliacao; veja {dest / 'ator.err'}")
         (dest / "relatorio.md").write_text(avaliar(claude, fluxo, dest), encoding="utf-8", newline="\n")
         print(f"relatorio: {dest / 'relatorio.md'}")
     finally:
         # A rodada que parou no meio também é copiada: o transcript dela explica a parada.
-        if dados:
-            try:
-                print(f"copia: {arquivar(dest, bot, fluxo, dados)}", flush=True)
-            except OSError as e:
-                # Falha da cópia não esconde o motivo da parada da rodada, que sai logo depois.
-                print(f"copia falhou ({e}); a rodada continua em {dest}", file=sys.stderr, flush=True)
+        guardar(dest, bot, fluxo, dados)
 
 
 if __name__ == "__main__":

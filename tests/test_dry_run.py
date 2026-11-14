@@ -96,3 +96,58 @@ def test_copia_da_rodada_para_a_pasta_de_dados(tmp_path):
     assert primeira.name == f'{dry.date.today().isoformat()}-preparo-dry-run'
     assert segunda.name == primeira.name + '-2'
     assert (primeira / 'tmp' / 'rascunho.md').read_text(encoding='utf-8') == 'tese'
+
+
+def test_gosto_sobrepoe_variante_copia_partida_e_indexa(tmp_path, monkeypatch):
+    dry = _dry_run()
+    bot, layout = RAIZ / 'bots/analista', RAIZ / 'evals/analista/gosto/layout'
+    variantes = dry.ler_variantes(layout, bot, [])
+    assert [v[0] for v in variantes] == ['atual', 'visual-estruturada', 'visual-generica']
+
+    # Variante com bot.md (a pergunta de persona): o ## Perfil dela vai para o prompt de sistema.
+    persona = tmp_path / 'persona'
+    (persona / 'skills/analista-core').mkdir(parents=True)
+    (persona / 'bot.md').write_text('## Perfil\n\nVoce e um analista sell-side.\n', encoding='utf-8')
+    (persona / 'skills/analista-core/SKILL.md').write_text('core trocado', encoding='utf-8')
+    _, _, sistema = dry.ler_fluxo(layout, persona)
+    assert sistema.startswith('Voce e um analista sell-side.') and 'WriteCanvas' in sistema
+    # Arquivo que não sobrepõe nada do bot (skill com nome errado) para antes de rodar.
+    (persona / 'skills/analista-tse').mkdir()
+    (persona / 'skills/analista-tse/SKILL.md').write_text('x', encoding='utf-8')
+    with pytest.raises(SystemExit, match='analista-tse'):
+        dry.arquivos_da_variante(persona, bot)
+
+    partida = tmp_path / 'partida'
+    (partida / 'tmp').mkdir(parents=True)
+    (partida / 'tmp/analista-rascunho-bbas3.md').write_text('rascunho congelado', encoding='utf-8')
+    vistos = []
+
+    def ator_falso(claude, fluxo, pedido, sistema, dest):
+        vistos.append(dest.name)
+        if dest.name != 'visual-generica-2':
+            (dest / 'page.html').write_text('<p>page</p>', encoding='utf-8')
+        return 0
+
+    monkeypatch.setattr(dry, 'atuar', ator_falso)
+    rodada = tmp_path / 'rodada'
+    rodada.mkdir()
+    feitas = dry.gosto('claude', layout, bot, variantes, 2, partida, rodada)
+
+    # Uma amostra de cada variante por volta.
+    assert vistos == ['atual-1', 'visual-estruturada-1', 'visual-generica-1', 'atual-2', 'visual-estruturada-2', 'visual-generica-2']
+    assert len(feitas) == 6
+    tese = '.claude/skills/analista-tese/SKILL.md'
+    original = (bot / 'skills/analista-tese/SKILL.md').read_text(encoding='utf-8')
+    assert (rodada / 'atual-1' / tese).read_text(encoding='utf-8') == original
+    estruturada = (rodada / 'visual-estruturada-2' / tese).read_text(encoding='utf-8')
+    assert estruturada != original and 'semáforo' in estruturada
+    # A variante troca só o arquivo dela; as outras skills e a partida chegam iguais a toda amostra.
+    for nome in vistos:
+        amostra = rodada / nome
+        assert (amostra / '.claude/skills/analista-core/SKILL.md').read_bytes() == (bot / 'skills/analista-core/SKILL.md').read_bytes()
+        assert (amostra / 'tmp/analista-rascunho-bbas3.md').read_text(encoding='utf-8') == 'rascunho congelado'
+        assert (amostra / 'workspace').is_dir()
+    indice = (rodada / 'index.html').read_text(encoding='utf-8')
+    assert '<a href="visual-estruturada-1/page.html">visual-estruturada-1</a>' in indice
+    assert 'visual-generica-2: sem page.html' in indice
+    assert indice.index('<th>atual</th>') < indice.index('atual-2/page.html') < indice.index('<th>visual-estruturada</th>')
