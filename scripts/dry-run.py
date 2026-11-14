@@ -22,8 +22,9 @@ arquivos que mudam em `bots/<bot>/`, `bot.md` ou `skills/<skill>/...`) é
 sobreposta à cópia do bot, e o ator roda M vezes com cada uma, sem avaliador.
 Cada amostra tem a sua pasta de execução, `<variante>-<n>`, dentro da pasta da
 rodada, que ganha um `index.html` com o link da `page.html` de cada amostra.
-Com `--partida`, a pasta dada (os arquivos congelados que o cenário manda usar)
-é copiada sobre cada pasta de execução antes de o ator rodar. A pasta da rodada
+Com `--partida`, a pasta dada (os arquivos congelados que o cenário manda usar,
+só em `tmp/` e `workspace/`) é copiada sobre cada pasta de execução antes de o
+ator rodar. A pasta da rodada
 é copiada para `<pasta>/execucoes/<bot>/<data>-<pergunta>-gosto`.
 
 Roda pelo login do plano do Claude Code, sem chave de API.
@@ -98,17 +99,33 @@ def ler_fluxo(fluxo, variante=None):
 def arquivos_da_variante(variante, bot):
     """Arquivos da variante, relativos a ela. Para com mensagem se algum não sobrepõe nada no bot.
 
-    Vale `bot.md` ou arquivo dentro de `skills/<skill>/` de uma skill que o bot tem: nome errado
-    viraria skill nova em silêncio. O `.gitkeep`, que guarda no git a variante vazia, fica de fora.
+    Vale `bot.md` ou um arquivo que o bot já tem em `skills/`, com o nome igual, maiúsculas
+    inclusive: nome errado viraria arquivo novo em silêncio, e a variante rodaria igual ao bot.
+    O `.gitkeep`, que guarda no git a variante vazia, fica de fora.
     """
     if not variante.is_dir():
         sys.exit(f"variante {variante} nao existe")
+    # Comparação por texto: no Windows, Path compara sem distinguir maiúsculas.
+    existentes = {"bot.md"} | {p.relative_to(bot).as_posix() for p in (bot / "skills").rglob("*") if p.is_file()}
     arquivos = [p.relative_to(variante) for p in sorted(variante.rglob("*")) if p.is_file() and p.name != ".gitkeep"]
     for rel in arquivos:
-        p = rel.parts
-        if rel != Path("bot.md") and not (len(p) > 2 and p[0] == "skills" and (bot / "skills" / p[1]).is_dir()):
-            sys.exit(f"{variante / rel}: a variante so sobrepoe bot.md ou arquivo de skills/<skill>/ de uma skill do bot")
+        if rel.as_posix() not in existentes:
+            sys.exit(f"{variante / rel}: a variante so sobrepoe bot.md ou um arquivo que o bot ja tem em skills/")
     return arquivos
+
+
+def ler_partida(partida):
+    """A pasta de --partida, conferida antes de qualquer amostra rodar.
+
+    Ela só traz a entrada do ator, `tmp/` e `workspace/`: qualquer outra coisa (o `.claude/` de uma
+    rodada anterior passada inteira) regravaria as skills por cima da variante em toda amostra.
+    """
+    if not partida.is_dir():
+        sys.exit(f"--partida {partida} nao e uma pasta")
+    sobra = sorted(p.name for p in partida.iterdir() if p.name not in ("tmp", "workspace") or not p.is_dir())
+    if sobra:
+        sys.exit(f"--partida {partida} so pode ter as pastas tmp/ e workspace/; tire: {', '.join(sobra)}")
+    return partida
 
 
 def barra(caminho):
@@ -118,13 +135,12 @@ def barra(caminho):
 def montar(bot, pedido, sistema, dest, variante=None, partida=None):
     """Prepara a pasta de execução e devolve o pedido e o prompt de sistema com os caminhos preenchidos.
 
-    Os arquivos de `skills/` da variante substituem os da cópia do bot. A pasta de partida é
-    copiada por cima da pasta de execução, com a mesma estrutura (`tmp/`, `workspace/`).
+    Os arquivos de `skills/` da variante substituem os da cópia do bot. A pasta de partida, já
+    conferida por `ler_partida`, traz só `tmp/` e `workspace/` e é copiada por cima delas.
     """
     shutil.copytree(bot / "skills", dest / ".claude" / "skills")
     for rel in arquivos_da_variante(variante, bot) if variante else []:
         if rel.parts[0] == "skills":
-            (dest / ".claude" / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(variante / rel, dest / ".claude" / rel)
     for pasta in ("workspace", "tmp"):
         (dest / pasta).mkdir()
@@ -280,8 +296,6 @@ def pasta_de_dados(arquivo=ROOT / ".env"):
     return None
 
 
-
-
 def arquivar(dest, bot, fluxo, dados, sufixo="dry-run"):
     """Copia a pasta de execução para <dados>/execucoes/<bot>/<data>-<fluxo>-<sufixo> e devolve o destino.
 
@@ -338,7 +352,9 @@ def indice(rodada, titulo, feitas):
         celula = f'<a href="{nome}/page.html">{nome}</a>' if (rodada / f"{variante}-{n}" / "page.html").is_file() else f"{nome}: sem page.html"
         if codigo != 0:
             celula += f" (exit {codigo})"
-        celula += f' <small>{segundos:.0f} s, <a href="{nome}/transcript.md">transcript</a></small>'
+        # Sem transcript.md o ator não emitiu nada, e o ator.err é o que explica a queda.
+        log = "transcript.md" if (rodada / f"{variante}-{n}" / "transcript.md").is_file() else "ator.err"
+        celula += f' <small>{segundos:.0f} s, <a href="{nome}/{log}">{log}</a></small>'
         linhas.setdefault(variante, []).append(f"<td>{celula}</td>")
     corpo = "\n".join(f"<tr><th>{html.escape(v)}</th>{''.join(c)}</tr>" for v, c in linhas.items())
     t = html.escape(titulo)
@@ -381,6 +397,9 @@ def ler_variantes(fluxo, bot, nomes):
     nomes = nomes or sorted(d.name for d in pasta.iterdir() if d.is_dir())
     if not nomes:
         sys.exit(f"{pasta} sem variante")
+    repetidas = sorted({n for n in nomes if nomes.count(n) > 1})
+    if repetidas:
+        sys.exit(f"variante repetida em --variantes: {', '.join(repetidas)}")
     variantes = []
     for nome in nomes:
         arquivos_da_variante(pasta / nome, bot)
@@ -411,9 +430,7 @@ def main():
         variantes = ler_variantes(fluxo, bot, a.variantes)
         if a.amostras < 1:
             sys.exit("--amostras tem que ser 1 ou mais")
-        partida = Path(a.partida).resolve() if a.partida else None
-        if partida and not partida.is_dir():
-            sys.exit(f"--partida {partida} nao e uma pasta")
+        partida = ler_partida(Path(a.partida).resolve()) if a.partida else None
         # Cenário que parte de arquivos congelados tem a seção ## Partida: sem eles, o ator não tem de onde escrever.
         if not partida and "Partida" in secoes((fluxo / "cenario.md").read_text(encoding="utf-8")):
             sys.exit(f"{fluxo / 'cenario.md'} tem '## Partida': passe --partida com os arquivos congelados")

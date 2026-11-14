@@ -18,7 +18,7 @@ O `scripts/dry-run.py` lê `## Pedido` e `## Plataforma` como no dry run de flux
 
 ## Partida
 
-Uma pasta com a estrutura da pasta de execução, copiada sobre ela antes de o ator rodar:
+Uma pasta só com `tmp/` (e, se precisar, `workspace/`), copiada sobre a pasta de execução antes de o ator rodar. O script recusa a partida que tiver outra coisa além dessas duas pastas. O `tmp/` traz:
 
 - `tmp/analista-dados-<slug>.json`: o pacote de dados do passo 1 da `analista-tese`;
 - `tmp/analista-rascunho-<slug>.md`: o rascunho como o ator o deixou no `tmp/`, que é o que foi à última revisão.

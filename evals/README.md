@@ -89,9 +89,9 @@ O que não muda entre rodadas:
 
 | Peça | O que é |
 | --- | --- |
-| `variantes/<nome>/` | só os arquivos que mudam em `bots/<bot>/`: `bot.md` (o `## Perfil` dele vai para o prompt de sistema no lugar do perfil do bot) ou arquivos de `skills/<skill>/`, que substituem os da cópia das skills. A variante vazia, com só um `.gitkeep`, é o bot de hoje. Arquivo que não sobrepõe nada do bot para o script antes de rodar |
+| `variantes/<nome>/` | só os arquivos que mudam em `bots/<bot>/`: `bot.md` (o `## Perfil` dele vai para o prompt de sistema no lugar do perfil do bot) ou arquivos de `skills/<skill>/`, que substituem os da cópia das skills. A variante vazia, com só um `.gitkeep`, é o bot de hoje. Arquivo que o bot não tem, com o mesmo caminho e as mesmas maiúsculas, para o script antes de rodar |
 | `--variantes [NOME ...]` | as variantes da rodada; sem nome, todas as pastas de `variantes/`. Sem avaliador |
 | `--amostras M` | amostras de cada variante, rodadas uma de cada variante por volta |
-| `--partida PASTA` | os arquivos congelados, com a estrutura da pasta de execução (`tmp/`, `workspace/`), copiados sobre cada uma antes de o ator rodar. Cenário com a seção `## Partida` exige essa opção; a seção diz o que a pasta tem que ter |
+| `--partida PASTA` | os arquivos congelados, só nas pastas `tmp/` e `workspace/`, copiados sobre as da pasta de execução antes de o ator rodar. Qualquer outra coisa na pasta (o `.claude/` de uma rodada anterior, por exemplo) para o script antes de rodar. Cenário com a seção `## Partida` exige essa opção; a seção diz o que a pasta tem que ter |
 
 Cada amostra roda na sua pasta de execução, `<variante>-<n>`, dentro da pasta da rodada, com os mesmos arquivos do dry run de fluxo. A pasta da rodada tem um `index.html`, uma linha por variante e uma coluna por amostra, com o link da `page.html`, o tempo e o transcript de cada uma. Com o `.env`, a rodada inteira é copiada para `<pasta de dados>/execucoes/<bot>/<data>-<pergunta>-gosto`; sem ele, fica na pasta temporária.
