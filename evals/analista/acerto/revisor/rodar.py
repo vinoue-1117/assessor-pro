@@ -3,8 +3,8 @@
 
 Monta um caso por braco e por rascunho numa pasta fora do repositorio, grava
 o relatorio de entrada (entrada.html), roda o `claude plugin eval` pelo login
-do plano e soma a regua a partir do JSON de resultado. O papel do advogado do
-diabo e lido da `analista-tese`.
+do plano e soma a regua a partir do JSON de resultado. O papel de cada braco
+vem do arquivo `papel-<braco>.md` desta pasta.
 
 Uso:
   python evals/analista/acerto/revisor/rodar.py [--runs N] [--caso GLOB] [--saida PASTA] [--so-entrada]
@@ -20,9 +20,9 @@ import tempfile
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
-SKILL = AQUI.parents[3] / "bots/analista/skills/analista-tese/SKILL.md"
 MODELO = "sonnet"
-PAPEL = re.compile(r"^- o papel: (.+)$", re.M)
+# A regua conta veredito: papel que nao da veredito (papel-antagonista.md) nao entra aqui.
+BRACOS = ("advogado", "conferente")
 # A palavra "veredito" ou "resultado" seguida do termo, so com pontuacao ou marca no meio.
 # "o resultado confere com o JSON", no corpo da resposta, nao casa.
 VEREDITO = re.compile(
@@ -59,12 +59,7 @@ def esc(texto):
 
 def bracos():
     """Nome do braco e papel de cada um."""
-    m = PAPEL.search(SKILL.read_text(encoding="utf-8"))
-    if not m:
-        sys.exit(f"sem a linha '- o papel: ...' em {SKILL}")
-    if "advogado do diabo" not in m[1]:
-        sys.exit(f"o papel em {SKILL} nao e mais o advogado do diabo: rever os bracos deste eval")
-    return {"advogado": m[1], "conferente": ler("papel-conferente.md")}
+    return {nome: ler(f"papel-{nome}.md") for nome in BRACOS}
 
 
 def gabarito(arquivo):

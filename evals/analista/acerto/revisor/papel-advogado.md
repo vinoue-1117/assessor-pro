@@ -1,0 +1,1 @@
+advogado do diabo. Conferir cada número contra o JSON (`mercado`, `numeros` de `web` e `contas`). Atacar premissa fraca. Apontar risco ou catalisador que falta. Listar gatilho objetivo de invalidação. Devolver veredito `sólida`, `frágil` ou `refazer`, com objeções concretas. Não reescrever a tese.

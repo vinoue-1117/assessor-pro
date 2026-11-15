@@ -568,7 +568,7 @@ def _rodar_eval():
     return mod
 
 
-def test_eval_revisor_monta_um_caso_por_braco_e_rascunho(tmp_path, monkeypatch):
+def test_eval_revisor_monta_um_caso_por_braco_e_rascunho(tmp_path):
     rodar_eval = _rodar_eval()
     rodar_eval.montar(tmp_path, 5)
     casos = tmp_path / 'evals'
@@ -594,16 +594,12 @@ def test_eval_revisor_monta_um_caso_por_braco_e_rascunho(tmp_path, monkeypatch):
     assert '"contas"' in entradas['advogado']
     for nome, trecho in rodar_eval.gabarito('gabarito.json').items():
         assert nome.startswith('erro-') != (trecho in entradas['advogado-limpo']), nome
-    # O braco A e o papel que a skill passa ao revisor, lido da propria skill.
-    assert f"- o papel: {papeis['advogado']}\n" in (RAIZ / 'skills/analista-tese/SKILL.md').read_text(encoding='utf-8')
-    assert papeis['conferente'].startswith('conferente factual')
-    assert papeis['advogado-limpo'] == papeis['advogado'] and papeis['conferente-limpo'] == papeis['conferente']
-    # Papel trocado na skill: o eval para, em vez de rodar o braco `advogado` com outro papel.
-    trocada = tmp_path / 'SKILL.md'
-    trocada.write_text('- o papel: conferente factual. Conferir cada numero.\n', encoding='utf-8')
-    monkeypatch.setattr(rodar_eval, 'SKILL', trocada)
-    with pytest.raises(SystemExit, match='advogado do diabo'):
-        rodar_eval.bracos()
+    # Cada braco recebe o papel do arquivo dele.
+    for braco in ('advogado', 'conferente'):
+        assert papeis[braco] == papeis[braco + '-limpo'] == (pasta / f'papel-{braco}.md').read_text(encoding='utf-8').strip()
+    # O papel que a skill passa ao revisor e o do arquivo do advogado: papel trocado na skill sem trocar o arquivo falha aqui.
+    skill = (RAIZ / 'skills/analista-tese/SKILL.md').read_text(encoding='utf-8')
+    assert re.findall(r'^- o papel: (.+)$', skill, re.M) == [papeis['advogado']]
 
 
 def test_eval_revisor_relatorio_de_entrada_marca_o_gabarito(tmp_path):
@@ -612,7 +608,8 @@ def test_eval_revisor_relatorio_de_entrada_marca_o_gabarito(tmp_path):
     nomes = [n for _, _, gab in rodar_eval.RASCUNHOS.values() for n in rodar_eval.gabarito(gab)]
     for tipo in ('erro', 'correta'):
         assert pagina.count(f'<mark class="{tipo}" title=') == sum(n.startswith(tipo) for n in nomes) > 0
-    assert rodar_eval.ler('papel-conferente.md') in pagina
+    for braco in rodar_eval.BRACOS:
+        assert rodar_eval.esc(rodar_eval.ler(f'papel-{braco}.md')) in pagina
 
 
 def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys):

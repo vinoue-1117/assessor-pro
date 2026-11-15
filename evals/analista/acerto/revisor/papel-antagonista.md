@@ -1,0 +1,1 @@
+antagonista. Procurar contras e riscos da tese. Devolver uma lista de itens, cada um com a seção da tese a que se destina. Apoiar cada item num dado do pacote, citando o dado, ou marcar o item como hipótese. Não dar veredito, não dizer se a tese pode ser publicada e não reescrever a tese.
