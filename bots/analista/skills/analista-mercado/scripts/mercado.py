@@ -11,6 +11,7 @@ import io
 import json
 import logging
 import math
+import os
 import re
 import sys
 import urllib.request
@@ -514,6 +515,8 @@ DESTINO_ITENS = {
 APELIDOS_ITENS = {"riscos, limitações e premissas": "riscos"}
 MARCADOR = re.compile(r"^(?:[-*]|\d+[.)])\s+")
 HIPOTESE = "Hipótese:"
+# A marca vale com enfase de markdown em volta ("**Hipótese:**").
+MARCA_HIPOTESE = re.compile(r"[*_`]*Hipótese:")
 
 
 def bloco_do_cabecalho(linha):
@@ -580,7 +583,7 @@ def como_hipotese(linha):
     linha = separar_dado(linha)[0]
     if linha.endswith(HIPOTESE):
         linha = linha[: -len(HIPOTESE)].rstrip()
-    return linha if linha.startswith(HIPOTESE) else f"{HIPOTESE} {linha}"
+    return linha if MARCA_HIPOTESE.match(linha) else f"{HIPOTESE} {linha}"
 
 
 def numeros(s):
@@ -605,6 +608,8 @@ def cmd_itens(a):
         return {"itens": itens, "ignoradas": ignoradas}
     if not a.rascunho:
         return erro("--saida exige --rascunho")
+    if os.path.abspath(a.saida) == os.path.abspath(a.rascunho):
+        return erro("--saida e o proprio --rascunho: o texto final vai em outro arquivo, e o rascunho fica sem os itens")
     levar, hipotese = numeros(a.levar), numeros(a.hipotese)
     por_n = {i["n"]: i for i in itens}
     todos = levar + hipotese
@@ -618,7 +623,7 @@ def cmd_itens(a):
     for n in sorted(todos):
         item = por_n[n]
         texto = como_hipotese(item["linha"]) if n in hipotese else item["linha"]
-        if n in levar and not (texto.startswith(HIPOTESE) or separar_dado(texto)[1]):
+        if n in levar and not (MARCA_HIPOTESE.match(texto) or separar_dado(texto)[1]):
             return erro(f"item {n} sem dado entre parenteses no fim nem Hipotese: no comeco: use --hipotese", item=item)
         destino = DESTINO_ITENS[item["bloco"]]
         if destino == "## Decisão" and not tem_decisao:
