@@ -55,7 +55,7 @@ Os testes mockam o `yfinance`, o Banco Central e o Tesouro Transparente e não a
 
 O material de avaliação do Analista fica em [`evals/analista/`](../../evals/analista), fora desta pasta: o dry run da tese em `fluxo/tese/`, o eval do revisor da tese em [`acerto/revisor/`](../../evals/analista/acerto/revisor) e a pergunta de layout da Page em `gosto/layout/`. O [`evals/README.md`](../../evals/README.md) explica os três eixos.
 
-Mudou o papel do revisor na `analista-tese`? O teste do eval do revisor para: reveja os braços dele no mesmo diff, como diz o README de `acerto/revisor/`.
+Mudou o papel do revisor na `analista-tese`? O teste do eval do revisor para: mude no mesmo diff o arquivo do papel em `acerto/revisor/`, como diz o README de lá.
 
 ## Manutenção
 

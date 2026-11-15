@@ -1,6 +1,14 @@
 # Acerto: o revisor da tese
 
-Este caso compara dois papéis de revisor sobre os mesmos rascunhos de tese e o mesmo pacote de dados: o advogado do diabo, lido da seção 3 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md), e o conferente factual de `papel-conferente.md`. Os rascunhos e o pacote (`dados.json`) têm valor fictício em tudo.
+Este caso compara dois papéis de revisor sobre os mesmos rascunhos de tese e o mesmo pacote de dados: o advogado do diabo e o conferente factual. Os rascunhos e o pacote (`dados.json`) têm valor fictício em tudo.
+
+Cada papel fica num arquivo desta pasta, e o script não lê a skill:
+
+| Arquivo | Papel | Braço |
+| --- | --- | --- |
+| `papel-advogado.md` | o que a seção 3 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao revisor | `advogado` |
+| `papel-conferente.md` | confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever` | `conferente` |
+| `papel-antagonista.md` | procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` | nenhum: a régua deste caso conta veredito |
 
 | Rascunho | Conteúdo | Gabarito | Casos |
 | --- | --- | --- | --- |
@@ -28,7 +36,9 @@ O script imprime a média, o mínimo e o máximo das duas primeiras contagens po
 
 Mudou um rascunho ou o pacote? Mude o critério em `graders/` e o trecho no gabarito no mesmo diff. O prefixo do nome do critério (`erro-`, `correta-`) decide em qual contagem ele entra.
 
-Mudou o papel do revisor na `analista-tese`? O script e o teste param enquanto a linha `- o papel:` não disser `advogado do diabo`: reveja os braços em `rodar.py` no mesmo diff.
+Mudou o papel do revisor na `analista-tese`? O teste para enquanto a linha `- o papel:` da skill não for igual ao arquivo do papel que ela usa, hoje o `papel-advogado.md`: mude os dois no mesmo diff. O script roda com o arquivo, mesmo com a skill diferente.
+
+Braço novo? Crie o `papel-<braço>.md` e ponha o nome em `BRACOS`, no `rodar.py`. Papel que não dá veredito precisa antes de critérios próprios: sem veredito, toda execução dele fica fora da soma.
 
 ## Teste
 
