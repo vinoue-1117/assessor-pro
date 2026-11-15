@@ -85,8 +85,8 @@ _Evitar_: Teams, escopo bot
 Bot de um plano particular, que não guarda skill própria e enxerga a biblioteca de skills do dono.
 
 **biblioteca de skills do dono**:
-Conjunto de skills compartilhado por todos os bots pessoais de um mesmo dono. Na plataforma é a pasta `user`.
-_Evitar_: biblioteca user, pasta user, escopo user, biblioteca pessoal
+Conjunto de skills que todo bot acessa e pode alterar. Na plataforma é a pasta `user`.
+_Evitar_: biblioteca user, escopo user, biblioteca pessoal
 
 **catálogo de erros**:
 Lista numerada de padrões de erro de comportamento já vistos no repositório, conferida antes de mexer em script ou skill de bot.
