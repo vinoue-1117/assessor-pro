@@ -211,12 +211,13 @@ def legivel(linhas, do_bot):
     Skill que não está em `do_bot` (as pastas de `.claude/skills` da execução), listada
     no init ou chamada pela ferramenta Skill, entra na seção `## fora do bot`, logo
     abaixo do título. A chamada é comparada pelo nome pedido, e não pela lista do
-    init: uma skill do Claude Code pode carregar sem aparecer nele.
+    init: uma skill do Claude Code pode carregar sem aparecer nele. A chamada cujo
+    resultado veio com erro leva `recusada`: houve tentativa, não carga.
     """
     saida = ["# Transcript do ator"]
     chamadas = {}  # tool_use_id -> (passo, nome)
     passo = 0
-    vistas_fora, chamadas_fora = [], []
+    vistas_fora, chamadas_fora = [], {}  # tool_use_id -> texto da chamada de skill de fora do bot
     for n, linha in enumerate(linhas, 1):
         if not linha.strip():
             continue
@@ -261,12 +262,14 @@ def legivel(linhas, do_bot):
                     fora = ""
                     if bloco["name"] == "Skill" and entrada.get("skill") not in do_bot:
                         fora = " [fora do bot]"
-                        chamadas_fora.append(f"{entrada.get('skill')} (passo {passo}, {quem})")
+                        chamadas_fora[bloco["id"]] = f"{entrada.get('skill')} (passo {passo}, {quem}"
                     corpo = entrada["command"] if bloco["name"] == "Bash" and "command" in entrada else json.dumps(entrada, ensure_ascii=False, indent=1)
                     saida.append(f"## passo {passo}: {quem} chama {bloco['name']} ({nome}){fora}\n\n```\n{cortar(corpo, n)}\n```")
                 elif b == "tool_result":
                     p, nome = chamadas.get(bloco.get("tool_use_id"), ("?", "?"))
                     erro = " (erro)" if bloco.get("is_error") else ""
+                    if erro and bloco.get("tool_use_id") in chamadas_fora:
+                        chamadas_fora[bloco["tool_use_id"]] += ", recusada"
                     saida.append(f"### resultado do passo {p} ({nome}){erro}, para {quem}\n\n```\n{cortar(conteudo(bloco), n)}\n```")
                 elif b in ("text", "thinking"):
                     texto = bloco.get("text") or bloco.get("thinking") or ""
@@ -279,7 +282,7 @@ def legivel(linhas, do_bot):
                     saida.append(f"### {rotulo}\n\n{cortar(texto, n)}")
     if vistas_fora or chamadas_fora:
         saida.insert(1, f"## fora do bot\n\nno init: {', '.join(vistas_fora) or 'nenhuma'}\n\n"
-                        f"chamadas: {'; '.join(chamadas_fora) or 'nenhuma'}")
+                        f"chamadas: {'; '.join(c + ')' for c in chamadas_fora.values()) or 'nenhuma'}")
     return "\n\n".join(saida) + "\n"
 
 

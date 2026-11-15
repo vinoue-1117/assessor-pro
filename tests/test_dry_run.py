@@ -39,8 +39,12 @@ def test_legivel_numera_passos_liga_subagente_e_corta():
         _assistente([{'type': 'text', 'text': 'Veredito: frágil'}], pai='a1'),
         _usuario([{'type': 'tool_result', 'tool_use_id': 'a1', 'content': [{'type': 'text', 'text': 'Veredito: frágil'}]}]),
         # Skill do Claude Code pode carregar sem estar no init: a marca vem do nome pedido.
+        # A chamada que volta com erro é tentativa, não carga.
         _assistente([{'type': 'tool_use', 'id': 's1', 'name': 'Skill', 'input': {'skill': 'analista-tese'}},
-                     {'type': 'tool_use', 'id': 's2', 'name': 'Skill', 'input': {'skill': 'artifact-design'}}]),
+                     {'type': 'tool_use', 'id': 's2', 'name': 'Skill', 'input': {'skill': 'artifact-design'}},
+                     {'type': 'tool_use', 'id': 's3', 'name': 'Skill', 'input': {'skill': 'dataviz'}}]),
+        _usuario([{'type': 'tool_result', 'tool_use_id': 's2', 'content': 'Launching skill: artifact-design'},
+                  {'type': 'tool_result', 'tool_use_id': 's3', 'is_error': True, 'content': 'Unknown skill: dataviz'}]),
         {'type': 'result', 'subtype': 'success', 'num_turns': 3, 'duration_ms': 10, 'result': 'Page: page.md',
          'permission_denials': [{'tool_name': 'PowerShell'}]},
     ]
@@ -52,7 +56,7 @@ def test_legivel_numera_passos_liga_subagente_e_corta():
     assert 'skills: analista-tese, dataviz' in texto
     # Skill de fora do bot, vista no init ou chamada, fica marcada logo abaixo do título.
     assert texto.startswith('# Transcript do ator\n\n## fora do bot\n\nno init: dataviz\n\n'
-                            'chamadas: artifact-design (passo 4, ator)\n\n')
+                            'chamadas: artifact-design (passo 4, ator); dataviz (passo 5, ator, recusada)\n\n')
     assert '## passo 3: ator chama Skill (analista-tese)\n' in texto
     assert '## passo 4: ator chama Skill (artifact-design) [fora do bot]\n' in texto
     assert 'fora do bot' not in dry.legivel([json.dumps(eventos[0])], ['analista-tese', 'dataviz'])
@@ -68,7 +72,7 @@ def test_legivel_numera_passos_liga_subagente_e_corta():
     assert '### resultado do passo 2 (knowledgeWork), para ator\n\n```\nVeredito: frágil\n```' in texto
     assert 'turnos: 3' in texto and 'PowerShell' in texto and texto.index('Rascunho pronto.') < texto.index('passo 2')
     assert '## linha 2 fora do JSON\n\n```\naviso solto no stdout\n```' in texto
-    assert '## linha 13 fora do JSON\n\n```\n{"type": "assist\n```' in texto
+    assert '## linha 14 fora do JSON\n\n```\n{"type": "assist\n```' in texto
 
 
 def test_pasta_do_bot_e_fluxo_invalido(tmp_path):
