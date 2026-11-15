@@ -26,20 +26,16 @@ MODELO = "sonnet"
 VEREDITO = re.compile(
     r"(?:veredito|resultado)(?: final)?[ \t*`_]*[:\n—–-][\s*`_]*(s[oó]lida|fr[aá]gil|refazer|confere|reescrever)\b", re.I
 )
-# O campo que o pacote ganha no objeto do Tesouro, no caso que mede a limitacao vinda do pacote.
-CAMPO_LIMITACAO = {"limitacao": "taxas da manhã do Tesouro Direto, não a taxa indicativa do mercado secundário"}
-# Nome do caso: (arquivos do papel, rascunho, gabarito, pacote com o campo da limitacao).
+# Nome do caso: (papel, rascunho, gabarito).
 CASOS = {
-    "advogado": (("papel-advogado.md",), "rascunho.md", "gabarito.json", False),
-    "advogado-limpo": (("papel-advogado.md",), "rascunho-limpo.md", "gabarito-limpo.json", False),
-    "conferente": (("papel-conferente.md",), "rascunho.md", "gabarito.json", False),
-    "conferente-limpo": (("papel-conferente.md",), "rascunho-limpo.md", "gabarito-limpo.json", False),
-    "conferente-itens": (("papel-conferente.md",), "rascunho-itens.md", "gabarito-itens.json", False),
-    "conferente-limitacao": (("papel-conferente.md",), "rascunho-limitacao.md", "gabarito-limitacao.json", False),
-    "conferente-limitacao-campo": (("papel-conferente.md",), "rascunho-limitacao.md", "gabarito-limitacao.json", True),
-    "conferente-limitacao-regra": (("papel-conferente.md", "regra-limitacao.md"), "rascunho-limitacao.md", "gabarito-limitacao.json", False),
-    "antagonista": (("papel-antagonista.md",), "rascunho.md", "gabarito-antagonista.json", False),
-    "antagonista-limpo": (("papel-antagonista.md",), "rascunho-limpo.md", "gabarito-antagonista.json", False),
+    "advogado": ("papel-advogado.md", "rascunho.md", "gabarito.json"),
+    "advogado-limpo": ("papel-advogado.md", "rascunho-limpo.md", "gabarito-limpo.json"),
+    "conferente": ("papel-conferente.md", "rascunho.md", "gabarito.json"),
+    "conferente-limpo": ("papel-conferente.md", "rascunho-limpo.md", "gabarito-limpo.json"),
+    "conferente-itens": ("papel-conferente.md", "rascunho-itens.md", "gabarito-itens.json"),
+    "conferente-limitacao": ("papel-conferente.md", "rascunho-limitacao.md", "gabarito-limitacao.json"),
+    "antagonista": ("papel-antagonista.md", "rascunho.md", "gabarito-antagonista.json"),
+    "antagonista-limpo": ("papel-antagonista.md", "rascunho-limpo.md", "gabarito-antagonista.json"),
 }
 TITULO = {
     "rascunho.md": "Rascunho com erros plantados",
@@ -71,23 +67,10 @@ def esc(texto):
     return html.escape(texto, quote=False)
 
 
-def papel(arquivos):
-    return " ".join(ler(a) for a in arquivos)
-
-
-def pacote(campo):
-    """O JSON que o caso recebe: dados.json, com o campo da limitacao no objeto do Tesouro se `campo`."""
-    if not campo:
-        return ler("dados.json")
-    dados = json.loads(ler("dados.json"))
-    dados["mercado"][0].update(CAMPO_LIMITACAO)
-    return json.dumps(dados, ensure_ascii=False, indent=1)
-
-
 def por_rascunho():
     """Rascunho -> gabarito -> casos que usam os dois."""
     saida = {}
-    for nome, (_, rascunho, gab, _) in CASOS.items():
+    for nome, (_, rascunho, gab) in CASOS.items():
         saida.setdefault(rascunho, {}).setdefault(gab, []).append(nome)
     return saida
 
@@ -99,14 +82,14 @@ def gabarito(arquivo):
 
 def montar(dest, runs):
     """Grava em dest/evals um caso por entrada de CASOS: o papel, o rascunho e o JSON, com os criterios do gabarito."""
-    for nome, (papeis, rascunho, gab, campo) in CASOS.items():
+    for nome, (papel, rascunho, gab) in CASOS.items():
         caso = Path(dest) / "evals" / nome
         (caso / "graders").mkdir(parents=True)
         for criterio in gabarito(gab):
             shutil.copy(AQUI / "graders" / f"{criterio}.md", caso / "graders")
         texto = (
-            f"---\nruns: {runs}\nmax_turns: 3\nallowed_tools: []\n---\n\nPapel: {papel(papeis)}\n\n"
-            f"## Rascunho\n\n{ler(rascunho)}\n\n## JSON\n\n```json\n{pacote(campo)}\n```\n"
+            f"---\nruns: {runs}\nmax_turns: 3\nallowed_tools: []\n---\n\nPapel: {ler(papel)}\n\n"
+            f"## Rascunho\n\n{ler(rascunho)}\n\n## JSON\n\n```json\n{ler('dados.json')}\n```\n"
         )
         (caso / "prompt.md").write_text(texto, encoding="utf-8", newline="\n")
 
@@ -145,8 +128,8 @@ def tabela_criterios(gab):
 def relatorio_entrada(dest, runs):
     """Grava dest/entrada.html: os papeis, cada rascunho com os gabaritos e os criterios, e o JSON."""
     por_papel = {}
-    for nome, (arquivos, *_) in CASOS.items():
-        por_papel.setdefault(papel(arquivos), []).append(nome)
+    for nome, (papel, *_) in CASOS.items():
+        por_papel.setdefault(ler(papel), []).append(nome)
     papeis = "".join(f"<h3>{', '.join(casos)}</h3><p>{esc(texto)}</p>" for texto, casos in por_papel.items())
     rascunhos = "".join(
         f"<section><h2>{TITULO[rascunho]}</h2>{rascunho_marcado(rascunho, gabs)}"
@@ -154,7 +137,6 @@ def relatorio_entrada(dest, runs):
         + "</section>"
         for rascunho, gabs in por_rascunho().items()
     )
-    com_campo = ", ".join(nome for nome, caso in CASOS.items() if caso[3])
     pagina = f"""<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Entrada do eval do revisor</title><style>{CSS}</style></head><body><main>
@@ -164,8 +146,7 @@ O juiz recebe a resposta do revisor e um critério por vez, e vota três vezes.<
 <p class="suave"><mark class="erro">erro plantado</mark> <mark class="correta">frase correta</mark> <mark class="hipotese">hipótese</mark> O nome do critério aparece ao passar o mouse.</p>
 <section><h2>Papéis</h2>{papeis}</section>
 {rascunhos}
-<section><h2>JSON</h2><pre>{esc(ler('dados.json'))}</pre>
-<p>Em {com_campo}, o objeto do Tesouro traz também <code>{esc(json.dumps(CAMPO_LIMITACAO, ensure_ascii=False))}</code>.</p></section>
+<section><h2>JSON</h2><pre>{esc(ler('dados.json'))}</pre></section>
 </main></body></html>
 """
     caminho = Path(dest) / "entrada.html"

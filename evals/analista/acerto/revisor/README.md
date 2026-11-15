@@ -9,7 +9,6 @@ Cada papel fica num arquivo desta pasta, e o script não lê a skill:
 | `papel-advogado.md` | o que a seção 3 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao revisor |
 | `papel-conferente.md` | confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever` |
 | `papel-antagonista.md` | procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` |
-| `regra-limitacao.md` | frase que se soma ao papel do conferente no caso `conferente-limitacao-regra` |
 
 ## Casos
 
@@ -18,14 +17,12 @@ Cada papel fica num arquivo desta pasta, e o script não lê a skill:
 | `advogado`, `conferente` | `rascunho.md`: seis erros plantados e cinco frases corretas | os erros que o revisor pega e as frases corretas que ele contesta |
 | `advogado-limpo`, `conferente-limpo` | `rascunho-limpo.md`: o mesmo texto com os seis erros corrigidos | se o revisor aprova a tese sem erro |
 | `conferente-itens` | `rascunho-itens.md`: o rascunho sem erro com seis itens do antagonista nas seções de destino | o que o conferente faz com cada tipo de item: três apoiados em dado do pacote, dois marcados como hipótese e um com conta que o pacote não traz |
-| `conferente-limitacao` | `rascunho-limitacao.md`: o rascunho sem erro com a frase que diz que as taxas são as da manhã do Tesouro Direto | a base: a frase vem do texto da `analista-mercado`, e o pacote não a sustenta |
-| `conferente-limitacao-campo` | o mesmo | a mesma frase com o pacote trazendo a limitação num campo do objeto do Tesouro (`CAMPO_LIMITACAO`, no `rodar.py`) |
-| `conferente-limitacao-regra` | o mesmo | a mesma frase com a `regra-limitacao.md` no papel do conferente |
+| `conferente-limitacao` | `rascunho-limitacao.md`: o rascunho sem erro com a frase que diz que as taxas são as da manhã do Tesouro Direto | se o conferente aceita a ressalva que o pacote sustenta no campo `limitacao` do objeto do Tesouro |
 | `antagonista`, `antagonista-limpo` | `rascunho.md` e `rascunho-limpo.md` | se o antagonista cumpre o papel: não dá veredito e põe todo item numa seção de destino |
 
-A lista dos casos é o `CASOS`, no `rodar.py`: os arquivos do papel, o rascunho e o gabarito de cada um. Os critérios do juiz ficam em `graders/`. O gabarito lista os critérios que valem para o caso e o trecho do rascunho que cada um confere; critério sem trecho julga a resposta inteira.
+A lista dos casos é o `CASOS`, no `rodar.py`: o papel, o rascunho e o gabarito de cada um. Os critérios do juiz ficam em `graders/`. O gabarito lista os critérios que valem para o caso e o trecho do rascunho que cada um confere; critério sem trecho julga a resposta inteira.
 
-No rascunho sem erro, toda afirmação de fato tem dado no pacote. A frase de limitação fica fora dele e tem rascunho próprio: no caso `conferente-limpo` ela mediria o rascunho, não o papel.
+No rascunho sem erro, toda afirmação de fato tem dado no pacote. O pacote tem a forma da saída do `mercado.py`: o campo `limitacao` do objeto do Tesouro traz o texto que o script devolve, e o teste compara os dois.
 
 `python evals/analista/acerto/revisor/rodar.py`
 
@@ -39,7 +36,7 @@ Na pasta temporária ficam o relatório de entrada (`entrada.html`: os papéis, 
 | frases corretas contestadas | critérios `correta-*` que reprovaram. Conta quando o revisor diz que o número está errado ou sem base; levantar risco em torno dele não conta |
 | itens de hipótese apontados | critérios `hipotese-*` que passaram: o conferente lista o item marcado como hipótese entre as divergências. Não há resposta certa aqui: a contagem mostra o que o conferente faz |
 | critérios do papel cumpridos | critérios `papel-*` que passaram, nos casos do antagonista |
-| execuções em que o revisor aprovou a tese | critério `aprova`, no rascunho sem erro e nos casos da frase de limitação: veredito `sólida` ou resultado `confere` |
+| execuções em que o revisor aprovou a tese | critério `aprova`, no rascunho sem erro e no caso da frase de limitação: veredito `sólida` ou resultado `confere` |
 | afirmações que não estão no rascunho nem no JSON | contagem à mão, lendo `respostas/`. O juiz do comando só vê a resposta e o critério, e reprova resposta que não traz fato de fora |
 
 O script imprime a média, o mínimo e o máximo de cada contagem por caso, as aprovações e o veredito de cada execução. Fica fora da soma, com o motivo no stderr, a execução com erro, com critério que o juiz não julgou ou com resposta vazia ou cortada: os critérios `correta-*` e `papel-*` passam quando a resposta não traz nada. A prova de resposta inteira é o veredito; no antagonista, que não dá veredito, é a resposta ter pelo menos um item de lista.
