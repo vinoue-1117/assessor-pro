@@ -29,7 +29,7 @@ Workspace deste bot: `/workspace/analista/` (o script de trabalho fica em `/work
 
 ## Script
 
-`skills/analista-mercado/scripts/mercado.py` (Python 3 + `yfinance`). Três fontes, todas sem chave: `yfinance` para preço e opções, o SGS do Banco Central (`api.bcb.gov.br`) para Selic, CDI e IPCA, e o CSV do Tesouro Transparente para o Tesouro Direto. Saída JSON no stdout. Erro: objeto `{"erro": "...", "consultado_em": "..."}` e exit code diferente de zero. `consultado_em` é `America/Sao_Paulo`.
+`skills/analista-mercado/scripts/mercado.py` (Python 3 + `yfinance`). Três fontes, todas sem chave: `yfinance` para preço e opções, o SGS do Banco Central (`api.bcb.gov.br`) para Selic, CDI e IPCA, e o CSV do Tesouro Transparente para o Tesouro Direto. Saída JSON no stdout, em UTF-8 em qualquer sistema. Erro: objeto `{"erro": "...", "consultado_em": "..."}` e exit code diferente de zero. `consultado_em` é `America/Sao_Paulo`.
 
 | Subcomando | Faz |
 | --- | --- |

@@ -7,6 +7,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -418,6 +419,15 @@ def test_subcomando_desconhecido_lista_uso():
     assert exc.value.code != 0
     texto = err.getvalue()
     assert 'cotacao' in texto and 'historico' in texto and 'opcoes' in texto and 'taxa' in texto and 'tesouro' in texto
+
+
+def test_saida_do_script_e_utf8_com_outra_codificacao_no_ambiente():
+    r = subprocess.run(
+        [sys.executable, str(SCRIPT), 'taxa', 'xyz'],
+        capture_output=True, env={**os.environ, 'PYTHONIOENCODING': 'latin-1'},
+    )
+    assert r.returncode != 0
+    assert 'inválido' in json.loads(r.stdout.decode('utf-8'))[0]['erro']
 
 
 def comandos():
