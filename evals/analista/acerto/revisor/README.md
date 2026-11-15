@@ -6,9 +6,9 @@ Cada papel fica num arquivo desta pasta, e o script não lê a skill:
 
 | Arquivo | Papel |
 | --- | --- |
-| `papel-advogado.md` | o que a seção 3 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao revisor |
-| `papel-conferente.md` | confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever` |
-| `papel-antagonista.md` | procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` |
+| `papel-advogado.md` | advogado do diabo: confere os números, ataca a tese e devolve veredito `sólida`, `frágil` ou `refazer`. A skill não usa este papel; ele é a base de comparação dos outros dois |
+| `papel-conferente.md` | o que a seção 4 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao conferente: confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever` |
+| `papel-antagonista.md` | o que a seção 3 da `analista-tese` passa ao antagonista: procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` |
 
 ## Casos
 
@@ -43,7 +43,7 @@ O script imprime a média, o mínimo e o máximo de cada contagem por caso, as a
 
 Mudou um rascunho ou o pacote? Mude o critério em `graders/` e o trecho no gabarito no mesmo diff. O prefixo do nome do critério (`erro-`, `correta-`, `hipotese-`, `papel-`) decide em qual contagem ele entra. O `rascunho-itens.md` e o `rascunho-limitacao.md` são o `rascunho-limpo.md` com linhas a mais: mudou o limpo, mude os dois.
 
-Mudou o papel do revisor na `analista-tese`? O teste para enquanto a linha `- o papel:` da skill não for igual ao arquivo do papel que ela usa, hoje o `papel-advogado.md`: mude os dois no mesmo diff. O script roda com o arquivo, mesmo com a skill diferente.
+Mudou o papel do revisor na `analista-tese`? O teste para enquanto as linhas `- o papel:` da skill não forem iguais aos arquivos dos papéis que ela usa, o `papel-antagonista.md` e o `papel-conferente.md`, nessa ordem: mude os dois no mesmo diff. O script roda com o arquivo, mesmo com a skill diferente.
 
 Caso novo? Uma linha em `CASOS`. Papel que não dá veredito leva o critério `papel-sem-veredito` no gabarito: é por ele que o script troca a prova de resposta inteira, do veredito para o item de lista.
 

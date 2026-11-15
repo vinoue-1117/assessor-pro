@@ -180,7 +180,13 @@ Conjunto dos dados de mercado, das páginas consultadas e das contas sobre o qua
 _Evitar_: pacote, JSON de dados
 
 **revisão da tese**:
-Leitura do rascunho da tese, antes da publicação, por um subagente que recebe só o rascunho e o pacote de dados.
+Leitura da tese, antes da publicação, por dois subagentes que recebem só o texto e o pacote de dados: o antagonista lê o rascunho, e o conferente lê o texto final.
+
+**antagonista**:
+Subagente que procura contras e riscos no rascunho da tese e devolve itens, cada um destinado a uma seção da Page. Não dá veredito e não decide a publicação.
+
+**conferente**:
+Subagente que confere o texto final da tese contra o pacote de dados, só por fato, e devolve `confere` ou `reescrever`. É quem decide a publicação.
 
 ### Avaliação
 

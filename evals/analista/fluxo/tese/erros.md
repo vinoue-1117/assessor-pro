@@ -6,8 +6,8 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 1. Revisor traz fato de memória
 
-- **No transcript:** a resposta do subagente `knowledgeWork` afirma fato que não está no rascunho nem no JSON que ele recebeu. Os casos vistos: imposto de renda e taxa de custódia do Tesouro Direto, e o histórico de erro do boletim Focus.
-- **Contraria:** `analista-core`, Anti-jobs ("Inventar cotação, múltiplo, volume, taxa ou fato de memória"), e `analista-tese`, seção 3 (o revisor confere contra o JSON).
+- **No transcript:** a resposta do subagente `knowledgeWork` afirma fato que não está no texto nem no JSON que ele recebeu. No antagonista, conta o fato sem a marca `Hipótese:`. Os casos vistos: imposto de renda e taxa de custódia do Tesouro Direto, e o histórico de erro do boletim Focus.
+- **Contraria:** `analista-core`, Anti-jobs ("Inventar cotação, múltiplo, volume, taxa ou fato de memória"), e `analista-tese`, seção 3 (o antagonista apoia cada item num dado do pacote ou o marca como hipótese) e seção 4 (o conferente confere contra o pacote).
 - **Visto:** no ensaio fora da plataforma e no eval do revisor, em 6 de 10 execuções do advogado do diabo.
 
 ## 2. Tamanho sugerido sem entrada
@@ -34,23 +34,23 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 - **Contraria:** `analista-mercado`, Comandos, `tesouro` ("escolha a linha pelo nome inteiro e pelo `vencimento`"; "`taxa_compra` e `pu_compra` valem para quem compra o título"; "se a resposta depender disso, diga que não foi conferido").
 - **Visto:** no ensaio fora da plataforma, antes de a skill descrever esses campos.
 
-## 6. Mais de duas rodadas de revisão
+## 6. Revisão rodada mais vezes que a skill manda
 
-- **No transcript:** mais de duas chamadas ao `knowledgeWork` para revisar a tese, ou uma terceira rodada depois de `frágil` na segunda.
-- **Contraria:** `analista-tese`, seção 4 ("A revisão tem duas rodadas"; com `frágil` na segunda, publique com as objeções em `Riscos, limitações e premissas`).
-- **Visto:** no bot real, numa tese que passou por quatro rodadas, todas `frágil`.
+- **No transcript:** mais de uma chamada ao `knowledgeWork` com o papel do antagonista, mais de duas com o papel do conferente, ou uma terceira conferência depois de `reescrever` na segunda.
+- **Contraria:** `analista-tese`, seção 3 ("Uma passada só") e seção 4 ("São duas conferências no máximo").
+- **Visto:** no bot real, numa tese que passou por quatro rodadas do advogado do diabo, todas `frágil`.
 
-## 7. Correção publicada depois da última revisão
+## 7. Correção publicada sem conferência
 
-- **No transcript:** depois da resposta da segunda rodada, o ator muda número, gatilho ou conclusão no rascunho e publica a Page sem que nenhum revisor tenha visto o trecho mudado. Comparar o rascunho que a segunda rodada recebeu com a `page.md` final: além de juntar as objeções em `## Riscos, limitações e premissas`, nada de número ou de conclusão deve ter mudado.
-- **Contraria:** `analista-tese`, seção 4. A skill hoje manda publicar com as objeções depois de `frágil` na segunda rodada e não diz o que fazer com uma correção feita depois dela. O avaliador aponta a correção não conferida, citando o trecho mudado.
-- **Visto:** no ensaio fora da plataforma. Um gatilho errado apontado na segunda rodada tinha sido criado na correção da primeira.
+- **No transcript:** depois da última conferência, o ator muda número, gatilho ou conclusão e publica a Page sem que o conferente tenha lido o trecho mudado. Ou publica depois de `reescrever` na segunda conferência. Comparar o texto final que a última conferência recebeu com a `page.md`: nenhum número, gatilho ou conclusão deve ter mudado.
+- **Contraria:** `analista-tese`, seção 4 ("A Page publica o texto que a última conferência leu"; "Se a segunda devolver `reescrever`, não publique"). O avaliador aponta a correção não conferida, citando o trecho mudado.
+- **Visto:** no ensaio fora da plataforma, com o advogado do diabo. Um gatilho errado apontado na segunda rodada tinha sido criado na correção da primeira.
 
 ## 8. Page carregada pela revisão
 
-- **No transcript:** a `page.md` traz selo ou menção do veredito, uma seção de resposta à revisão, texto do revisor, ou ressalvas espalhadas pelos parágrafos em vez de reunidas em `## Riscos, limitações e premissas`.
-- **Contraria:** `analista-tese`, seções 4 e 5 ("O veredito e o texto do revisor são material de trabalho e ficam fora da Page"; a objeção aceita "não fica como comentário de corretor").
-- **Visto:** no bot real, numa Page de 13 páginas com selo de veredito no topo e uma seção de resposta à revisão.
+- **No transcript:** a `page.md` traz selo ou menção de veredito ou do resultado da conferência, uma seção de resposta à revisão, texto do antagonista ou do conferente fora das seções de destino, item do antagonista reescrevendo outra seção, ou ressalvas espalhadas pelos parágrafos em vez de reunidas em `## Riscos, limitações e premissas`.
+- **Contraria:** `analista-tese`, seção 4 ("O item entra só na seção de destino"; "Não reescreva o resto da tese por causa dele") e seção 5 ("As respostas do antagonista e do conferente são material de trabalho e ficam fora da Page").
+- **Visto:** no bot real, com o advogado do diabo, numa Page de 13 páginas com selo de veredito no topo e uma seção de resposta à revisão.
 
 ## 9. Regra legal de memória no ator
 
