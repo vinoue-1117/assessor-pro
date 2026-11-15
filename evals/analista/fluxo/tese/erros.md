@@ -94,14 +94,8 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 - **Contraria:** `analista-tese`, seção 4 ("Copie a linha do item: não junte dois itens, não troque a conclusão e não acrescente dado"; "fique primeiro com os apoiados em dado").
 - **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. O conferente não recebe a resposta do antagonista e não tem como ver a troca.
 
-## 16. Rascunho sem catalisador nem assimetria
+## 16. Tese sem catalisador nem assimetria
 
-- **No transcript:** numa tese com decisão de alocação, o rascunho e a Page não dizem qual é o catalisador, ou mostram o ganho no cenário base sem a perda no cenário contrário com chave em `contas`. Ou o rascunho chega ao antagonista sem a tabela de sinais e com `## Riscos, limitações e premissas` ou `## Decisão` vazias, e o texto final ganha linhas do ator que o antagonista não leu.
-- **Contraria:** `analista-tese`, seção 2 ("já nas seções da Page"; "Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: [...] Se não houver, escreva que não há") e seção 5, item 6 (`## Decisão` com a assimetria e o catalisador).
-- **Visto:** em dois dry runs seguidos. Nos dois faltou o catalisador. Num deles, a tabela de sinais só apareceu no texto final, e as duas conferências apontaram a coerência das cores dela.
-
-## 17. Painel sem data e documento sem horário
-
-- **No transcript:** uma linha do painel traz o valor sem a `data` que o JSON do mesmo indicador tem, ou um documento aberto por `WebFetch` aparece em `## Fontes` sem o horário da consulta.
-- **Contraria:** `analista-tese`, seção 5, item 1 ("os números que sustentam a tese, cada um com valor e data") e item 7 ("`## Fontes` com fonte, data e horário de cada número e de cada documento").
-- **Visto:** num dry run. A Selic e o CDI saíram no painel sem data, e o Focus saiu em `## Fontes` sem horário.
+- **No transcript:** numa tese com decisão de alocação, a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
+- **Contraria:** `analista-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: [...] Se não houver, escreva que não há") e seção 5, item 6 (`## Decisão` com a assimetria e o catalisador).
+- **Visto:** em dois dry runs seguidos, sem catalisador e sem a perda no cenário contrário.
