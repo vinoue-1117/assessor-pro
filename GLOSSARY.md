@@ -7,8 +7,12 @@ Bots de IA de um assessor de investimentos: o envio do relatório mensal aos cli
 ### Pessoas
 
 **dono**:
-Pessoa a quem os bots servem: instala cada bot, faz os pedidos e decide o que ele pode fazer.
+Pessoa que usa os bots: instala cada bot, faz os pedidos e decide o que ele pode fazer.
 _Evitar_: usuário
+
+**criador**:
+Pessoa que constrói e mantém os bots no repositório: edita a main, promove para a stable e escolhe entre as amostras no eixo de gosto. Nos bots pessoais dele, é também o dono.
+_Evitar_: dono do repositório, construtor
 
 **assessor**:
 Assessor de investimentos que usa os bots do Assessor Pro: manda o lote e a planilha de clientes e aprova o envio.
@@ -57,11 +61,11 @@ Cópia curta e gerada de uma skill, que é o que o bot instalado guarda. A cada 
 _Evitar_: skill instalada, template
 
 **stable**:
-Versão do repositório que os bots leem. Só muda quando o dono do repositório promove.
+Versão do repositório que os bots leem. Só muda quando o criador promove.
 _Evitar_: produção
 
 **promoção**:
-Ato do dono do repositório de levar para a stable o que está na main, por push direto e nunca por PR. É o momento em que uma mudança passa a valer para os bots instalados.
+Ato do criador de levar para a stable o que está na main, por push direto e nunca por PR. É o momento em que uma mudança passa a valer para os bots instalados.
 _Evitar_: publicar
 
 **prompt de instalação**:
@@ -183,7 +187,7 @@ _Evitar_: revisão adversarial
 ### Avaliação
 
 **eixo**:
-Cada uma das três perguntas independentes com que se avalia uma mudança de skill: fluxo (o bot segue a skill?), acerto (a resposta está certa contra uma referência conhecida?) e gosto (qual formato de saída o dono prefere?). Não são etapas e não têm ordem.
+Cada uma das três perguntas independentes com que se avalia uma mudança de skill: fluxo (o bot segue a skill?), acerto (a resposta está certa contra uma referência conhecida?) e gosto (qual formato de saída o criador prefere?). Não são etapas e não têm ordem.
 _Evitar_: alicerce, etapa, modo de gosto
 
 **dry run**:
@@ -208,7 +212,7 @@ Ponto em que o ator contraria a skill: faz o que ela proíbe, deixa de fazer o q
 Versão alternativa de uma instrução do bot, usada no eixo de gosto.
 
 **amostra**:
-Saída de uma variante sobre a entrada comum, lida pelo dono no eixo de gosto.
+Saída de uma variante sobre a entrada comum, lida pelo criador no eixo de gosto.
 
 **partida**:
 Arquivos congelados de uma rodada anterior, de onde todas as variantes de uma rodada de gosto começam.
