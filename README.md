@@ -18,9 +18,9 @@ Fluxo do envio: assessor manda zip + planilha → Relatórios - Assessor Pro pre
 
 ## Como usar
 
-Cada bot se instala e se atualiza sozinho: o dono cola no chat dele o prompt que está no README da pasta do bot.
+Bot pessoal pode ser instalado pelo [bot construtor](docs/grokbot.md#bot-construtor), que é opcional: peça no chat dele, por exemplo "Leia o repo `https://github.com/vinoue-1117/assessor-pro` e instale os bots relatório/whatsapp". Bot de time, que o construtor não acessa, e bot pessoal sem o construtor são instalados com o prompt que está no README da pasta do bot, colado no chat dele. O mesmo prompt atualiza o bot e confere se ele está funcionando.
 
-1. Cole no chat de cada bot o prompt dele: [Relatórios - Assessor Pro](bots/assessor/envio/README.md#instalar) e [Whatsapp - Assessor Pro](bots/assessor/zap/README.md#instalar).
+1. Instale os dois bots, pelo construtor ou com o prompt de cada um: [Relatórios - Assessor Pro](bots/assessor/envio/README.md#instalar) e [Whatsapp - Assessor Pro](bots/assessor/zap/README.md#instalar).
 2. No bot Whatsapp - Assessor Pro, conecte o WhatsApp Web lendo o QR code.
 3. No bot Relatórios - Assessor Pro, mande a planilha (`conta_xp, telefone, nome, apelido`; `conta_xp` é o número da conta na corretora) e, todo mês, o zip do lote.
 
@@ -33,7 +33,7 @@ O bot instalado guarda só ponteiros: cada skill baixa a versão completa da bra
 
 `git push origin main:stable`
 
-O que fica gravado é o perfil do bot e a lista de ponteiros. Bot de time guarda os ponteiros nas skills próprias. Bot do plano particular não guarda skill própria: os ponteiros ficam na biblioteca de skills do dono, vista por todos os bots pessoais dele, e cada bot reconhece os seus pela pasta na URL. Skill nova ou perfil alterado pedem colar de novo o prompt desse bot no chat dele. O bot segue o [`bots/instalar.md`](bots/instalar.md) e se ajusta.
+O que fica gravado é o perfil do bot e a lista de ponteiros. Bot de time guarda os ponteiros nas skills próprias. Bot do plano particular não guarda skill própria: os ponteiros ficam na biblioteca de skills do dono, vista por todos os bots pessoais dele, e cada bot reconhece os seus pela pasta na URL ([`docs/grokbot.md`](docs/grokbot.md)). Skill nova ou perfil alterado pedem instalar o bot de novo, pelo bot construtor ou pelo prompt desse bot colado no chat dele. O bot segue o [`bots/instalar.md`](bots/instalar.md) e se ajusta.
 
 A description de cada ponteiro é fixa (quando usar a skill) e fica na seção `## Skills` do `bot.md`. Mudar a description da skill completa não muda o ponteiro, então uma promoção para `stable` não exige atualizar as skills já instaladas nos bots.
 

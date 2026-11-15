@@ -6,7 +6,7 @@ Ficha do bot: [`bot.md`](bot.md).
 
 ## Instalar
 
-Cole no chat deste bot. O mesmo prompt atualiza um bot já instalado.
+Cole no chat deste bot para instalar bot de time, atualizar um bot já instalado ou conferir se ele está funcionando. Bot pessoal também pode ser instalado pelo [bot construtor](../../../docs/grokbot.md#bot-construtor), sem este prompt.
 
 ```
 Atualize suas skills pelo Assessor Pro, caminho assessor/zap, seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md.

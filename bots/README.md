@@ -29,13 +29,13 @@ O nome de cada skill é único no repositório: no plano particular, os ponteiro
 
 ## Ponteiro
 
-O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado é o perfil do bot e a lista de ponteiros: mudar um dos dois pede colar de novo o prompt desse bot no chat dele. O bot segue o [`instalar.md`](instalar.md) e se ajusta.
+O bot instalado não guarda a skill completa. Ele guarda o ponteiro, que baixa a skill completa da `stable` a cada uso. Por isso uma correção promovida chega a todos os bots sem reinstalar. O que fica gravado é o perfil do bot e a lista de ponteiros: mudar um dos dois pede instalar o bot de novo, pelo bot construtor (bot pessoal) ou pelo prompt de instalação colado no chat do bot. O bot segue o [`instalar.md`](instalar.md) e se ajusta.
 
-Onde o ponteiro fica depende do plano. Bot de time guarda os ponteiros nas skills próprias, que só ele vê. Bot do plano particular não guarda skill própria: os ponteiros vão para a biblioteca de skills do dono, e todo bot pessoal do dono vê os ponteiros de todos. O bot reconhece os seus pela pasta na URL (`bots/<caminho>/skills/`).
+Onde o ponteiro fica depende do plano. Bot de time guarda os ponteiros nas skills próprias, que só ele vê. Bot do plano particular não guarda skill própria: os ponteiros vão para a biblioteca de skills do dono, e todo bot pessoal do dono vê os ponteiros de todos. O bot reconhece os seus pela pasta na URL (`bots/<caminho>/skills/`). O funcionamento da plataforma está em [`docs/grokbot.md`](../docs/grokbot.md).
 
 ## Prompt de instalação
 
-Fica no `README.md` da pasta do bot, na seção `## Instalar`, e em nenhum outro arquivo. O dono cola no chat do bot para instalar ou atualizar. O prompt diz a função do bot: o nome pode ser outro. Formato:
+Fica no `README.md` da pasta do bot, na seção `## Instalar`, e em nenhum outro arquivo. O dono cola no chat do bot para instalar bot de time, que o bot construtor não acessa, para atualizar e para conferir se o bot está funcionando. Bot pessoal também pode ser instalado pelo bot construtor, sem este prompt. O prompt diz a função do bot: o nome pode ser outro. Formato:
 
 ```
 Atualize suas skills pelo Assessor Pro, caminho <caminho>, seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md.
