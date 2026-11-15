@@ -26,6 +26,7 @@
 - O orçamento de perda de 0,25% da carteira é premissa sua. O tamanho muda na mesma proporção se ele mudar.
 - O boletim Focus usado é anterior à data-base das taxas: um boletim mais novo pode mudar a folga (Focus de 09/11/2026; data-base 12/11/2026).
 - Revender ao Tesouro logo depois da compra custa 0,23% do valor aplicado (PU de compra 764,05; PU de venda 762,32).
+- Hipótese: uma alta de 2 p.p. na taxa tiraria cerca de 3,7% do título, acima do orçamento de perda.
 - Hipótese: uma necessidade de caixa antes de 2029 obrigaria a revender pela taxa de venda, e a conta de levar ao vencimento deixaria de valer.
 
 ## Fontes

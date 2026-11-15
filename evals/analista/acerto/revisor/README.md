@@ -7,7 +7,7 @@ Cada papel fica num arquivo desta pasta, e o script não lê a skill:
 | Arquivo | Papel |
 | --- | --- |
 | `papel-advogado.md` | advogado do diabo: confere os números, ataca a tese e devolve veredito `sólida`, `frágil` ou `refazer`. A skill não usa este papel; ele é a base de comparação dos outros dois |
-| `papel-conferente.md` | o que a seção 4 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao conferente: confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever` |
+| `papel-conferente.md` | o que a seção 4 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao conferente: confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever`. Como na skill, recebe também o pedido do dono (`pedido.md`), que sustenta o dado "informado pelo dono" do pacote |
 | `papel-antagonista.md` | o que a seção 3 da `analista-tese` passa ao antagonista: procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` |
 
 ## Casos
@@ -16,7 +16,7 @@ Cada papel fica num arquivo desta pasta, e o script não lê a skill:
 | --- | --- | --- |
 | `advogado`, `conferente` | `rascunho.md`: seis erros plantados e cinco frases corretas | os erros que o revisor pega e as frases corretas que ele contesta |
 | `advogado-limpo`, `conferente-limpo` | `rascunho-limpo.md`: o mesmo texto com os seis erros corrigidos | se o revisor aprova a tese sem erro |
-| `conferente-itens` | `rascunho-itens.md`: o rascunho sem erro com seis itens do antagonista nas seções de destino | o que o conferente faz com cada tipo de item: três apoiados em dado do pacote, dois marcados como hipótese e um com conta que o pacote não traz |
+| `conferente-itens` | `rascunho-itens.md`: o rascunho sem erro com sete itens do antagonista nas seções de destino | o que o conferente faz com cada tipo de item: três apoiados em dado do pacote, dois marcados como hipótese, um marcado como hipótese com número que o pacote não traz e um com conta que o pacote não traz |
 | `conferente-limitacao` | `rascunho-limitacao.md`: o rascunho sem erro com a frase que diz que as taxas são as da manhã do Tesouro Direto | se o conferente aceita a ressalva que o pacote sustenta no campo `limitacao` do objeto do Tesouro |
 | `antagonista`, `antagonista-limpo` | `rascunho.md` e `rascunho-limpo.md` | se o antagonista cumpre o papel: não dá veredito e põe todo item numa seção de destino |
 
@@ -32,7 +32,7 @@ Na pasta temporária ficam o relatório de entrada (`entrada.html`: os papéis, 
 
 | Contagem | De onde sai |
 | --- | --- |
-| erros plantados pegos | critérios `erro-*` que passaram. No `conferente-itens`, o erro é a conta que o pacote não traz |
+| erros plantados pegos | critérios `erro-*` que passaram. No `conferente-itens`, os erros são a conta e a hipótese com número que o pacote não traz |
 | frases corretas contestadas | critérios `correta-*` que reprovaram. Conta quando o revisor diz que o número está errado ou sem base; levantar risco em torno dele não conta |
 | itens de hipótese aceitos | critérios `hipotese-*` que passaram: o conferente não lista o item marcado como hipótese entre as divergências. O papel diz que item `Hipótese:` sem número de fora do pacote não é divergência: o esperado é aceitar todos |
 | critérios do papel cumpridos | critérios `papel-*` que passaram, nos casos do antagonista |

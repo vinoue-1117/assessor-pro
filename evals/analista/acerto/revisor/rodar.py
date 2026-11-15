@@ -87,8 +87,10 @@ def montar(dest, runs):
         (caso / "graders").mkdir(parents=True)
         for criterio in gabarito(gab):
             shutil.copy(AQUI / "graders" / f"{criterio}.md", caso / "graders")
+        # O conferente recebe tambem o pedido do dono, como na skill: e por ele que confere o dado "informado pelo dono".
+        pedido = f"## Pedido do dono\n\n{ler('pedido.md')}\n" if papel == "papel-conferente.md" else ""
         texto = (
-            f"---\nruns: {runs}\nmax_turns: 3\nallowed_tools: []\n---\n\nPapel: {ler(papel)}\n\n"
+            f"---\nruns: {runs}\nmax_turns: 3\nallowed_tools: []\n---\n\nPapel: {ler(papel)}\n\n{pedido}"
             f"## Rascunho\n\n{ler(rascunho)}\n\n## JSON\n\n```json\n{ler('dados.json')}\n```\n"
         )
         (caso / "prompt.md").write_text(texto, encoding="utf-8", newline="\n")

@@ -415,19 +415,24 @@ def test_itens_copia_a_linha_do_antagonista_para_a_secao(tmp_path):
     # O texto do item chega ao texto final sem mudar: so a escolha e do ator.
     resposta = tmp_path / 'antagonista.md'
     resposta.write_text(
-        '**Contras**\n'
+        'Li o rascunho e o pacote.\n'
+        '**Contras (2)**\n'
         '- O IPCA de 12 meses já passa do Focus de 2027 (acumulado_12m 4,8; ipca_2027_pct 4,2).\n'
-        '- Hipótese: a implícita embute prêmio de risco.\n'
-        '\n**Riscos**\n'
-        '- O título é o mais sensível a juros (pu_compra 764,05).\n'
-        '- Sem dado e sem marca.\n'
-        '\n**O que faria mudar de ideia**\n'
-        '- IPCA médio acima de 5,88% a.a. (inflacao_implicita_pct_aa 5,88).\n',
+        'Hipótese: a implícita embute prêmio de risco.\n'
+        '\n## Riscos, limitações e premissas\n'
+        '1. O título é o mais sensível a juros (pu (compra) 764,05).\n'
+        '2. Sem dado e sem marca.\n'
+        '\n**O que faria mudar de ideia:**\n'
+        '- IPCA médio acima de 5,88% a.a.,\n'
+        '  com o Focus subindo (inflacao_implicita_pct_aa 5,88).\n'
+        '\n**Observação**\n'
+        '- Fora de bloco.\n',
         encoding='utf-8',
     )
     rascunho = tmp_path / 'rascunho.md'
     rascunho.write_text(
-        '# Tese\n\n## Contras\n\n## Riscos, limitações e premissas\n- Linha do ator.\n\n## Decisão\nComprar.\n\n## Fontes\n- BCB\n',
+        '# Tese\n\n## Contras\n\n## Riscos, limitações e premissas\n- Linha do ator.\n\n'
+        '## Decisão de alocação\nComprar.\n\n## Fontes\n- BCB\n',
         encoding='utf-8',
     )
     saida = tmp_path / 'tese.md'
@@ -436,10 +441,13 @@ def test_itens_copia_a_linha_do_antagonista_para_a_secao(tmp_path):
     assert code == 0
     assert [(i['n'], i['bloco']) for i in lista['itens']] == [
         (1, 'contras'), (2, 'contras'), (3, 'riscos'), (4, 'riscos'), (5, 'o que faria mudar de ideia')]
+    assert lista['itens'][4]['linha'] == 'IPCA médio acima de 5,88% a.a., com o Focus subindo (inflacao_implicita_pct_aa 5,88).'
+    assert lista['ignoradas'] == ['Li o rascunho e o pacote.', '**Observação**', '- Fora de bloco.']
 
     base = ['itens', str(resposta), '--rascunho', str(rascunho), '--saida', str(saida)]
-    code, _, _ = rodar(base + ['--levar', '4'])
-    assert code != 0 and not saida.exists()
+    for escolha in (['--levar', '4'], ['--levar', '1,1'], ['--levar', '1', '--hipotese', '1'], ['--levar', '9']):
+        code, _, _ = rodar(base + escolha)
+        assert code != 0 and not saida.exists(), escolha
 
     code, res, _ = rodar(base + ['--levar', '1,2,5', '--hipotese', '3'])
     assert code == 0 and res['fora'] == [4]
@@ -449,10 +457,19 @@ def test_itens_copia_a_linha_do_antagonista_para_a_secao(tmp_path):
         '- Hipótese: a implícita embute prêmio de risco.\n'
         '\n## Riscos, limitações e premissas\n- Linha do ator.\n'
         '- Hipótese: O título é o mais sensível a juros\n'
-        '\n## Decisão\nComprar.\n'
-        '- IPCA médio acima de 5,88% a.a. (inflacao_implicita_pct_aa 5,88).\n'
+        '\n## Decisão de alocação\nComprar.\n'
+        '- IPCA médio acima de 5,88% a.a., com o Focus subindo (inflacao_implicita_pct_aa 5,88).\n'
         '\n## Fontes\n- BCB\n'
     )
+
+    # Sem item escolhido, o texto final e o rascunho.
+    code, _, _ = rodar(base)
+    assert code == 0 and saida.read_text(encoding='utf-8') == rascunho.read_text(encoding='utf-8')
+
+    # Secao de destino que falta no rascunho e erro, nao outra secao.
+    rascunho.write_text('# Tese\n\n## Riscos, limitações e premissas\n', encoding='utf-8')
+    code, falta, _ = rodar(base + ['--levar', '1'])
+    assert code != 0 and '## Contras' in falta['erro']
 
 
 def test_subcomando_desconhecido_lista_uso():
@@ -641,8 +658,10 @@ def test_eval_revisor_monta_os_casos(tmp_path):
         cabeca, entradas[nome] = (caso / 'prompt.md').read_text(encoding='utf-8').split('## Rascunho', 1)
         assert 'runs: 5' in cabeca
         # O caso recebe o papel do arquivo dele.
-        papeis[nome] = cabeca.split('Papel: ', 1)[1].strip()
+        papeis[nome] = cabeca.split('Papel: ', 1)[1].split('## Pedido do dono', 1)[0].strip()
         assert papeis[nome] == (pasta / papel).read_text(encoding='utf-8').strip()
+        # So o conferente recebe o pedido do dono, que sustenta o dado "informado pelo dono" do pacote.
+        assert ('## Pedido do dono' in cabeca) == (papel == 'papel-conferente.md'), nome
         assert sorted(p.stem for p in (caso / 'graders').iterdir()) == sorted(gabarito)
     assert usados == {p.stem for p in (pasta / 'graders').iterdir()}
     # Os papeis de um rascunho recebem a mesma entrada; o rascunho sem erro nao traz nenhum erro plantado.

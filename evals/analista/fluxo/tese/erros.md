@@ -12,7 +12,7 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 2. Tamanho sugerido sem entrada
 
-- **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem. Ou o tamanho aparece no rascunho sem conta nenhuma: sem chave em `contas` e sem saída de Python que o imprima.
+- **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem. Ou o tamanho aparece no rascunho sem conta nenhuma: sem chave em `contas` e sem saída de Python que o imprima. Ou uma chave `origem_*` diz `"informado pelo dono"` para um dado que o pedido do dono não traz.
 - **Contraria:** `analista-tese`, seção 2 ("sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta"), e `analista-core`, Persona (o tamanho é insumo para a decisão do dono).
 - **Visto:** no ensaio fora da plataforma. O bot inventou um orçamento de perda e chegou a um teto de alocação. Em dois dry runs seguidos, a divisão entre os dois títulos (70% e 30%) foi escolhida sem conta e chegou ao painel, a `## Decisão` e ao chat.
 
@@ -90,7 +90,7 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 15. Item do antagonista mudado no caminho para o texto final
 
-- **No transcript:** o texto final não sai do `mercado.py itens`: o ator grava ou edita itens à mão nas seções, ou mexe no texto final depois do `itens` numa linha de item. Ou o `/tmp/analista-antagonista-<slug>.md` difere da resposta que o subagente devolveu. Também conta a escolha: um item `Hipótese:` levado enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
+- **No transcript:** o texto final não sai do `mercado.py itens`: o ator grava itens à mão nas seções ou edita o texto final depois do `itens`, em vez de mudar o rascunho e rodar o `itens` de novo. Ou o `/tmp/analista-antagonista-<slug>.md` difere da resposta que o subagente devolveu. Também conta a escolha: um item `Hipótese:` levado enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
 - **Contraria:** `analista-tese`, seção 3 ("Grave a resposta inteira, como veio") e seção 4 ("Quem copia os itens é o `mercado.py itens`. Não digite item à mão"; "primeiro os apoiados em dado").
 - **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. Num terceiro, a ordem escrita de copiar a linha também não segurou a cópia.
 
