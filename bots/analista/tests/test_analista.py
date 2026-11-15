@@ -20,6 +20,7 @@ import pytest
 RAIZ = Path(__file__).resolve().parents[1]
 SCRIPT = RAIZ / 'skills/analista-mercado/scripts/mercado.py'
 MINIMA = RAIZ / 'skills/analista-mercado/scripts/versao-minima'
+EVAL_REVISOR = RAIZ.parents[1] / 'evals/analista/acerto/revisor'
 BASE = 'https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/analista/skills/analista-mercado/scripts'
 SKILLS_COM_DOWNLOAD = {'analista-mercado'}
 
@@ -561,7 +562,7 @@ def test_download_versao_menor_nao_troca_e_maior_troca():
 
 
 def _rodar_eval():
-    spec = importlib.util.spec_from_file_location('rodar_eval_revisor', RAIZ / 'evals/revisor/rodar.py')
+    spec = importlib.util.spec_from_file_location('rodar_eval_revisor', EVAL_REVISOR / 'rodar.py')
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -572,7 +573,7 @@ def test_eval_revisor_monta_um_caso_por_braco_e_rascunho(tmp_path, monkeypatch):
     rodar_eval.montar(tmp_path, 5)
     casos = tmp_path / 'evals'
     assert sorted(p.name for p in casos.iterdir()) == ['advogado', 'advogado-limpo', 'conferente', 'conferente-limpo']
-    pasta = RAIZ / 'evals/revisor'
+    pasta = EVAL_REVISOR
     papeis, entradas, usados = {}, {}, set()
     for sufixo, (_, arquivo, gab) in rodar_eval.RASCUNHOS.items():
         # Cada criterio do gabarito confere um trecho que existe uma vez no rascunho dele.
