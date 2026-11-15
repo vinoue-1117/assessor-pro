@@ -1,0 +1,3 @@
+# A mensagem do cliente é montada por script, e a aprovação fica presa ao código do lote
+
+O script lê os relatórios, cruza com a planilha de clientes e monta a mensagem de cada conta, sem IA no conteúdo; o bot não edita, não resume e não arredonda nada. O assessor aprova o lote inteiro uma vez, depois do resumo, e a aprovação fica presa ao código do lote, a impressão digital do conteúdo: o script recusa aprovar ou enviar lote que mudou depois do resumo, e lote preparado de novo pede nova aprovação. Para mudar a mensagem, corrige-se a planilha, o discurso macro ou o modelo e prepara-se o lote de novo. Assim o que o assessor aprovou é exatamente o que sai, e pedido de outro bot não substitui a aprovação.

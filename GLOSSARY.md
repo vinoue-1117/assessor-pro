@@ -1,6 +1,6 @@
 # Assessor Pro
 
-Bots de IA de um assessor de investimentos: o que cada bot faz, como é instalado e como uma mudança nele é avaliada.
+Bots de IA de um assessor de investimentos: o envio do relatório mensal aos clientes, a análise de mercado, a instalação dos bots e a avaliação das mudanças nas skills.
 
 ## Linguagem
 
@@ -11,16 +11,16 @@ Pessoa a quem os bots servem: instala cada bot, faz os pedidos e decide o que el
 _Evitar_: usuário
 
 **assessor**:
-Assessor de investimentos que usa os bots do Assessor: manda o lote e a planilha de clientes e aprova o envio.
+Assessor de investimentos que usa o bot de relatórios e o bot de WhatsApp, e é o dono deles. Manda o lote e a planilha de clientes e aprova o envio.
 
 **cliente**:
-Pessoa atendida pelo assessor, que recebe o relatório mensal pelo WhatsApp.
+Pessoa atendida pelo assessor, que recebe o relatório XP performance pelo WhatsApp.
 _Evitar_: contato (quando é o cliente)
 
 ### Bots
 
 **bot**:
-Assistente de IA da plataforma com uma função própria, definido por perfil, skills, rotinas e conexões.
+Assistente de IA da plataforma com uma função própria, definido pela ficha do bot.
 _Evitar_: plugin
 
 **bot de relatórios**:
@@ -28,7 +28,7 @@ Bot que prepara o lote mensal, pede a aprovação do assessor e pede cada envio 
 _Evitar_: Bot Envio, bot de envio, assessor-envio
 
 **bot de WhatsApp**:
-Bot que lê e envia no WhatsApp do dono exatamente o que outro bot do dono pediu. É a única porta do WhatsApp para os demais bots.
+Único bot que lê e envia no WhatsApp do dono. Envia exatamente o que outro bot do dono pediu.
 _Evitar_: zap, WO, assessor-zap, gateway, porta do WhatsApp
 
 **Analista**:
@@ -36,7 +36,7 @@ Bot de análise de mercado buy-side: consulta dados de mercado, faz as contas e 
 _Evitar_: bot Analista, analista-tese
 
 **Assessor**:
-Produto formado pelos dois bots que entregam o relatório mensal aos clientes: o bot de relatórios e o bot de WhatsApp.
+Produto formado pelos dois bots que entregam o relatório XP performance aos clientes: o bot de relatórios e o bot de WhatsApp.
 
 **skill core**:
 Skill de cada bot que traz a persona, o que o bot nunca faz e as regras dele, seguida em toda conversa.
@@ -52,39 +52,31 @@ _Evitar_: bot.md
 ### Instalação
 
 **ponteiro**:
-Cópia curta e gerada de uma skill, que é o que o bot instalado guarda. A cada uso ela busca a skill completa na stable e manda segui-la.
+Cópia curta e gerada de uma skill, que é o que o bot instalado guarda. A cada uso ela baixa da stable o texto da skill e manda segui-lo.
 _Evitar_: skill instalada, template
 
 **stable**:
-Versão do repositório que os bots leem. Só muda quando o dono promove.
+Versão do repositório que os bots leem. Só muda quando o dono do repositório promove.
 _Evitar_: produção
 
 **promoção**:
-Ato do dono de levar para a stable o que está na main. É o momento em que uma mudança passa a valer para os bots instalados.
+Ato do dono do repositório de levar para a stable o que está na main, por push direto e nunca por PR. É o momento em que uma mudança passa a valer para os bots instalados.
 _Evitar_: publicar
 
 **prompt de instalação**:
 Texto que o dono cola no chat do bot para ele instalar ou atualizar as próprias skills. Diz a função do bot e a pasta dele no repositório.
-
-**marca do repositório**:
-Sinal presente em todo ponteiro, o endereço da skill neste repositório, que identifica de que repositório e de que bot a skill é.
-_Evitar_: prefixo assessor-
 
 **skill órfã**:
 Skill instalada que aponta para a pasta de um bot mas cujo nome não está mais na lista de skills dele.
 _Evitar_: órfã
 
 **bot de time**:
-Bot de um plano de time, que guarda skills próprias.
-_Evitar_: Teams
+Bot de um plano de time, que guarda skills próprias, visíveis só para ele.
+_Evitar_: Teams, escopo bot
 
 **bot pessoal**:
 Bot de um plano particular, que não guarda skill própria e enxerga a biblioteca de skills do dono.
 _Evitar_: bot do plano particular
-
-**skills próprias**:
-Skills que um bot de time guarda só para si.
-_Evitar_: escopo bot
 
 **biblioteca de skills do dono**:
 Conjunto de skills compartilhado por todos os bots pessoais de um mesmo dono.
@@ -100,7 +92,7 @@ _Evitar_: erros conhecidos, erros-conhecidos
 PDF mensal da carteira de um cliente, emitido pela corretora. É o que o assessor envia e a fonte dos números da mensagem.
 
 **lote**:
-Conjunto de relatórios de um mês, um por conta, preparado e aprovado de uma vez.
+Conjunto de relatórios XP performance de um mês, um por conta, preparado e aprovado de uma vez.
 _Evitar_: envio mensal
 
 **conta**:
@@ -109,34 +101,21 @@ _Evitar_: conta_xp
 
 **planilha de clientes**:
 Planilha do assessor com conta, telefone, nome e apelido de cada cliente.
-_Evitar_: planilha ativa, clientes.csv
+_Evitar_: clientes.csv
 
 **apelido**:
 Como o assessor chama o cliente. Entra na saudação da mensagem.
 
 **preparo**:
-Etapa que lê os relatórios do lote, monta a mensagem de cada conta e dá a cada uma um status, antes da aprovação. Não envia nada.
+Etapa que lê os relatórios XP performance do lote e monta a mensagem de cada conta, com um status: pronto (vai), revisar (só vai se o assessor aprovar nominalmente) ou bloqueado (não vai). Não envia nada.
 _Evitar_: preparar envio, preparo do lote
 
-**status da conta**:
-Resultado do preparo para cada conta: pronto (vai), revisar (só vai se o assessor aprovar nominalmente) ou bloqueado (não vai).
-
 **formato mudado**:
-Situação em que o relatório parece ter outro layout. A conta sai revisar e a mensagem sai sem o bloco de números.
-
-**trava de lote**:
-Conferência feita sobre o lote inteiro: a mesma omissão em todas as contas com bloco de números marca essas contas como revisar.
-
-**código do lote**:
-Impressão digital do conteúdo de um lote. A aprovação só vale para o código atual.
-_Evitar_: CODIGO
+Situação em que o relatório XP performance parece ter outro layout. A conta sai revisar e a mensagem sai sem o bloco de números.
 
 **aprovação do lote**:
-Um único "sim" explícito do assessor ao resumo do lote. É o único gate dos envios a clientes.
-
-**gate**:
-Ponto em que alguém decide se um envio pode sair. Fica no bot que pede o envio, nunca no executor.
-_Evitar_: gate de envio, permissão de envio
+Um único "sim" explícito do assessor ao resumo do lote, preso ao código do lote, a impressão digital do conteúdo. É o único gate dos envios a clientes, e lote que muda depois do resumo pede nova aprovação.
+_Evitar_: CODIGO
 
 **pacote**:
 Unidade de um envio: um destinatário com o seu arquivo e o seu texto.
@@ -157,21 +136,17 @@ Conferência feita imediatamente antes de enviar: a caixa de mensagem tem que co
 _Evitar_: trava de conteúdo
 
 **legenda**:
-Campo de texto do anexo no WhatsApp, limitado a 1.024 caracteres, onde a mensagem do cliente vai junto com o relatório.
+Campo de texto do anexo no WhatsApp, limitado a 1.024 caracteres, onde a mensagem do cliente vai junto com o relatório XP performance.
 
 ### Mensagem
 
 **mensagem do cliente**:
-Texto de WhatsApp que acompanha o relatório: saudação com o apelido, bloco de números, cenário do mês e despedida.
+Texto de WhatsApp que acompanha o relatório XP performance: saudação com o apelido, bloco de números, discurso macro e despedida.
 _Evitar_: mensagem.txt, mensagem ao cliente, legenda
 
 **bloco de números**:
-Parte da mensagem com os números da carteira: patrimônio, rentabilidade do mês, comparativos e janelas. Traz só o que foi lido do relatório.
+Parte da mensagem com os números da carteira: patrimônio, rentabilidade do mês, comparativos e as janelas no ano e em 12 meses, com a carteira e o CDI lado a lado. Traz só o que foi lido do relatório XP performance.
 _Evitar_: NUMEROS
-
-**janela**:
-Período de rentabilidade mais longo que o mês mostrado na mensagem (no ano, 12 meses), com a carteira e o CDI lado a lado.
-_Evitar_: coluna
 
 **discurso macro**:
 Texto curto de cenário do mês, igual para todos os clientes do lote, que fecha a mensagem.
@@ -183,11 +158,8 @@ _Evitar_: ref
 
 ### WhatsApp
 
-**nome exato**:
-Regra para abrir uma conversa pelo nome: só vale um resultado único, com nome idêntico ao pedido ou a um apelido confirmado.
-
 **apelido confirmado**:
-Nome alternativo de um contato do WhatsApp que o dono confirmou uma vez.
+Nome alternativo de um contato do WhatsApp que o dono confirmou uma vez. Vale como nome exato para abrir a conversa.
 
 ### Analista
 
@@ -204,51 +176,24 @@ Conjunto dos dados de mercado, das páginas consultadas e das contas sobre o qua
 _Evitar_: pacote, JSON de dados
 
 **revisão da tese**:
-Leitura do rascunho da tese por um subagente sem o histórico da conversa, antes da publicação.
+Leitura do rascunho da tese, antes da publicação, por um subagente que recebe só o rascunho e o pacote de dados. No papel de advogado do diabo, ele confere os números, ataca as premissas e devolve um veredito: sólida, frágil ou refazer.
 _Evitar_: revisão adversarial
-
-**advogado do diabo**:
-Papel da revisão da tese que contesta o argumento e devolve um veredito: sólida, frágil ou refazer.
-
-**antagonista**:
-Papel da revisão da tese que procura contras e riscos e devolve itens para seções da tese, sem dar veredito.
-_Evitar_: advogado do diabo
-
-**conferente**:
-Papel da revisão da tese que confere o texto final contra o pacote de dados, só por fato, e decide a publicação.
-_Evitar_: conferente factual, revisor
-
-**veredito**:
-Conclusão que o revisor declara sobre o rascunho da tese.
 
 ### Avaliação
 
 **eixo**:
-Cada uma das três perguntas independentes com que se avalia uma mudança de skill: fluxo, acerto e gosto. Não são etapas e não têm ordem.
-_Evitar_: alicerce, etapa
-
-**eixo de fluxo**:
-Eixo que pergunta se o bot segue a skill.
-
-**eixo de acerto**:
-Eixo que pergunta se a resposta do bot está certa, quando há uma referência conhecida.
-
-**eixo de gosto**:
-Eixo que pergunta qual formato de saída o dono prefere. O dono lê amostras de variantes e escolhe.
-_Evitar_: modo de gosto
+Cada uma das três perguntas independentes com que se avalia uma mudança de skill: fluxo (o bot segue a skill?), acerto (a resposta está certa contra uma referência conhecida?) e gosto (qual formato de saída o dono prefere?). Não são etapas e não têm ordem.
+_Evitar_: alicerce, etapa, modo de gosto
 
 **dry run**:
 Rodada em que um ator faz o papel do bot sobre um cenário, fora da plataforma, e um avaliador lê o transcript.
 _Evitar_: ensaio fora da plataforma, benchmark, harness, rodada de prova
 
-**live run**:
-Avaliação feita sobre a conversa real de um bot na plataforma, sem ator.
-
 **ator**:
 Claude que faz o papel do bot num dry run, com as skills da branch.
 
 **avaliador**:
-Agente que lê o transcript contra as skills e os erros do fluxo e escreve o relatório de desvios. Não dá nota nem corrige a skill.
+Agente que lê o transcript contra as skills e as falhas já vistas no fluxo e escreve o relatório de desvios. Não dá nota nem corrige a skill.
 _Evitar_: avaliador-transcript
 
 **cenário**:
@@ -256,14 +201,7 @@ Descrição do pedido feito ao bot num dry run e do que substitui a plataforma n
 _Evitar_: cenario.md
 
 **desvio**:
-Ponto em que o ator contraria a skill: faz o que ela proíbe, deixa de fazer o que ela manda ou faz fora de ordem.
-
-**lacuna da skill**:
-Caso em que a skill não diz o que fazer. Não é desvio do ator.
-
-**erros do fluxo**:
-Lista das falhas já vistas num fluxo, cada uma com a instrução da skill que ela contraria. É a régua do avaliador.
-_Evitar_: erros.md
+Ponto em que o ator contraria a skill: faz o que ela proíbe, deixa de fazer o que ela manda ou faz fora de ordem. Quando a skill não diz o que fazer, é lacuna da skill, não desvio.
 
 **variante**:
 Versão alternativa de uma instrução do bot, usada no eixo de gosto.
@@ -273,7 +211,6 @@ Saída de uma variante sobre a entrada comum, lida pelo dono no eixo de gosto.
 
 **partida**:
 Arquivos congelados de uma rodada anterior, de onde todas as variantes de uma rodada de gosto começam.
-_Evitar_: arquivos congelados
 
 **pasta de dados**:
 Pasta privada, fora do repositório, onde ficam transcripts, relatórios e amostras.
@@ -281,10 +218,3 @@ Pasta privada, fora do repositório, onde ficam transcripts, relatórios e amost
 **caso**:
 Unidade do eixo de acerto: uma entrada fictícia com gabarito e critérios.
 _Evitar_: caso de eval, caso de acerto
-
-**gabarito**:
-Lista dos erros plantados e das frases corretas de um rascunho, usada para contar o que o revisor pegou ou contestou.
-
-**juiz**:
-Quem decide o resultado de uma avaliação: um modelo no eixo de acerto, o dono no eixo de gosto.
-_Evitar_: graders
