@@ -7,7 +7,7 @@ Cada papel fica num arquivo desta pasta, e o script não lê a skill:
 | Arquivo | Papel |
 | --- | --- |
 | `papel-advogado.md` | advogado do diabo: confere os números, ataca a tese e devolve veredito `sólida`, `frágil` ou `refazer`. A skill não usa este papel; ele é a base de comparação dos outros dois |
-| `papel-conferente.md` | o que a seção 4 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao conferente: confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever`. Como na skill, recebe também o pedido do dono (`pedido.md`), que sustenta o dado "informado pelo dono" do pacote |
+| `papel-conferente.md` | o que a seção 4 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao conferente: confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever`. Como na skill, recebe também as mensagens do dono (aqui, só o pedido: `pedido.md`), que sustenta o dado "informado pelo dono" do pacote |
 | `papel-antagonista.md` | o que a seção 3 da `analista-tese` passa ao antagonista: procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` |
 
 ## Casos

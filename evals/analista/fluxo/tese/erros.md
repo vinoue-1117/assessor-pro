@@ -12,7 +12,7 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 2. Tamanho sugerido sem entrada
 
-- **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem. Ou o tamanho aparece no rascunho sem conta nenhuma: sem chave em `contas` e sem saída de Python que o imprima. Ou uma chave `origem_*` diz `"informado pelo dono"` para um dado que o pedido do dono não traz.
+- **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem. Ou o tamanho aparece no rascunho sem conta nenhuma: sem chave em `contas` e sem saída de Python que o imprima. Ou uma chave `origem_*` diz `"informado pelo dono"` para um dado que nenhuma mensagem do dono traz.
 - **Contraria:** `analista-tese`, seção 2 ("sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta"), e `analista-core`, Persona (o tamanho é insumo para a decisão do dono).
 - **Visto:** no ensaio fora da plataforma. O bot inventou um orçamento de perda e chegou a um teto de alocação. Em dois dry runs seguidos, a divisão entre os dois títulos (70% e 30%) foi escolhida sem conta e chegou ao painel, a `## Decisão` e ao chat.
 

@@ -600,6 +600,8 @@ def cmd_itens(a):
     with open(a.resposta, encoding="utf-8") as f:
         itens, ignoradas = ler_itens(f.read())
     if not a.saida:
+        if a.levar or a.hipotese:
+            return erro("--levar e --hipotese exigem --rascunho e --saida; sem as tres, o comando so lista os itens")
         return {"itens": itens, "ignoradas": ignoradas}
     if not a.rascunho:
         return erro("--saida exige --rascunho")

@@ -444,6 +444,10 @@ def test_itens_copia_a_linha_do_antagonista_para_a_secao(tmp_path):
     assert lista['itens'][4]['linha'] == 'IPCA médio acima de 5,88% a.a., com o Focus subindo (inflacao_implicita_pct_aa 5,88).'
     assert lista['ignoradas'] == ['Li o rascunho e o pacote.', '**Observação**', '- Fora de bloco.']
 
+    # Escolha sem --saida e erro: nao devolve a lista nem deixa o texto final de outra passada em uso.
+    code, _, _ = rodar(['itens', str(resposta), '--rascunho', str(rascunho), '--levar', '1'])
+    assert code != 0 and not saida.exists()
+
     base = ['itens', str(resposta), '--rascunho', str(rascunho), '--saida', str(saida)]
     for escolha in (['--levar', '4'], ['--levar', '1,1'], ['--levar', '1', '--hipotese', '1'], ['--levar', '9']):
         code, _, _ = rodar(base + escolha)
@@ -658,10 +662,10 @@ def test_eval_revisor_monta_os_casos(tmp_path):
         cabeca, entradas[nome] = (caso / 'prompt.md').read_text(encoding='utf-8').split('## Rascunho', 1)
         assert 'runs: 5' in cabeca
         # O caso recebe o papel do arquivo dele.
-        papeis[nome] = cabeca.split('Papel: ', 1)[1].split('## Pedido do dono', 1)[0].strip()
+        papeis[nome] = cabeca.split('Papel: ', 1)[1].split('## Mensagens do dono', 1)[0].strip()
         assert papeis[nome] == (pasta / papel).read_text(encoding='utf-8').strip()
-        # So o conferente recebe o pedido do dono, que sustenta o dado "informado pelo dono" do pacote.
-        assert ('## Pedido do dono' in cabeca) == (papel == 'papel-conferente.md'), nome
+        # So o conferente recebe as mensagens do dono, que sustenta o dado "informado pelo dono" do pacote.
+        assert ('## Mensagens do dono' in cabeca) == (papel == 'papel-conferente.md'), nome
         assert sorted(p.stem for p in (caso / 'graders').iterdir()) == sorted(gabarito)
     assert usados == {p.stem for p in (pasta / 'graders').iterdir()}
     # Os papeis de um rascunho recebem a mesma entrada; o rascunho sem erro nao traz nenhum erro plantado.
