@@ -91,7 +91,7 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 ## 15. Item do antagonista mudado no caminho para o texto final
 
 - **No transcript:** o texto final não sai do `mercado.py itens`: o ator grava itens à mão nas seções ou edita o texto final depois do `itens`, em vez de mudar o rascunho e rodar o `itens` de novo. Ou o `/tmp/analista-antagonista-<slug>.md` difere da resposta que o subagente devolveu. Também conta a escolha: um item `Hipótese:` levado enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
-- **Contraria:** `analista-tese`, seção 3 ("Grave a resposta inteira, como veio") e seção 4 ("Quem copia os itens é o `mercado.py itens`. Não digite item à mão"; "primeiro os apoiados em dado").
+- **Contraria:** `analista-tese`, seção 3 ("Grave a resposta inteira, como veio") e seção 4 ("Quem grava o texto final é o `mercado.py itens`, mesmo sem item. Não digite item à mão nem edite o texto final"; "primeiro os apoiados em dado").
 - **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. Num terceiro, a ordem escrita de copiar a linha também não segurou a cópia.
 
 ## 16. Tese sem catalisador nem assimetria

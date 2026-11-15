@@ -418,7 +418,7 @@ def test_itens_copia_a_linha_do_antagonista_para_a_secao(tmp_path):
         'Li o rascunho e o pacote.\n'
         '**Contras (2)**\n'
         '- O IPCA de 12 meses já passa do Focus de 2027 (acumulado_12m 4,8; ipca_2027_pct 4,2).\n'
-        'Hipótese: a implícita embute prêmio de risco.\n'
+        '**Hipótese:** a implícita embute prêmio de risco.\n'
         '\n## Riscos, limitações e premissas\n'
         '1. O título é o mais sensível a juros (pu (compra) 764,05).\n'
         '2. Sem dado e sem marca.\n'
@@ -453,12 +453,16 @@ def test_itens_copia_a_linha_do_antagonista_para_a_secao(tmp_path):
         code, _, _ = rodar(base + escolha)
         assert code != 0 and not saida.exists(), escolha
 
+    # O texto final no arquivo do rascunho acumularia os itens a cada passada.
+    code, _, _ = rodar(['itens', str(resposta), '--rascunho', str(rascunho), '--saida', str(rascunho), '--levar', '1'])
+    assert code != 0 and '- O IPCA' not in rascunho.read_text(encoding='utf-8')
+
     code, res, _ = rodar(base + ['--levar', '1,2,5', '--hipotese', '3'])
     assert code == 0 and res['fora'] == [4]
     assert saida.read_text(encoding='utf-8') == (
         '# Tese\n\n## Contras\n'
         '- O IPCA de 12 meses já passa do Focus de 2027 (acumulado_12m 4,8; ipca_2027_pct 4,2).\n'
-        '- Hipótese: a implícita embute prêmio de risco.\n'
+        '- **Hipótese:** a implícita embute prêmio de risco.\n'
         '\n## Riscos, limitações e premissas\n- Linha do ator.\n'
         '- Hipótese: O título é o mais sensível a juros\n'
         '\n## Decisão de alocação\nComprar.\n'
