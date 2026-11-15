@@ -8,7 +8,7 @@ Cada papel fica num arquivo desta pasta, e o script não lê a skill:
 | --- | --- | --- |
 | `papel-advogado.md` | o que a seção 3 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao revisor | `advogado` |
 | `papel-conferente.md` | confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever` | `conferente` |
-| `papel-antagonista.md` | procura contras e riscos e devolve itens, cada um com a seção de destino, sem veredito | nenhum: a régua deste caso conta veredito |
+| `papel-antagonista.md` | procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` | nenhum: a régua deste caso conta veredito |
 
 | Rascunho | Conteúdo | Gabarito | Casos |
 | --- | --- | --- | --- |
