@@ -28,7 +28,7 @@ def test_legivel_numera_passos_liga_subagente_e_corta():
     dry = _dry_run()
     longo = 'x' * (dry.LIMITE + 500)
     eventos = [
-        {'type': 'system', 'subtype': 'init', 'model': 'm', 'tools': ['Bash'], 'skills': ['analista-tese'], 'agents': ['knowledgeWork']},
+        {'type': 'system', 'subtype': 'init', 'model': 'm', 'tools': ['Bash'], 'skills': ['analista-tese', 'dataviz'], 'agents': ['knowledgeWork']},
         {'type': 'rate_limit_event'},
         _assistente([{'type': 'tool_use', 'id': 'b1', 'name': 'Bash', 'input': {'command': 'python mercado.py tesouro'}}]),
         _usuario([{'type': 'tool_result', 'tool_use_id': 'b1', 'content': longo}]),
@@ -38,15 +38,24 @@ def test_legivel_numera_passos_liga_subagente_e_corta():
         _usuario('revise', pai='a1'),
         _assistente([{'type': 'text', 'text': 'Veredito: frágil'}], pai='a1'),
         _usuario([{'type': 'tool_result', 'tool_use_id': 'a1', 'content': [{'type': 'text', 'text': 'Veredito: frágil'}]}]),
+        # Skill do Claude Code pode carregar sem estar no init: a marca vem do nome pedido.
+        _assistente([{'type': 'tool_use', 'id': 's1', 'name': 'Skill', 'input': {'skill': 'analista-tese'}},
+                     {'type': 'tool_use', 'id': 's2', 'name': 'Skill', 'input': {'skill': 'artifact-design'}}]),
         {'type': 'result', 'subtype': 'success', 'num_turns': 3, 'duration_ms': 10, 'result': 'Page: page.md',
          'permission_denials': [{'tool_name': 'PowerShell'}]},
     ]
     linhas = [json.dumps(e) for e in eventos]
     # Aviso em texto no stdout e última linha cortada não derrubam a conversão.
     linhas[1:1] = ['aviso solto no stdout']
-    texto = dry.legivel(linhas + ['', '{"type": "assist'])
+    texto = dry.legivel(linhas + ['', '{"type": "assist'], ['analista-tese'])
 
-    assert 'skills: analista-tese' in texto
+    assert 'skills: analista-tese, dataviz' in texto
+    # Skill de fora do bot, vista no init ou chamada, fica marcada logo abaixo do título.
+    assert texto.startswith('# Transcript do ator\n\n## fora do bot\n\nno init: dataviz\n\n'
+                            'chamadas: artifact-design (passo 4, ator)\n\n')
+    assert '## passo 3: ator chama Skill (analista-tese)\n' in texto
+    assert '## passo 4: ator chama Skill (artifact-design) [fora do bot]\n' in texto
+    assert 'fora do bot' not in dry.legivel([json.dumps(eventos[0])], ['analista-tese', 'dataviz'])
     assert '## passo 1: ator chama Bash (Bash)\n\n```\npython mercado.py tesouro\n```' in texto
     # O resultado longo é cortado e aponta a linha do jsonl (5ª linha do stream).
     assert '### resultado do passo 1 (Bash), para ator' in texto
@@ -59,7 +68,7 @@ def test_legivel_numera_passos_liga_subagente_e_corta():
     assert '### resultado do passo 2 (knowledgeWork), para ator\n\n```\nVeredito: frágil\n```' in texto
     assert 'turnos: 3' in texto and 'PowerShell' in texto and texto.index('Rascunho pronto.') < texto.index('passo 2')
     assert '## linha 2 fora do JSON\n\n```\naviso solto no stdout\n```' in texto
-    assert '## linha 12 fora do JSON\n\n```\n{"type": "assist\n```' in texto
+    assert '## linha 13 fora do JSON\n\n```\n{"type": "assist\n```' in texto
 
 
 def test_pasta_do_bot_e_fluxo_invalido(tmp_path):
@@ -145,6 +154,9 @@ def test_gosto_sobrepoe_variante_copia_partida_e_indexa(tmp_path, monkeypatch):
         if dest.name != 'persona-2':
             (dest / 'page.html').write_text('<p>page</p>', encoding='utf-8')
             (dest / 'transcript.md').write_text('t', encoding='utf-8')
+        if dest.name == 'nova-1':
+            carga = _assistente([{'type': 'tool_use', 'id': 's1', 'name': 'Skill', 'input': {'skill': 'dataviz'}}])
+            (dest / 'transcript.md').write_text(dry.legivel([json.dumps(carga)], ['um', 'dois']), encoding='utf-8')
         return 0
 
     monkeypatch.setattr(dry, 'atuar', ator_falso)
@@ -166,3 +178,6 @@ def test_gosto_sobrepoe_variante_copia_partida_e_indexa(tmp_path, monkeypatch):
     # Amostra que caiu sem transcript aponta o ator.err.
     assert 'persona-2: sem page.html' in indice and '<a href="persona-2/ator.err">' in indice
     assert indice.index('<th>base</th>') < indice.index('base-2/page.html') < indice.index('<th>nova</th>')
+    # A carga de skill de fora do bot aparece na célula da amostra, e só nela.
+    marca = '<strong>fora do bot: chamadas dataviz (passo 1, ator); no init nenhuma</strong>'
+    assert indice.count('fora do bot') == 1 and indice.index('nova-1/transcript.md') < indice.index(marca) < indice.index('nova-2')

@@ -50,6 +50,9 @@ ROOT = Path(__file__).resolve().parents[1]
 ATOR = "sonnet"
 AVALIADOR = "opus"
 FERRAMENTAS = ["Bash", "Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch", "Agent", "Skill"]
+# Skills do Claude Code que o disableBundledSkills deixa no init; o skillOverrides "off" tira por nome.
+# Skill nova numa versão futura escapa desta lista e aparece na seção "## fora do bot" do transcript.md.
+ESCONDIDAS = ["design", "doctor", "plugin-authoring"]
 # Linha do .env da raiz com a pasta de dados privada, que recebe a cópia de cada rodada.
 VAR_DADOS = "ASSESSOR_EVALS_DADOS"
 # Caracteres de cada bloco no transcript legível. A íntegra fica no transcript.jsonl.
@@ -164,7 +167,13 @@ def ambiente(**extra):
 
 def comando_ator(claude, fluxo, sistema, skills):
     # setting-sources project tira as skills e as rules do usuário; o claudeMdExcludes tira o CLAUDE.md dele.
-    excluir = {"claudeMdExcludes": [barra(Path.home() / ".claude" / "CLAUDE.md"), "**/CLAUDE.md"]}
+    # O disableBundledSkills e o skillOverrides tiram as skills do Claude Code: o allowedTools só
+    # pré-aprova, e o dontAsk não nega skill que não pede aprovação.
+    excluir = {
+        "claudeMdExcludes": [barra(Path.home() / ".claude" / "CLAUDE.md"), "**/CLAUDE.md"],
+        "disableBundledSkills": True,
+        "skillOverrides": {s: "off" for s in ESCONDIDAS},
+    }
     permitidas = [f for f in FERRAMENTAS if f != "Skill"] + [f"Skill({s})" for s in skills]
     comando = [
         claude, "-p", "--model", ATOR, "--setting-sources", "project", "--settings", json.dumps(excluir),
@@ -192,16 +201,22 @@ def conteudo(bloco):
     return valor or ""
 
 
-def legivel(linhas):
+def legivel(linhas, do_bot):
     """Transcript em markdown a partir do stream-json do ator, um passo por bloco.
 
     Cada chamada de ferramenta ganha um número de passo. O resultado e as
     mensagens de subagente apontam para esse número, e bloco longo é cortado
     com a linha do jsonl onde está a íntegra.
+
+    Skill que não está em `do_bot` (as pastas de `.claude/skills` da execução), listada
+    no init ou chamada pela ferramenta Skill, entra na seção `## fora do bot`, logo
+    abaixo do título. A chamada é comparada pelo nome pedido, e não pela lista do
+    init: uma skill do Claude Code pode carregar sem aparecer nele.
     """
     saida = ["# Transcript do ator"]
     chamadas = {}  # tool_use_id -> (passo, nome)
     passo = 0
+    vistas_fora, chamadas_fora = [], []
     for n, linha in enumerate(linhas, 1):
         if not linha.strip():
             continue
@@ -213,6 +228,7 @@ def legivel(linhas):
             continue
         tipo = evento.get("type")
         if tipo == "system" and evento.get("subtype") == "init":
+            vistas_fora = [s for s in evento.get("skills", []) if s not in do_bot]
             saida.append(
                 f"modelo: {evento.get('model')}\n\nferramentas: {', '.join(evento.get('tools', []))}\n\n"
                 f"skills: {', '.join(evento.get('skills', []))}\n\nagentes: {', '.join(evento.get('agents', []))}"
@@ -242,8 +258,12 @@ def legivel(linhas):
                     entrada = bloco.get("input", {})
                     nome = entrada.get("subagent_type") or entrada.get("skill") or bloco["name"]
                     chamadas[bloco["id"]] = (passo, nome)
+                    fora = ""
+                    if bloco["name"] == "Skill" and entrada.get("skill") not in do_bot:
+                        fora = " [fora do bot]"
+                        chamadas_fora.append(f"{entrada.get('skill')} (passo {passo}, {quem})")
                     corpo = entrada["command"] if bloco["name"] == "Bash" and "command" in entrada else json.dumps(entrada, ensure_ascii=False, indent=1)
-                    saida.append(f"## passo {passo}: {quem} chama {bloco['name']} ({nome})\n\n```\n{cortar(corpo, n)}\n```")
+                    saida.append(f"## passo {passo}: {quem} chama {bloco['name']} ({nome}){fora}\n\n```\n{cortar(corpo, n)}\n```")
                 elif b == "tool_result":
                     p, nome = chamadas.get(bloco.get("tool_use_id"), ("?", "?"))
                     erro = " (erro)" if bloco.get("is_error") else ""
@@ -257,6 +277,9 @@ def legivel(linhas):
                     else:
                         rotulo = f"{'texto' if b == 'text' else 'raciocinio'} de {quem}"
                     saida.append(f"### {rotulo}\n\n{cortar(texto, n)}")
+    if vistas_fora or chamadas_fora:
+        saida.insert(1, f"## fora do bot\n\nno init: {', '.join(vistas_fora) or 'nenhuma'}\n\n"
+                        f"chamadas: {'; '.join(chamadas_fora) or 'nenhuma'}")
     return "\n\n".join(saida) + "\n"
 
 
@@ -340,12 +363,15 @@ def atuar(claude, fluxo, pedido, sistema, dest):
                            stdout=saida, stderr=erros, text=True, encoding="utf-8")
     linhas = jsonl.read_text(encoding="utf-8").splitlines()
     if linhas:
-        (dest / "transcript.md").write_text(legivel(linhas), encoding="utf-8", newline="\n")
+        (dest / "transcript.md").write_text(legivel(linhas, skills), encoding="utf-8", newline="\n")
     return r.returncode
 
 
 def indice(rodada, titulo, feitas):
-    """Grava o index.html da rodada: uma linha por variante, uma coluna por amostra, com o link da page.html."""
+    """Grava o index.html da rodada: uma linha por variante, uma coluna por amostra, com o link da page.html.
+
+    Amostra cujo transcript.md tem a seção `## fora do bot` leva na célula as skills de fora do bot.
+    """
     linhas = {}
     for variante, n, codigo, segundos in feitas:
         nome = html.escape(f"{variante}-{n}")
@@ -353,8 +379,13 @@ def indice(rodada, titulo, feitas):
         if codigo != 0:
             celula += f" (exit {codigo})"
         # Sem transcript.md o ator não emitiu nada, e o ator.err é o que explica a queda.
-        log = "transcript.md" if (rodada / f"{variante}-{n}" / "transcript.md").is_file() else "ator.err"
+        transcript = rodada / f"{variante}-{n}" / "transcript.md"
+        log = "transcript.md" if transcript.is_file() else "ator.err"
         celula += f' <small>{segundos:.0f} s, <a href="{nome}/{log}">{log}</a></small>'
+        fora = transcript.is_file() and re.search(r"^## fora do bot\n\nno init: (.*)\n\nchamadas: (.*)$",
+                                                  transcript.read_text(encoding="utf-8"), re.M)
+        if fora:
+            celula += f"<br><strong>fora do bot: chamadas {html.escape(fora[2])}; no init {html.escape(fora[1])}</strong>"
         linhas.setdefault(variante, []).append(f"<td>{celula}</td>")
     corpo = "\n".join(f"<tr><th>{html.escape(v)}</th>{''.join(c)}</tr>" for v, c in linhas.items())
     t = html.escape(titulo)
