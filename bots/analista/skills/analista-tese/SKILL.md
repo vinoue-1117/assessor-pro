@@ -29,7 +29,7 @@ Grave o pacote em `/tmp/analista-dados-<slug>.json` com `json.dump` em Python. N
 
 ## 2. Rascunho
 
-Escreva `/tmp/analista-rascunho-<slug>.md` em markdown, já nas seções da Page (seção 5). O rascunho traz a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON.
+Escreva `/tmp/analista-rascunho-<slug>.md` em markdown, já nas seções da Page (seção 5). O rascunho traz a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Em pedido sem decisão de alocação, ele fica sem a decisão, o tamanho sugerido, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON.
 
 ## 3. Antagonista
 
@@ -49,7 +49,7 @@ Escreva `/tmp/analista-tese-<slug>.md`: o rascunho com os itens do antagonista n
 | --- | --- |
 | `Contras` | `## Contras` |
 | `Riscos` | `## Riscos, limitações e premissas` |
-| `O que faria mudar de ideia` | `## Decisão` |
+| `O que faria mudar de ideia` | `## Decisão`; em pedido sem decisão de alocação, `## Riscos, limitações e premissas` |
 
 O item entra só na seção de destino, como veio: o dado entre parênteses no fim, ou `Hipótese:` no começo. Não reescreva o resto da tese por causa dele. Item de risco ou de gatilho com limite numérico ganha também uma linha na tabela de sinais.
 
@@ -75,7 +75,7 @@ A Page publica o texto que a última conferência leu. Não mude número, gatilh
 
 ## 5. Page
 
-Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir do texto final conferido. A skill `canvas` escolhe o componente de cada seção. Painel, gráfico e tabela só usam número que está no texto final. Se a Page não publicar, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
+Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir do texto final conferido. A skill `canvas` escolhe o componente de cada seção. Painel e tabela só usam número que está no texto final. O gráfico usa a série do pacote de dados, sem ponto de fora dele. Se a Page não publicar, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
 
 A Page tem estas seções, nesta ordem:
 
@@ -87,7 +87,7 @@ A Page tem estas seções, nesta ordem:
 6. `## Decisão`, em destaque: lado, tamanho sugerido, horizonte e o que faria mudar de ideia.
 7. Uma seção `## Fontes` com fonte, data e horário de cada número e de cada documento.
 
-Seção sem conteúdo sai da Page. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) sai sem o painel e sem `## Decisão`.
+Seção sem conteúdo sai da Page. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) sai sem o painel e sem `## Decisão`, e os itens de `O que faria mudar de ideia` vão para `## Riscos, limitações e premissas`.
 
 As respostas do antagonista e do conferente são material de trabalho e ficam fora da Page: nada de resultado da conferência, seção de resposta à revisão ou ressalva espalhada pelos parágrafos.
 
