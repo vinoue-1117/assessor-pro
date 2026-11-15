@@ -13,7 +13,7 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 ## 2. Tamanho sugerido sem entrada
 
 - **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem. Ou o tamanho aparece no rascunho sem conta nenhuma: sem chave em `contas` e sem saída de Python que o imprima.
-- **Contraria:** `analista-tese`, seção 1 ("Se a conta não sair do script, não entre na tese"), e `analista-core`, Persona (o tamanho é insumo para a decisão do dono). As skills não dizem com que dado calcular o tamanho nem mandam perguntar ao dono quando ele falta. O avaliador aponta o que o ator fez com o buraco.
+- **Contraria:** `analista-tese`, seção 2 ("sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta"), e `analista-core`, Persona (o tamanho é insumo para a decisão do dono).
 - **Visto:** no ensaio fora da plataforma. O bot inventou um orçamento de perda e chegou a um teto de alocação. Em dois dry runs seguidos, a divisão entre os dois títulos (70% e 30%) foi escolhida sem conta e chegou ao painel, a `## Decisão` e ao chat.
 
 ## 3. Ordem de conferência que não vale para título público
@@ -85,19 +85,19 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 ## 14. Tese reprovada entregue no chat
 
 - **No transcript:** depois da segunda conferência com `reescrever`, a mensagem final traz, além das divergências, a decisão de alocação (lado, tamanho, horizonte), números da tese ou ressalvas em lista. Ou oferece corrigir e rodar uma nova conferência.
-- **Contraria:** `analista-tese`, seção 4 ("Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote"; "São duas conferências no máximo") e seção 5 ("Não cole a tese no chat").
+- **Contraria:** `analista-tese`, seção 4 ("Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: sem a decisão, o tamanho, os números ou as ressalvas da tese, e sem oferecer outra conferência").
 - **Visto:** num dry run. A Page não saiu, mas o chat trouxe a compra recomendada, com a divisão entre os títulos e cinco ressalvas, uma delas num trecho que a conferência tinha apontado.
 
 ## 15. Item do antagonista mudado no caminho para o texto final
 
 - **No transcript:** comparar cada item da resposta do antagonista com a linha que o ator grava no texto final. É desvio: dois itens juntados num, um dado entre parênteses que o antagonista não citou, a conclusão do item trocada, o item gravado numa seção diferente da que o antagonista indicou, ou a seção que leva um item `Hipótese:` enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
-- **Contraria:** `analista-tese`, seção 4 ("O item entra só na seção de destino, como veio: o dado entre parênteses no fim, ou `Hipótese:` no começo"; "fique primeiro com os apoiados em dado").
+- **Contraria:** `analista-tese`, seção 4 ("Copie a linha do item: não junte dois itens, não troque a conclusão e não acrescente dado"; "fique primeiro com os apoiados em dado").
 - **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. O conferente não recebe a resposta do antagonista e não tem como ver a troca.
 
 ## 16. Rascunho sem catalisador nem assimetria
 
 - **No transcript:** numa tese com decisão de alocação, o rascunho e a Page não dizem qual é o catalisador, ou mostram o ganho no cenário base sem a perda no cenário contrário com chave em `contas`. Ou o rascunho chega ao antagonista sem a tabela de sinais e com `## Riscos, limitações e premissas` ou `## Decisão` vazias, e o texto final ganha linhas do ator que o antagonista não leu.
-- **Contraria:** `analista-tese`, seção 2 ("já nas seções da Page"; "O rascunho traz a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia"), e `analista-core`, Persona ("deixe explícitos: a assimetria de upside contra downside, o tamanho sugerido, o catalisador").
+- **Contraria:** `analista-tese`, seção 2 ("já nas seções da Page"; "Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: [...] Se não houver, escreva que não há") e seção 5, item 6 (`## Decisão` com a assimetria e o catalisador).
 - **Visto:** em dois dry runs seguidos. Nos dois faltou o catalisador. Num deles, a tabela de sinais só apareceu no texto final, e as duas conferências apontaram a coerência das cores dela.
 
 ## 17. Painel sem data e documento sem horário
