@@ -11,7 +11,7 @@ Pessoa a quem os bots servem: instala cada bot, faz os pedidos e decide o que el
 _Evitar_: usuário
 
 **assessor**:
-Assessor de investimentos que usa o bot de relatórios e o bot de WhatsApp, e é o dono deles. Manda o lote e a planilha de clientes e aprova o envio.
+Assessor de investimentos que usa os bots do Assessor Pro: manda o lote e a planilha de clientes e aprova o envio.
 
 **cliente**:
 Pessoa atendida pelo assessor, que recebe o relatório XP performance pelo WhatsApp.
@@ -35,8 +35,9 @@ _Evitar_: zap, WO, assessor-zap, gateway, porta do WhatsApp
 Bot de análise de mercado buy-side: consulta dados de mercado, faz as contas e entrega a tese numa Page. Não participa do envio nem acessa corretora.
 _Evitar_: bot Analista, analista-tese
 
-**Assessor**:
+**Assessor Pro**:
 Produto formado pelos dois bots que entregam o relatório XP performance aos clientes: o bot de relatórios e o bot de WhatsApp.
+_Evitar_: Assessor
 
 **skill core**:
 Skill de cada bot que traz a persona, o que o bot nunca faz e as regras dele, seguida em toda conversa.
@@ -176,7 +177,7 @@ Conjunto dos dados de mercado, das páginas consultadas e das contas sobre o qua
 _Evitar_: pacote, JSON de dados
 
 **revisão da tese**:
-Leitura do rascunho da tese, antes da publicação, por um subagente que recebe só o rascunho e o pacote de dados. No papel de advogado do diabo, ele confere os números, ataca as premissas e devolve um veredito: sólida, frágil ou refazer.
+Leitura do rascunho da tese, antes da publicação, por um subagente que recebe só o rascunho e o pacote de dados.
 _Evitar_: revisão adversarial
 
 ### Avaliação
