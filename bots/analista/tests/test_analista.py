@@ -613,9 +613,10 @@ def test_eval_revisor_monta_os_casos(tmp_path):
         assert limpo < set((pasta / derivado).read_text(encoding='utf-8').splitlines()), derivado
     # O pacote do eval traz a limitacao do Tesouro com o texto que o mercado.py devolve.
     assert json.loads(rodar_eval.ler('dados.json'))['mercado'][0]['limitacao'] == MOD.LIMITACAO_TESOURO
-    # O papel que a skill passa ao revisor e o do arquivo do advogado: papel trocado na skill sem trocar o arquivo falha aqui.
+    # Os papeis que a skill passa ao antagonista e ao conferente, nessa ordem, sao os dos arquivos do eval:
+    # papel trocado na skill sem trocar o arquivo falha aqui.
     skill = (RAIZ / 'skills/analista-tese/SKILL.md').read_text(encoding='utf-8')
-    assert re.findall(r'^- o papel: (.+)$', skill, re.M) == [papeis['advogado']]
+    assert re.findall(r'^- o papel: (.+)$', skill, re.M) == [papeis['antagonista'], papeis['conferente']]
 
 
 def test_eval_revisor_relatorio_de_entrada_marca_o_gabarito(tmp_path):

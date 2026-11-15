@@ -1,6 +1,6 @@
 ---
 name: analista-tese
-description: 'Use quando o pedido envolver tese, comparação, relatório ou estrutura em Page, com revisão adversarial antes de publicar.'
+description: 'Use quando o pedido envolver tese, comparação, relatório ou estrutura em Page, com contras e conferência dos números antes de publicar.'
 ---
 
 # Instruções atuais

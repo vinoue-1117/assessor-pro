@@ -1,6 +1,6 @@
 # analista
 
-Bot **Analista**: analista de mercado buy-side em pt-BR. Consulta preços com `yfinance` e taxas no Banco Central e no Tesouro Transparente, faz as contas em Python e entrega teses e comparações em Page depois de revisão adversarial.
+Bot **Analista**: analista de mercado buy-side em pt-BR. Consulta preços com `yfinance` e taxas no Banco Central e no Tesouro Transparente, faz as contas em Python e entrega teses e comparações em Page, com os contras levantados e os números conferidos antes de publicar.
 
 Ficha do bot: [`bot.md`](bot.md).
 
@@ -21,7 +21,7 @@ No fim, mostre a checklist do instalar.md marcada.
 | --- | --- |
 | `analista-core` | sempre: persona, regras e entrega |
 | `analista-mercado` | cotação, histórico, opções via `yfinance`, Selic, CDI e IPCA do Banco Central, taxa do Tesouro Direto, ou conta em Python |
-| `analista-tese` | tese, comparação, relatório ou Page, com revisão adversarial antes de publicar |
+| `analista-tese` | tese, comparação, relatório ou Page, com contras e conferência dos números antes de publicar |
 
 O bot instalado guarda o ponteiro. A skill completa é baixada da branch `stable` a cada uso. Os ponteiros em `ponteiros/` são gerados por `python scripts/gerar-ponteiros.py`. Não edite essa pasta à mão.
 

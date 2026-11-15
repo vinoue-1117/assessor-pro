@@ -12,7 +12,7 @@ Bots para assessores enviarem o relatório mensal de performance da corretora (P
 | --- | --- | --- | --- |
 | [`assessor/envio`](bots/assessor/envio) | Relatórios - Assessor Pro | recebe o zip do lote e a planilha de clientes, monta um pacote por cliente com script determinístico, confere, pede UMA aprovação do lote e entrega cada envio ao bot de WhatsApp | enviar direto, reescrever texto, responder cliente, inventar número |
 | [`assessor/zap`](bots/assessor/zap) | Whatsapp - Assessor Pro | lê e envia no WhatsApp Web exatamente o que outro bot do dono pediu (o gate é de quem pede); exporta conversas; acompanha conversas por rotas pedidas pelos bots e encaminha as respostas | escrever conteúdo, escolher destinatário, responder por conta própria |
-| [`analista`](bots/analista) | Analista | consulta cotação, histórico e opções pelo `yfinance`, Selic, CDI e IPCA no Banco Central e taxa do Tesouro Direto, faz as contas em Python e entrega tese ou comparação em Page depois de revisão adversarial | mandar ordem, acessar corretora ou conta, falar com terceiros, inventar número |
+| [`analista`](bots/analista) | Analista | consulta cotação, histórico e opções pelo `yfinance`, Selic, CDI e IPCA no Banco Central e taxa do Tesouro Direto, faz as contas em Python e entrega tese ou comparação em Page, com os contras levantados e os números conferidos antes de publicar | mandar ordem, acessar corretora ou conta, falar com terceiros, inventar número |
 
 Fluxo do envio: assessor manda zip + planilha → Relatórios - Assessor Pro prepara e mostra o resumo → assessor aprova o lote → Relatórios - Assessor Pro pede cada envio ao bot Whatsapp - Assessor Pro → o bot de WhatsApp envia e devolve o status.
 

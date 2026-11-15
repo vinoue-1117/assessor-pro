@@ -1,11 +1,11 @@
 ---
 name: analista-tese
-description: 'Use quando o pedido envolver tese, comparação, relatório ou estrutura em Page, com revisão adversarial antes de publicar.'
+description: 'Use quando o pedido envolver tese, comparação, relatório ou estrutura em Page, com contras e conferência dos números antes de publicar.'
 ---
 
 # Tese
 
-Tese, comparação, relatório ou análise aprofundada sai como Page limpa, em pt-BR, depois de revisão adversarial. A Page é um memorando buy-side: texto fluido e objetivo, não formulário e não prova corrigida.
+Tese, comparação, relatório ou análise aprofundada sai como Page em pt-BR, com as seções e a ordem da seção 5. Antes de publicar, dois subagentes leem a tese: o antagonista procura contras e riscos no rascunho, e o conferente confere o texto final contra o pacote de dados.
 
 Número de mercado só entra se `analista-mercado` tiver trazido o JSON nesta conversa. Conta em Python, não de cabeça. Siga a persona de `analista-core`.
 
@@ -29,30 +29,68 @@ Grave o pacote em `/tmp/analista-dados-<slug>.json` com `json.dump` em Python. N
 
 ## 2. Rascunho
 
-Escreva `/tmp/analista-rascunho-<slug>.md` com a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON.
+Escreva `/tmp/analista-rascunho-<slug>.md` em markdown, já nas seções da Page (seção 5). O rascunho traz a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON.
 
-## 3. Revisão adversarial
+## 3. Antagonista
 
 Rode um subagente `knowledgeWork` pela ferramenta `Task`, com `subagent_type` `knowledgeWork`. Esse subagente começa sem o histórico da conversa. Passe somente:
 
 - o rascunho;
 - o JSON de `/tmp/analista-dados-<slug>.json`;
-- o papel: advogado do diabo. Conferir cada número contra o JSON (`mercado`, `numeros` de `web` e `contas`). Atacar premissa fraca. Apontar risco ou catalisador que falta. Listar gatilho objetivo de invalidação. Devolver veredito `sólida`, `frágil` ou `refazer`, com objeções concretas. Não reescrever a tese.
+- o papel: antagonista. Procurar contras e riscos da tese. Devolver uma lista de itens, cada um destinado a uma seção: `Contras`, `Riscos` ou `O que faria mudar de ideia`. Apoiar cada item num dado do pacote, citando o dado, ou marcar o item como hipótese. Agrupar os itens sob o nome da seção de destino, uma linha por item; o item apoiado em dado termina com o dado entre parênteses, e o item sem dado começa com `Hipótese:`. Não dar veredito, não dizer se a tese pode ser publicada e não reescrever a tese.
 
-Não passe o chat, a memória nem um veredito pronto. Se o subagente não devolver veredito, pare e diga ao dono que a revisão não rodou. Não invente veredito e não publique.
+Uma passada só. Não passe o chat nem a memória. Se a chamada falhar ou voltar vazia, pare e diga ao dono que a revisão não rodou, e não publique. Se o antagonista disser que não achou contra nem risco, siga sem itens.
 
-## 4. Polimento
+## 4. Texto final e conferência
 
-Se houver objeção válida ou o veredito for `frágil` ou `refazer`, corrija os números, incorpore as objeções e os riscos no próprio texto do rascunho e faça uma segunda passada no `knowledgeWork`. A revisão tem duas rodadas, para a tese não ficar presa nela. Se a segunda devolver `refazer`, não publique: diga ao dono no chat que a tese não passou na revisão e quais objeções ficaram. Se devolver `frágil`, publique com as objeções em `Riscos, limitações e premissas` e diga isso na linha de ressalva do chat.
+Escreva `/tmp/analista-tese-<slug>.md`: o rascunho com os itens do antagonista nas seções de destino.
 
-Objeção que você aceita vira frase do memorando ou item de `Riscos, limitações e premissas`. Não fica como comentário de corretor no fim do arquivo.
+| Bloco do antagonista | Seção da Page |
+| --- | --- |
+| `Contras` | `## Contras` |
+| `Riscos` | `## Riscos, limitações e premissas` |
+| `O que faria mudar de ideia` | `## Decisão` |
+
+O item entra só na seção de destino, como veio: o dado entre parênteses no fim, ou `Hipótese:` no começo. Não reescreva o resto da tese por causa dele. Item de risco ou de gatilho com limite numérico ganha também uma linha na tabela de sinais.
+
+Antes de levar os itens:
+
+- Item que aponta erro do rascunho ("o texto diz X, o pacote traz Y") é correção, não item: corrija o trecho do rascunho, rode de novo a conta que mudar e não leve o item para a Page.
+- Número de item que não está em `mercado`, nos `numeros` de `web` nem em `contas`: rode a conta em Python e grave o resultado em `contas`. Se a conta não sair do script, tire o número; o resto do item entra como `Hipótese:` ou sai.
+- Modo padrão: até três itens por seção. Se vierem mais, fique primeiro com os apoiados em dado e, entre eles, com os que mais mexem na decisão.
+- Modo rigoroso: sem teto de itens. Vale quando o dono pede análise mais funda ou mais rigor, com as palavras que forem.
+
+Rode outro subagente `knowledgeWork`, também sem o histórico da conversa. Passe somente:
+
+- o texto final;
+- o JSON de `/tmp/analista-dados-<slug>.json`;
+- o papel: conferente factual. Conferir se cada número do texto bate com `mercado`, com os `numeros` de `web` ou com `contas`. Conferir se cada afirmação de fato tem dado no pacote. Conferir se o texto é coerente com os próprios números (gatilho, linha de corte). Devolver a lista de divergências, cada uma com o trecho e o valor certo do pacote, e o resultado `confere` ou `reescrever`. Não opinar sobre a qualidade da tese e não reescrever a tese.
+
+Não passe o chat, a memória, o rascunho nem a resposta do antagonista. Se o conferente não devolver `confere` ou `reescrever`, pare e diga ao dono que a conferência não rodou. Não invente resultado e não publique.
+
+- `confere`: publique (seção 5).
+- `reescrever`: corrija os trechos apontados, rode de novo a conta que mudar e passe o texto final inteiro a um novo conferente, com o mesmo papel. São duas conferências no máximo. Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote.
+
+A Page publica o texto que a última conferência leu. Não mude número, gatilho nem conclusão depois dela.
 
 ## 5. Page
 
-Publique a Page final com a skill `canvas`, pela ferramenta `WriteCanvas`. O conteúdo é o markdown polido. Se a Page não publicar, pare e diga ao dono qual foi o erro. Não cole o memorando no chat.
+Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir do texto final conferido. A skill `canvas` escolhe o componente de cada seção. Painel, gráfico e tabela só usam número que está no texto final. Se a Page não publicar, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
 
-A Page tem texto corrido de buy-side, uma seção `## Riscos, limitações e premissas` e uma seção `## Fontes` com fonte, data e horário de cada número e de cada documento. O veredito e o texto do revisor são material de trabalho e ficam fora da Page.
+A Page tem estas seções, nesta ordem:
+
+1. Painel de indicadores: a decisão de alocação (lado, tamanho sugerido, horizonte) e os números que sustentam a tese, cada um com valor e data. Uma frase com a decisão vem antes do painel.
+2. Uma seção por argumento, com um gráfico dos dados dele e um parágrafo curto que diz o que o gráfico mostra para a decisão. O gráfico só entra se o pacote de dados tiver uma série ou valores para comparar: `tesouro` e `taxa` trazem só o valor mais recente. Sem isso, o argumento sai com o parágrafo e os números.
+3. `## Contras`: os itens do antagonista.
+4. Tabela de sinais: cada catalisador, risco e gatilho de invalidação numa linha, com o valor de hoje, o limite e o status (verde: a favor; amarelo: a acompanhar; vermelho: contra). A cor fica só na palavra do status.
+5. `## Riscos, limitações e premissas`.
+6. `## Decisão`, em destaque: lado, tamanho sugerido, horizonte e o que faria mudar de ideia.
+7. Uma seção `## Fontes` com fonte, data e horário de cada número e de cada documento.
+
+Seção sem conteúdo sai da Page. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) sai sem o painel e sem `## Decisão`.
+
+As respostas do antagonista e do conferente são material de trabalho e ficam fora da Page: nada de resultado da conferência, seção de resposta à revisão ou ressalva espalhada pelos parágrafos.
 
 ## 6. Chat
 
-Entregue o link da Page e a decisão de alocação (lado, tamanho sugerido, horizonte), curta. Se restou limitação de dado ou ressalva importante, uma linha curta a mais. Sem essa ressalva, não acrescente linha. Não cole o rascunho nem a crítica no chat.
+Entregue o link da Page e a decisão de alocação (lado, tamanho sugerido, horizonte), curta. Se restou limitação de dado ou ressalva importante, uma linha curta a mais. Se o modo rigoroso rodou, diga isso nessa linha. Sem ressalva e sem o modo rigoroso, não acrescente linha. Não cole o rascunho nem a crítica no chat.
