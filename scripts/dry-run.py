@@ -27,11 +27,20 @@ só em `tmp/` e `workspace/`) é copiada sobre cada pasta de execução antes de
 ator rodar. A pasta da rodada
 é copiada para `<pasta>/execucoes/<bot>/<data>-<pergunta>-gosto`.
 
+O ator usa o modelo de `--modelo` (padrão: sonnet). Com `--rodadas N`, o modo de fluxo
+roda N vezes, cada rodada (ator e avaliador) na sua pasta de execução, `rodada-<n>`,
+dentro da pasta da execução, e imprime no fim a tabela de métricas das rodadas.
+
+Com `--metricas PASTA ...`, o script não roda nada: lê cada transcript.jsonl guardado
+nas pastas (em qualquer nível) e imprime a tabela de métricas, uma linha por modelo do
+ator, com a mediana e a faixa de cada métrica.
+
 Roda pelo login do plano do Claude Code, sem chave de API.
 
 Uso:
-  python scripts/dry-run.py evals/analista/fluxo/tese [--saida PASTA]
-  python scripts/dry-run.py evals/analista/gosto/layout --variantes [NOME ...] [--amostras M] [--partida PASTA] [--saida PASTA]
+  python scripts/dry-run.py evals/analista/fluxo/tese [--modelo MODELO] [--rodadas N] [--saida PASTA]
+  python scripts/dry-run.py evals/analista/gosto/layout --variantes [NOME ...] [--amostras M] [--partida PASTA] [--modelo MODELO] [--saida PASTA]
+  python scripts/dry-run.py --metricas PASTA [PASTA ...]
 """
 import argparse
 import html
@@ -39,6 +48,7 @@ import json
 import os
 import re
 import shutil
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -165,7 +175,7 @@ def ambiente(**extra):
     return {**{k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}, **extra}
 
 
-def comando_ator(claude, fluxo, sistema, skills):
+def comando_ator(claude, fluxo, sistema, skills, modelo=ATOR):
     # setting-sources project tira as skills e as rules do usuário; o claudeMdExcludes tira o CLAUDE.md dele.
     # O disableBundledSkills e o skillOverrides tiram as skills do Claude Code: o allowedTools só
     # pré-aprova, e o dontAsk não nega skill que não pede aprovação.
@@ -176,7 +186,7 @@ def comando_ator(claude, fluxo, sistema, skills):
     }
     permitidas = [f for f in FERRAMENTAS if f != "Skill"] + [f"Skill({s})" for s in skills]
     comando = [
-        claude, "-p", "--model", ATOR, "--setting-sources", "project", "--settings", json.dumps(excluir),
+        claude, "-p", "--model", modelo, "--setting-sources", "project", "--settings", json.dumps(excluir),
         "--strict-mcp-config", "--tools", ",".join(FERRAMENTAS), "--allowedTools", *permitidas,
         "--permission-mode", "dontAsk", "--append-system-prompt-file", str(sistema),
         "--output-format", "stream-json", "--verbose", "--forward-subagent-text", "--no-session-persistence",
@@ -286,6 +296,89 @@ def legivel(linhas, do_bot):
     return "\n\n".join(saida) + "\n"
 
 
+# (chave, rótulo) de cada métrica, na ordem das colunas da tabela.
+METRICAS = [
+    ("requisicoes", "requisicoes"), ("turnos", "turnos"), ("entrada", "entrada"), ("cache_lido", "cache lido"),
+    ("cache_gravado", "cache gravado"), ("saida", "saida"), ("minutos", "minutos"),
+]
+
+
+def metricas(linhas):
+    """Métricas de uma rodada a partir do stream-json do ator, ou None se o stream não tem o evento `result`.
+
+    Requisições são as mensagens distintas do modelo (o `message.id`) do ator e dos subagentes: uma
+    resposta com vários blocos chega em vários eventos com o mesmo id. A ferramenta que chama um
+    modelo por dentro (o WebFetch resume a página com o Haiku) não emite mensagem e fica fora dessa
+    conta. Os tokens vêm do `modelUsage` do `result`, somados entre os modelos: ele inclui os
+    subagentes e essas chamadas internas. O `usage` de cada evento não serve: o de saída é parcial.
+    Os turnos são o `num_turns` do `result`, que conta cada resultado de ferramenta do ator.
+    """
+    modelo, ids, fim = "?", set(), None
+    for linha in linhas:
+        try:
+            evento = json.loads(linha)
+        except json.JSONDecodeError:
+            continue
+        tipo = evento.get("type")
+        if tipo == "system" and evento.get("subtype") == "init":
+            modelo = evento.get("model") or "?"
+        elif tipo == "assistant":
+            ids.add((evento.get("parent_tool_use_id"), evento["message"].get("id")))
+        elif tipo == "result":
+            fim = evento
+    if fim is None:
+        return None
+    uso = fim.get("modelUsage", {}).values()
+
+    def soma(campo):
+        return sum(u.get(campo, 0) for u in uso)
+
+    return {
+        "modelo": modelo, "requisicoes": len(ids), "turnos": fim.get("num_turns", 0),
+        "entrada": soma("inputTokens"), "cache_lido": soma("cacheReadInputTokens"),
+        "cache_gravado": soma("cacheCreationInputTokens"), "saida": soma("outputTokens"),
+        "minutos": fim.get("duration_ms", 0) / 60000,
+    }
+
+
+def numero(valor):
+    """1234 -> 1.234 e 4.26 -> 4,3: milhar com ponto, uma casa decimal com vírgula se não for inteiro."""
+    texto = f"{valor:,.0f}" if valor == int(valor) else f"{valor:,.1f}"
+    return texto.translate(str.maketrans(",.", ".,"))
+
+
+def tabela(pastas):
+    """Tabela em markdown das rodadas guardadas nas pastas: uma linha por modelo do ator, com a mediana e a faixa.
+
+    Cada transcript.jsonl das pastas, em qualquer nível, é uma rodada. A que não tem o evento
+    `result` (ator que caiu no meio) fica fora, com aviso no stderr. Devolve "" sem rodada completa.
+    """
+    por_modelo = {}
+    for pasta in pastas:
+        for jsonl in sorted(Path(pasta).rglob("transcript.jsonl")):
+            m = metricas(jsonl.read_text(encoding="utf-8").splitlines())
+            if m is None:
+                print(f"sem evento result, fora da tabela: {jsonl}", file=sys.stderr, flush=True)
+                continue
+            por_modelo.setdefault(m["modelo"], []).append(m)
+    if not por_modelo:
+        return ""
+    linhas = [
+        "| modelo | rodadas | " + " | ".join(rotulo for _, rotulo in METRICAS) + " |",
+        "| --- | --- |" + " --- |" * len(METRICAS),
+    ]
+    for modelo, rodadas in sorted(por_modelo.items()):
+        celulas = []
+        for chave, _ in METRICAS:
+            valores = [r[chave] for r in rodadas]
+            celula = numero(statistics.median(valores))
+            if min(valores) != max(valores):
+                celula += f" ({numero(min(valores))} a {numero(max(valores))})"
+            celulas.append(celula)
+        linhas.append(f"| {modelo} | {len(rodadas)} | " + " | ".join(celulas) + " |")
+    return "\n".join(linhas) + "\n"
+
+
 def avaliar(claude, fluxo, dest):
     """Roda o avaliador-transcript e devolve o relatório que ele imprime."""
     bot = pasta_do_bot(fluxo)
@@ -350,7 +443,7 @@ def guardar(dest, bot, fluxo, dados, sufixo="dry-run"):
     return alvo
 
 
-def atuar(claude, fluxo, pedido, sistema, dest):
+def atuar(claude, fluxo, pedido, sistema, dest, modelo=ATOR):
     """Roda o ator na pasta de execução montada e devolve o exit dele.
 
     Grava sistema.md, transcript.jsonl e ator.err e, se o ator gravou algum evento, transcript.md.
@@ -361,7 +454,7 @@ def atuar(claude, fluxo, pedido, sistema, dest):
     jsonl = dest / "transcript.jsonl"
     with open(jsonl, "w", encoding="utf-8") as saida, open(dest / "ator.err", "w", encoding="utf-8") as erros:
         # Sem subagente em segundo plano: na plataforma, o Task devolve a resposta do subagente na própria chamada.
-        r = subprocess.run(comando_ator(claude, fluxo, arquivo_sistema, skills), cwd=dest, input=pedido,
+        r = subprocess.run(comando_ator(claude, fluxo, arquivo_sistema, skills, modelo), cwd=dest, input=pedido,
                            env=ambiente(CLAUDE_CODE_DISABLE_BACKGROUND_TASKS="1"),
                            stdout=saida, stderr=erros, text=True, encoding="utf-8")
     linhas = jsonl.read_text(encoding="utf-8").splitlines()
@@ -398,7 +491,7 @@ def indice(rodada, titulo, feitas):
     )
 
 
-def gosto(claude, fluxo, bot, variantes, amostras, partida, rodada):
+def gosto(claude, fluxo, bot, variantes, amostras, partida, rodada, modelo=ATOR):
     """Roda M amostras de cada variante, cada uma em <rodada>/<variante>-<n>, e devolve (variante, n, exit, segundos).
 
     O index.html é regravado depois de cada amostra, para a rodada interrompida ainda abrir o que saiu.
@@ -412,7 +505,7 @@ def gosto(claude, fluxo, bot, variantes, amostras, partida, rodada):
             ped, sis = montar(bot, pedido, sistema, dest, variante, partida)
             print(f"amostra: {dest}", flush=True)
             inicio = time.monotonic()
-            codigo = atuar(claude, fluxo, ped, sis, dest)
+            codigo = atuar(claude, fluxo, ped, sis, dest, modelo)
             feitas.append((nome, n, codigo, time.monotonic() - inicio))
             indice(rodada, fluxo.name, feitas)
             pagina = "sim" if (dest / "page.html").is_file() else "nao"
@@ -445,23 +538,42 @@ def ler_variantes(fluxo, bot, nomes):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description="Dry run de um fluxo de bot com avaliacao do transcript, ou amostras de gosto.")
-    p.add_argument("fluxo", help="pasta do cenario: evals/<bot>/fluxo/<fluxo>, ou evals/<bot>/gosto/<pergunta> com --variantes")
+    p.add_argument("fluxo", nargs="?",
+                   help="pasta do cenario: evals/<bot>/fluxo/<fluxo>, ou evals/<bot>/gosto/<pergunta> com --variantes")
     p.add_argument("--saida", help="pasta nova, fora do repositorio (padrao: pasta temporaria)")
     p.add_argument("--variantes", nargs="*", metavar="NOME",
                    help="gosto: variantes de <cenario>/variantes/ (so a opcao: todas); sem avaliador")
     p.add_argument("--amostras", type=int, default=1, help="gosto: amostras de cada variante (padrao: 1)")
     p.add_argument("--partida", help="gosto: pasta copiada sobre cada pasta de execucao antes do ator (arquivos congelados)")
+    p.add_argument("--modelo", default=ATOR, help=f"modelo do ator (padrao: {ATOR})")
+    p.add_argument("--rodadas", type=int, default=1, help="fluxo: rodadas do ator e do avaliador, cada uma em rodada-<n> (padrao: 1)")
+    p.add_argument("--metricas", nargs="+", metavar="PASTA",
+                   help="so le: tabela de metricas dos transcript.jsonl guardados nas pastas, sem rodar nada")
     a = p.parse_args()
+    if a.metricas:
+        if a.fluxo:
+            p.error("--metricas nao roda cenario: tire a pasta do cenario")
+        texto = tabela(a.metricas)
+        if not texto:
+            sys.exit(f"nenhuma rodada com evento result em {', '.join(a.metricas)}")
+        print(texto, end="")
+        return
+    if not a.fluxo:
+        p.error("passe a pasta do cenario, ou --metricas")
     fluxo = Path(a.fluxo).resolve()
     if a.variantes is None:
         if (fluxo / "variantes").is_dir():
             sys.exit(f"{fluxo} tem variantes/: passe --variantes")
         if a.partida or a.amostras != 1:
             sys.exit("--amostras e --partida so valem com --variantes")
+        if a.rodadas < 1:
+            sys.exit("--rodadas tem que ser 1 ou mais")
         bot, pedido, sistema = ler_fluxo(fluxo)
     else:
         bot = pasta_do_bot(fluxo)
         variantes = ler_variantes(fluxo, bot, a.variantes)
+        if a.rodadas != 1:
+            sys.exit("--rodadas so vale no modo de fluxo; no gosto, use --amostras")
         if a.amostras < 1:
             sys.exit("--amostras tem que ser 1 ou mais")
         partida = ler_partida(Path(a.partida).resolve()) if a.partida else None
@@ -490,7 +602,7 @@ def main():
     if a.variantes is not None:
         print(f"rodada: {dest}", flush=True)
         try:
-            feitas = gosto(claude, fluxo, bot, variantes, a.amostras, partida, dest)
+            feitas = gosto(claude, fluxo, bot, variantes, a.amostras, partida, dest, a.modelo)
         finally:
             alvo = guardar(dest, bot, fluxo, dados, "gosto")
         print(f"indice: {(alvo or dest) / 'index.html'}")
@@ -499,21 +611,31 @@ def main():
             sys.exit(f"amostras com exit diferente de zero ou sem page.html: {', '.join(falhas)}")
         return
 
-    pedido, sistema = montar(bot, pedido, sistema, dest)
-    print(f"execucao: {dest}", flush=True)
+    # Uma rodada fica na própria pasta de execução; com mais de uma, cada uma tem a sua dentro dela.
+    pastas = [dest] if a.rodadas == 1 else [dest / f"rodada-{n}" for n in range(1, a.rodadas + 1)]
+    incompletas = []
     try:
-        codigo = atuar(claude, fluxo, pedido, sistema, dest)
-        if not (dest / "transcript.md").is_file():
-            sys.exit(f"o ator nao gravou transcript (exit {codigo}); veja {dest / 'ator.err'}")
-        print(f"ator: exit {codigo}, transcript em {dest / 'transcript.md'}", flush=True)
-        # Ator que caiu no meio deixa um fluxo truncado: um relatório sobre ele mediria a queda, não a skill.
-        if codigo != 0:
-            sys.exit(f"rodada incompleta: o ator saiu com exit {codigo}, sem avaliacao; veja {dest / 'ator.err'}")
-        (dest / "relatorio.md").write_text(avaliar(claude, fluxo, dest), encoding="utf-8", newline="\n")
-        print(f"relatorio: {dest / 'relatorio.md'}")
+        for pasta in pastas:
+            pasta.mkdir(exist_ok=True)
+            ped, sis = montar(bot, pedido, sistema, pasta)
+            print(f"execucao: {pasta}", flush=True)
+            codigo = atuar(claude, fluxo, ped, sis, pasta, a.modelo)
+            if not (pasta / "transcript.md").is_file():
+                incompletas.append(f"o ator nao gravou transcript (exit {codigo}); veja {pasta / 'ator.err'}")
+                continue
+            print(f"ator: exit {codigo}, transcript em {pasta / 'transcript.md'}", flush=True)
+            # Ator que caiu no meio deixa um fluxo truncado: um relatório sobre ele mediria a queda, não a skill.
+            if codigo != 0:
+                incompletas.append(f"rodada incompleta: o ator saiu com exit {codigo}, sem avaliacao; veja {pasta / 'ator.err'}")
+                continue
+            (pasta / "relatorio.md").write_text(avaliar(claude, fluxo, pasta), encoding="utf-8", newline="\n")
+            print(f"relatorio: {pasta / 'relatorio.md'}", flush=True)
     finally:
         # A rodada que parou no meio também é copiada: o transcript dela explica a parada.
         guardar(dest, bot, fluxo, dados)
+    print(tabela([dest]), end="")
+    if incompletas:
+        sys.exit("\n".join(incompletas))
 
 
 if __name__ == "__main__":
