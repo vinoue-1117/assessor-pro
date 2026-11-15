@@ -33,7 +33,7 @@ _Evitar_: Bot Envio, bot de envio, assessor-envio
 
 **bot de WhatsApp**:
 Único bot que lê e envia no WhatsApp do dono. Envia exatamente o que outro bot do dono pediu.
-_Evitar_: zap, WO, assessor-zap, gateway, porta do WhatsApp
+_Evitar_: zap, WO, assessor-zap
 
 **Analista**:
 Bot de análise de mercado buy-side: consulta dados de mercado, faz as contas e entrega a tese numa Page. Não participa do envio nem acessa corretora.
@@ -45,7 +45,6 @@ _Evitar_: Assessor
 
 **skill core**:
 Skill de cada bot que traz a persona, o que o bot nunca faz e as regras dele, seguida em toda conversa.
-_Evitar_: core
 
 **perfil**:
 Texto curto do bot gravado na instalação, que manda seguir a skill core.
@@ -81,7 +80,6 @@ _Evitar_: Teams, escopo bot
 
 **bot pessoal**:
 Bot de um plano particular, que não guarda skill própria e enxerga a biblioteca de skills do dono.
-_Evitar_: bot do plano particular
 
 **biblioteca de skills do dono**:
 Conjunto de skills compartilhado por todos os bots pessoais de um mesmo dono.
@@ -89,7 +87,6 @@ _Evitar_: biblioteca user, pasta user, escopo user, biblioteca pessoal
 
 **catálogo de erros**:
 Lista numerada de padrões de erro de comportamento já vistos no repositório, conferida antes de mexer em script ou skill de bot.
-_Evitar_: erros conhecidos, erros-conhecidos
 
 ### Envio
 
@@ -131,7 +128,6 @@ _Evitar_: teste, envio-teste
 
 **histórico de envios**:
 Registro de cada tentativa de envio, com o resultado: enviado, falhou, pulado ou teste.
-_Evitar_: log de envios
 
 **trava de destinatário**:
 Conferência feita imediatamente antes de enviar: a conversa aberta tem que ser a do destinatário pedido.
@@ -170,7 +166,7 @@ Nome alternativo de um contato do WhatsApp que o dono confirmou uma vez. Vale co
 
 **tese**:
 Análise do Analista que sustenta uma decisão de alocação: lado, tamanho sugerido, horizonte e o que faria mudar de ideia.
-_Evitar_: memorando, relatório
+_Evitar_: relatório
 
 **Page**:
 Página que o Analista publica com a tese. No chat vão só o link e a decisão.
@@ -182,7 +178,6 @@ _Evitar_: pacote, JSON de dados
 
 **revisão da tese**:
 Leitura do rascunho da tese, antes da publicação, por um subagente que recebe só o rascunho e o pacote de dados.
-_Evitar_: revisão adversarial
 
 ### Avaliação
 
