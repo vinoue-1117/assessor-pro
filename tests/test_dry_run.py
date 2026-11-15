@@ -2,6 +2,7 @@
 import importlib.util
 import json
 import shutil
+import sys
 from pathlib import Path
 
 import pytest
@@ -188,16 +189,17 @@ def test_gosto_sobrepoe_variante_copia_partida_e_indexa(tmp_path, monkeypatch):
     assert indice.count('fora do bot') == 1 and indice.index('nova-1/transcript.md') < indice.index(marca) < indice.index('nova-2')
 
 
-def _rodada(pasta, ator, mensagens, minutos, uso, com_fim=True):
+def _rodada(pasta, ator, mensagens, minutos, uso, fim='success'):
     """Stream fictício: `mensagens` é a lista de (pai, id, modelo) de cada evento assistant e `uso` dá (entrada, saída) por modelo."""
     eventos = [{'type': 'system', 'subtype': 'init', 'model': ator}]
     eventos += [_assistente([], pai=pai) | {'message': {'id': i, 'model': m, 'content': []}} for pai, i, m in mensagens]
     tokens = {m: {'inputTokens': e, 'outputTokens': s} | ({'cacheReadInputTokens': 1000, 'cacheCreationInputTokens': 200} if m == ator else {})
               for m, (e, s) in uso.items()}
-    if com_fim:
-        eventos.append({'type': 'result', 'subtype': 'success', 'num_turns': len(mensagens) + 1,
+    if fim:
+        eventos.append({'type': 'result', 'subtype': fim, 'num_turns': len(mensagens) + 1,
                         'duration_ms': minutos * 60000, 'modelUsage': tokens})
-    _escrever(pasta / 'transcript.jsonl', '\n'.join(json.dumps(e) for e in eventos) + '\naviso solto\n')
+    # Linha solta, JSON que não é objeto e assistant sem message não derrubam a leitura.
+    _escrever(pasta / 'transcript.jsonl', '\n'.join(json.dumps(e) for e in eventos) + '\naviso solto\n3\n{"type": "assistant"}\n')
 
 
 def test_tabela_de_metricas_por_modelo(tmp_path, capsys):
@@ -211,8 +213,9 @@ def test_tabela_de_metricas_por_modelo(tmp_path, capsys):
     _rodada(tmp_path / 'a/rodada-2', a, [(None, 'm1', a)], 4, {a: (10, 1300), 'claude-interno': (5, 1)})
     _rodada(tmp_path / 'a/rodada-3', a, [(None, 'm1', a), (None, 'm2', a)], 3, {a: (10, 700)})
     _rodada(tmp_path / 'b', b, [(None, 'm1', b)], 1, {b: (10, 50)})
-    # Ator que caiu antes do result fica fora da tabela, com aviso.
-    _rodada(tmp_path / 'a/rodada-4', a, [(None, 'm1', a)] * 9, 9, {a: (9, 9)}, com_fim=False)
+    # Ator que caiu antes do result, ou com result de erro, fica fora da tabela, com aviso.
+    _rodada(tmp_path / 'a/rodada-4', a, [(None, 'm1', a)] * 9, 9, {a: (9, 9)}, fim=None)
+    _rodada(tmp_path / 'a/rodada-5', a, [(None, 'm1', a)] * 9, 9, {a: (9, 9)}, fim='error_max_turns')
 
     texto = dry.tabela([tmp_path / 'a', tmp_path / 'b'])
 
@@ -230,5 +233,45 @@ def test_tabela_de_metricas_por_modelo(tmp_path, capsys):
         '| modelo-a | modelo-sub | 0 (0 a 1) | 0 (0 a 20) | 0 | 0 | 0 (0 a 30) |',
         '| modelo-b | modelo-b | 1 | 10 | 1.000 | 200 | 50 |',
     ]
-    assert 'rodada-4' in capsys.readouterr().err
+    erro = capsys.readouterr().err
+    assert 'rodada-4' in erro and 'rodada-5' in erro
     assert dry.tabela([tmp_path / 'vazia']) == ''
+
+
+def test_rodadas_seguem_quando_ator_ou_avaliador_falham(tmp_path, monkeypatch, capsys):
+    dry = _dry_run()
+    monkeypatch.setattr(dry.shutil, 'which', lambda nome: 'claude')
+    monkeypatch.setattr(dry, 'pasta_de_dados', lambda: None)
+    avaliadas = []
+
+    def ator_falso(claude, fluxo, pedido, sistema, dest, modelo):
+        _rodada(dest, modelo, [(None, 'm1', modelo)], 1, {modelo: (10, 5)})
+        (dest / 'transcript.md').write_text('t', encoding='utf-8')
+        return 1 if dest.name == 'rodada-3' else 0
+
+    def avaliador_falso(claude, fluxo, dest):
+        avaliadas.append(dest.name)
+        if dest.name == 'rodada-1':
+            raise RuntimeError('o avaliador falhou (exit 1): x')
+        return 'relatorio'
+
+    monkeypatch.setattr(dry, 'atuar', ator_falso)
+    monkeypatch.setattr(dry, 'avaliar', avaliador_falso)
+    saida = tmp_path / 'execucao'
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(RAIZ / 'evals/analista/fluxo/tese'), '--rodadas', '3',
+                                      '--modelo', 'haiku', '--saida', str(saida)])
+    with pytest.raises(SystemExit) as fim:
+        dry.main()
+
+    # A falha do avaliador na 1ª rodada não impede a 2ª e a 3ª; a 3ª, com o ator em erro, não é avaliada.
+    assert avaliadas == ['rodada-1', 'rodada-2']
+    assert [(p.name, (p / 'relatorio.md').is_file()) for p in sorted(saida.iterdir())] == [
+        ('rodada-1', False), ('rodada-2', True), ('rodada-3', False)]
+    assert 'o avaliador falhou' in str(fim.value) and 'rodada-1' in str(fim.value) and 'exit 1' in str(fim.value)
+    # A tabela sai mesmo com rodada incompleta, com as três rodadas do ator.
+    assert '| haiku | 3 |' in capsys.readouterr().out
+
+    # Pasta de --metricas com erro de digitação para o script, mesmo com outra pasta válida.
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', '--metricas', str(saida), str(tmp_path / 'nao-existe')])
+    with pytest.raises(SystemExit, match='nao existe'):
+        dry.main()

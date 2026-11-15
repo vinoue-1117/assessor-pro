@@ -53,7 +53,7 @@ O agente `avaliador-transcript`, com Opus, roda a partir da raiz do repositório
 
 ### A pasta de execução
 
-Uma pasta temporária nova por execução, ou a de `--saida`. O script recusa pasta dentro do repositório. Com `--rodadas N`, a execução roda o ator e o avaliador N vezes, cada rodada na sua pasta, `rodada-<n>`, dentro da pasta da execução; com uma rodada só, que é o padrão, a pasta da execução é a da rodada. Rodada que cai não interrompe as seguintes: o script segue e, no fim, sai com erro listando as rodadas incompletas.
+Uma pasta temporária nova por execução, ou a de `--saida`. O script recusa pasta dentro do repositório. Com `--rodadas N`, a execução roda o ator e o avaliador N vezes, cada rodada na sua pasta, `rodada-<n>`, dentro da pasta da execução; com uma rodada só, que é o padrão, a pasta da execução é a da rodada. Rodada em que o ator cai ou o avaliador falha não interrompe as seguintes: o script segue, imprime a tabela de métricas e, no fim, sai com erro listando as rodadas incompletas.
 
 Para guardar as rodadas, crie o `.env` na raiz do repositório a partir do [`.env.example`](../.env.example), com a pasta de dados privada em `ASSESSOR_EVALS_DADOS`. No fim de cada rodada, completa ou incompleta, o script copia a pasta de execução inteira para `<pasta de dados>/execucoes/<bot>/<data>-<fluxo>-dry-run`; a segunda rodada do dia ganha o sufixo `-2`. O ator roda sempre na pasta de execução, nunca na pasta de dados, que só armazena. Sem o `.env`, nada é copiado. O `.env` não é versionado.
 
@@ -75,7 +75,7 @@ No fim da execução, o script imprime as tabelas de métricas das rodadas dela.
 
 `python scripts/dry-run.py --metricas <pasta> [<pasta> ...]`
 
-Cada `transcript.jsonl` dentro das pastas, em qualquer nível, é uma rodada; passar `<pasta de dados>/execucoes/analista` junta todas as rodadas guardadas do bot. Cada métrica traz a mediana das rodadas e, se elas diferem, a faixa entre parênteses. A rodada cujo stream não tem o evento `result` (ator que caiu no meio) fica fora, com aviso.
+Cada `transcript.jsonl` dentro das pastas, em qualquer nível, é uma rodada. A tabela agrupa só pelo modelo do ator, então as pastas têm que ser execuções do mesmo fluxo: uma pasta de `execucoes/<bot>` inteira junta fluxos diferentes e amostras de gosto na mesma linha. Pasta que não existe para o script. Cada métrica traz a mediana das rodadas e, se elas diferem, a faixa entre parênteses. A rodada cujo stream não tem um `result` de sucesso (sem o evento, ou com `subtype` diferente de `success` ou `is_error`: ator que caiu no meio) fica fora, com aviso.
 
 - A primeira tabela tem uma linha por modelo do ator (o `model` do evento `init`), com o número de rodadas, os turnos e os minutos.
 - A segunda tem uma linha por modelo do ator e modelo usado na rodada (o ator, o subagente e o que as ferramentas chamam por dentro), com as requisições e os tokens só daquele modelo. Os tokens de um modelo nunca entram na linha de outro. A rodada que não usou o modelo entra com zero na mediana.

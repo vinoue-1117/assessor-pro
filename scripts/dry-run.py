@@ -32,7 +32,7 @@ roda N vezes, cada rodada (ator e avaliador) na sua pasta de execução, `rodada
 dentro da pasta da execução, e imprime no fim a tabela de métricas das rodadas.
 
 Com `--metricas PASTA ...`, o script não roda nada: lê cada transcript.jsonl guardado
-nas pastas (em qualquer nível) e imprime a tabela de métricas, uma linha por modelo do
+nas pastas (em qualquer nível, todas do mesmo fluxo) e imprime a tabela de métricas, uma linha por modelo do
 ator, com a mediana e a faixa de cada métrica, e as requisições e os tokens separados por
 modelo usado na rodada.
 
@@ -176,7 +176,7 @@ def ambiente(**extra):
     return {**{k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}, **extra}
 
 
-def comando_ator(claude, fluxo, sistema, skills, modelo=ATOR):
+def comando_ator(claude, fluxo, sistema, skills, modelo):
     # setting-sources project tira as skills e as rules do usuário; o claudeMdExcludes tira o CLAUDE.md dele.
     # O disableBundledSkills e o skillOverrides tiram as skills do Claude Code: o allowedTools só
     # pré-aprova, e o dontAsk não nega skill que não pede aprovação.
@@ -309,7 +309,10 @@ USO = {"entrada": "inputTokens", "cache_lido": "cacheReadInputTokens",
 
 
 def metricas(linhas):
-    """Métricas de uma rodada a partir do stream-json do ator, ou None se o stream não tem o evento `result`.
+    """Métricas de uma rodada a partir do stream-json do ator, ou None se o stream não tem um `result` de sucesso.
+
+    Sem o evento `result`, ou com ele marcado como erro (`subtype` diferente de `success`, ou
+    `is_error`), a rodada foi cortada e os números dela são de um fluxo truncado.
 
     Devolve o modelo do ator (do `init`), os turnos e os minutos da rodada e, em `modelos`, as
     requisições e os tokens de cada modelo que a rodada usou. Requisições são as mensagens distintas
@@ -326,15 +329,17 @@ def metricas(linhas):
             evento = json.loads(linha)
         except json.JSONDecodeError:
             continue
+        if not isinstance(evento, dict):
+            continue
         tipo = evento.get("type")
         if tipo == "system" and evento.get("subtype") == "init":
             ator = evento.get("model") or "?"
-        elif tipo == "assistant":
+        elif tipo == "assistant" and isinstance(evento.get("message"), dict):
             m = evento["message"]
             mensagens[(evento.get("parent_tool_use_id"), m.get("id"))] = m.get("model") or "?"
         elif tipo == "result":
             fim = evento
-    if fim is None:
+    if fim is None or fim.get("subtype") != "success" or fim.get("is_error"):
         return None
     uso = fim.get("modelUsage", {})
     modelos = {}
@@ -365,15 +370,16 @@ def tabela(pastas):
     A primeira tem uma linha por modelo do ator (turnos e minutos da rodada). A segunda tem uma
     linha por modelo do ator e modelo usado na rodada (requisições e tokens só daquele modelo); a
     rodada que não usou o modelo entra com zero. Cada transcript.jsonl das pastas, em qualquer
-    nível, é uma rodada. A que não tem o evento `result` (ator que caiu no meio) fica fora, com
-    aviso no stderr. Devolve "" sem rodada completa.
+    nível, é uma rodada. A que não tem um `result` de sucesso (ator que caiu no meio) fica fora,
+    com aviso no stderr. Devolve "" sem rodada completa. As pastas têm que ser do mesmo fluxo:
+    a tabela agrupa só pelo modelo do ator.
     """
     por_ator = {}
     for pasta in pastas:
         for jsonl in sorted(Path(pasta).rglob("transcript.jsonl")):
             m = metricas(jsonl.read_text(encoding="utf-8").splitlines())
             if m is None:
-                print(f"sem evento result, fora da tabela: {jsonl}", file=sys.stderr, flush=True)
+                print(f"sem result de sucesso, fora da tabela: {jsonl}", file=sys.stderr, flush=True)
                 continue
             por_ator.setdefault(m["ator"], []).append(m)
     if not por_ator:
@@ -393,7 +399,7 @@ def tabela(pastas):
 
 
 def avaliar(claude, fluxo, dest):
-    """Roda o avaliador-transcript e devolve o relatório que ele imprime."""
+    """Roda o avaliador-transcript e devolve o relatório que ele imprime. Levanta RuntimeError se ele falha."""
     bot = pasta_do_bot(fluxo)
     pedido = (
         f"Avalie o dry run gravado em {barra(dest)}.\n\n"
@@ -410,7 +416,7 @@ def avaliar(claude, fluxo, dest):
     ]
     r = subprocess.run(comando, cwd=ROOT, input=pedido, env=ambiente(), capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0 or not r.stdout.strip():
-        sys.exit(f"o avaliador falhou (exit {r.returncode}): {r.stderr.strip()[:2000]}")
+        raise RuntimeError(f"o avaliador falhou (exit {r.returncode}): {r.stderr.strip()[:2000]}")
     return r.stdout
 
 
@@ -456,7 +462,7 @@ def guardar(dest, bot, fluxo, dados, sufixo="dry-run"):
     return alvo
 
 
-def atuar(claude, fluxo, pedido, sistema, dest, modelo=ATOR):
+def atuar(claude, fluxo, pedido, sistema, dest, modelo):
     """Roda o ator na pasta de execução montada e devolve o exit dele.
 
     Grava sistema.md, transcript.jsonl e ator.err e, se o ator gravou algum evento, transcript.md.
@@ -504,7 +510,7 @@ def indice(rodada, titulo, feitas):
     )
 
 
-def gosto(claude, fluxo, bot, variantes, amostras, partida, rodada, modelo=ATOR):
+def gosto(claude, fluxo, bot, variantes, amostras, partida, rodada, modelo):
     """Roda M amostras de cada variante, cada uma em <rodada>/<variante>-<n>, e devolve (variante, n, exit, segundos).
 
     O index.html é regravado depois de cada amostra, para a rodada interrompida ainda abrir o que saiu.
@@ -566,9 +572,12 @@ def main():
     if a.metricas:
         if a.fluxo:
             p.error("--metricas nao roda cenario: tire a pasta do cenario")
+        faltam = [pasta for pasta in a.metricas if not Path(pasta).is_dir()]
+        if faltam:
+            sys.exit(f"pasta de --metricas que nao existe: {', '.join(faltam)}")
         texto = tabela(a.metricas)
         if not texto:
-            sys.exit(f"nenhuma rodada com evento result em {', '.join(a.metricas)}")
+            sys.exit(f"nenhuma rodada com result de sucesso em {', '.join(a.metricas)}")
         print(texto, end="")
         return
     if not a.fluxo:
@@ -641,7 +650,12 @@ def main():
             if codigo != 0:
                 incompletas.append(f"rodada incompleta: o ator saiu com exit {codigo}, sem avaliacao; veja {pasta / 'ator.err'}")
                 continue
-            (pasta / "relatorio.md").write_text(avaliar(claude, fluxo, pasta), encoding="utf-8", newline="\n")
+            try:
+                relatorio = avaliar(claude, fluxo, pasta)
+            except RuntimeError as e:
+                incompletas.append(f"{e}; rodada em {pasta}")
+                continue
+            (pasta / "relatorio.md").write_text(relatorio, encoding="utf-8", newline="\n")
             print(f"relatorio: {pasta / 'relatorio.md'}", flush=True)
     finally:
         # A rodada que parou no meio também é copiada: o transcript dela explica a parada.
