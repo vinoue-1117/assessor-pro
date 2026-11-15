@@ -61,7 +61,7 @@ O repositório é público e o histórico não se apaga.
 
 O mesmo comando roda em toda PR. Ele recusa arquivo de dado versionado, confere os ponteiros contra as skills e roda os testes. A recusa de arquivo de dado roda também num segundo workflow (`dados.yml`), com o `check.py` da branch de destino sobre a lista de arquivos da PR: mexer no `check.py` na mesma PR não a desliga. Ele não lê o texto dos arquivos atrás de dado de cliente: essa conferência é de quem abre e de quem revisa a PR.
 
-Uma PR mexe na pasta de um bot. Mudança em `scripts/` ou neste arquivo vai em PR separada.
+Uma PR mexe em um bot: a pasta dele em `bots/` e a pasta dele em `evals/`. Mudança em `scripts/` ou neste arquivo vai em PR separada.
 
 ## Publicar
 
