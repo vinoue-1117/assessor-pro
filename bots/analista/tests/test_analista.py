@@ -380,6 +380,7 @@ def test_tesouro_data_base_mais_recente_e_filtro(monkeypatch):
     assert code == 0
     assert data['data_base'] == '2026-11-10'
     assert data['fonte'] == 'tesouro-transparente'
+    assert 'manhã' in data['limitacao']
     assert data['consultado_em'].endswith('-03:00')
     assert data['titulos'] == [
         {'titulo': 'Tesouro IPCA+', 'vencimento': '2035-05-15', 'taxa_compra': 7.7, 'taxa_venda': 7.82, 'pu_compra': 2100.5, 'pu_venda': 2080.25},
@@ -450,9 +451,9 @@ def comando():
 def test_comando_download_igual_e_versao():
     cmd = comando()
     minima = MINIMA.read_text(encoding='utf-8')
-    assert minima == '3\n'
+    assert minima == '4\n'
     primeira = SCRIPT.read_text(encoding='utf-8').splitlines()[0]
-    assert primeira == '# mercado.py v3'
+    assert primeira == '# mercado.py v4'
     assert int(primeira.split()[2][1:]) >= int(minima.strip())
     for path in (RAIZ / 'skills').glob('*/SKILL.md'):
         texto = path.read_text(encoding='utf-8')
@@ -575,7 +576,7 @@ def test_eval_revisor_monta_os_casos(tmp_path):
     assert sorted(p.name for p in casos.iterdir()) == sorted(rodar_eval.CASOS)
     pasta = EVAL_REVISOR
     papeis, entradas, usados = {}, {}, set()
-    for nome, (arquivos, arquivo, gab, _) in rodar_eval.CASOS.items():
+    for nome, (papel, arquivo, gab) in rodar_eval.CASOS.items():
         # Cada criterio do gabarito confere a resposta inteira ou um trecho que existe uma vez no rascunho dele.
         gabarito = rodar_eval.gabarito(gab)
         rascunho = (pasta / arquivo).read_text(encoding='utf-8')
@@ -585,9 +586,9 @@ def test_eval_revisor_monta_os_casos(tmp_path):
         caso = casos / nome
         cabeca, entradas[nome] = (caso / 'prompt.md').read_text(encoding='utf-8').split('## Rascunho', 1)
         assert 'runs: 5' in cabeca
-        # O caso recebe o papel dos arquivos dele.
+        # O caso recebe o papel do arquivo dele.
         papeis[nome] = cabeca.split('Papel: ', 1)[1].strip()
-        assert papeis[nome] == ' '.join((pasta / a).read_text(encoding='utf-8').strip() for a in arquivos)
+        assert papeis[nome] == (pasta / papel).read_text(encoding='utf-8').strip()
         assert sorted(p.stem for p in (caso / 'graders').iterdir()) == sorted(gabarito)
     assert usados == {p.stem for p in (pasta / 'graders').iterdir()}
     # Os papeis de um rascunho recebem a mesma entrada; o rascunho sem erro nao traz nenhum erro plantado.
@@ -600,11 +601,8 @@ def test_eval_revisor_monta_os_casos(tmp_path):
     limpo = set((pasta / 'rascunho-limpo.md').read_text(encoding='utf-8').splitlines())
     for derivado in ('rascunho-itens.md', 'rascunho-limitacao.md'):
         assert limpo < set((pasta / derivado).read_text(encoding='utf-8').splitlines()), derivado
-    # A frase de limitacao: so um caso recebe o campo no pacote, e so outro recebe a regra no papel.
-    campo = json.dumps(rodar_eval.CAMPO_LIMITACAO, ensure_ascii=False)[1:-1]
-    assert [n for n in entradas if campo in entradas[n]] == ['conferente-limitacao-campo']
-    regra = rodar_eval.ler('regra-limitacao.md')
-    assert [n for n in papeis if regra in papeis[n]] == ['conferente-limitacao-regra']
+    # O pacote do eval traz a limitacao do Tesouro com o texto que o mercado.py devolve.
+    assert json.loads(rodar_eval.ler('dados.json'))['mercado'][0]['limitacao'] == MOD.LIMITACAO_TESOURO
     # O papel que a skill passa ao revisor e o do arquivo do advogado: papel trocado na skill sem trocar o arquivo falha aqui.
     skill = (RAIZ / 'skills/analista-tese/SKILL.md').read_text(encoding='utf-8')
     assert re.findall(r'^- o papel: (.+)$', skill, re.M) == [papeis['advogado']]
@@ -616,8 +614,8 @@ def test_eval_revisor_relatorio_de_entrada_marca_o_gabarito(tmp_path):
     nomes = [n for gabs in rodar_eval.por_rascunho().values() for n in {n for gab in gabs for n in rodar_eval.gabarito(gab)}]
     for tipo in ('erro', 'correta', 'hipotese'):
         assert pagina.count(f'<mark class="{tipo}" title=') == sum(n.startswith(tipo) for n in nomes) > 0
-    for arquivos, *_ in rodar_eval.CASOS.values():
-        assert rodar_eval.esc(rodar_eval.papel(arquivos)) in pagina
+    for papel, *_ in rodar_eval.CASOS.values():
+        assert rodar_eval.esc(rodar_eval.ler(papel)) in pagina
 
 
 def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys):

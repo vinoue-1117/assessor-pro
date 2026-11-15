@@ -37,13 +37,13 @@ Workspace deste bot: `/workspace/analista/` (o script de trabalho fica em `/work
 | `historico TICKER [--de YYYY-MM-DD] [--ate YYYY-MM-DD] [--intervalo 1d\|1w\|1m\|1h]` | OHLCV. Sem datas, 30 dias até hoje. `--ate` é inclusivo. MultiIndex do `yfinance` é achatado. Preço sem ajuste de provento |
 | `opcoes SUBJACENTE [--vencimento YYYY-MM-DD] [--tipo CALL\|PUT] [--so-negociadas]` | cadeia do `yfinance` para subjacente dos EUA. `--so-negociadas` exige volume maior que zero |
 | `taxa INDICADOR [INDICADOR…]` | `selic` (meta, série 432; efetiva anualizada, 1178), `cdi` (anualizado, 4389) e `ipca` (do mês, 433; acumulado em 12 meses, 13522). Cada valor é o último com data até hoje, numa janela de 100 dias: a meta Selic vem preenchida até a próxima reunião do Copom. `fonte` `bcb-sgs`. A saída é uma lista, como em `cotacao` |
-| `tesouro [--tipo TEXTO]` | títulos do Tesouro Direto na data-base mais recente do CSV de preços e taxas do Tesouro Transparente: `vencimento`, `taxa_compra`, `taxa_venda`, `pu_compra`, `pu_venda`. `--tipo` filtra por trecho do nome. O CSV traz o histórico inteiro (cerca de 15 MB) e o servidor não atende pedido de faixa: cada chamada baixa tudo. Coluna que falta no CSV sai como erro de formato. `fonte` `tesouro-transparente` |
+| `tesouro [--tipo TEXTO]` | títulos do Tesouro Direto na data-base mais recente do CSV de preços e taxas do Tesouro Transparente: `vencimento`, `taxa_compra`, `taxa_venda`, `pu_compra`, `pu_venda`, e o campo `limitacao`, que diz que são as taxas da manhã. `--tipo` filtra por trecho do nome. O CSV traz o histórico inteiro (cerca de 15 MB) e o servidor não atende pedido de faixa: cada chamada baixa tudo. Coluna que falta no CSV sai como erro de formato. `fonte` `tesouro-transparente` |
 
 Ticker B3 no formato de 4 letras e 1 ou 2 números (PETR4, BOVA11) ganha o sufixo `.SA`. Ticker dos EUA, índice (`^…`) e câmbio (`=X`) ficam como estão.
 
 Download: `analista-mercado` baixa o script da `stable` (`bots/analista/skills/analista-mercado/scripts/`) para um arquivo temporário e só troca `/workspace/analista/mercado.py` se a 1ª linha for `# mercado.py v<N>` com N igual ou maior que `skills/analista-mercado/scripts/versao-minima`. Se o download falhar ou a versão for menor, a skill para sem usar a cópia do disco. Se faltar o pacote, a skill instala `yfinance` e, se a instalação falhar, para.
 
-Limitações: o `yfinance` atrasa cerca de 15 minutos (não é tempo real) e não tem cadeia de opções da B3 (ticker `.SA` sai com erro no JSON). O Tesouro Direto sai com a taxa da manhã do dia útil anterior. O script não traz curva de DI futuro nem taxa indicativa do mercado secundário de títulos públicos, e não estima esses dados.
+Limitações: o `yfinance` atrasa cerca de 15 minutos (não é tempo real) e não tem cadeia de opções da B3 (ticker `.SA` sai com erro no JSON). O Tesouro Direto sai com a taxa da manhã do dia útil anterior, e o JSON diz isso no campo `limitacao`. O script não traz curva de DI futuro nem taxa indicativa do mercado secundário de títulos públicos, e não estima esses dados.
 
 ## Testes
 

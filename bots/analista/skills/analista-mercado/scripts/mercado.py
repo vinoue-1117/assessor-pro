@@ -1,4 +1,4 @@
-# mercado.py v3
+# mercado.py v4
 """Consulta de mercado via yfinance, taxas do Banco Central (SGS) e do Tesouro Direto.
 
 Subcomandos: cotacao, historico, opcoes, taxa, tesouro.
@@ -48,6 +48,8 @@ COLUNAS_TESOURO = {
     "pu_compra": "PU Compra Manha",
     "pu_venda": "PU Venda Manha",
 }
+# As colunas do CSV sao as da manha: o JSON diz isso a quem le so o JSON.
+LIMITACAO_TESOURO = "taxas da manhã do Tesouro Direto, não a taxa indicativa do mercado secundário"
 
 
 class FonteErro(Exception):
@@ -492,6 +494,7 @@ def cmd_tesouro(a):
             "data_base": data_base,
             "unidade_taxa": "% a.a.",
             "fonte": "tesouro-transparente",
+            "limitacao": LIMITACAO_TESOURO,
             "consultado_em": agora(),
             "titulos": titulos,
         }
