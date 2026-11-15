@@ -411,6 +411,71 @@ def test_tesouro_data_base_mais_recente_e_filtro(monkeypatch):
     assert 'RuntimeError' in rede['erro']
 
 
+def test_itens_copia_a_linha_do_antagonista_para_a_secao(tmp_path):
+    # O texto do item chega ao texto final sem mudar: so a escolha e do ator.
+    resposta = tmp_path / 'antagonista.md'
+    resposta.write_text(
+        'Li o rascunho e o pacote.\n'
+        '**Contras (2)**\n'
+        '- O IPCA de 12 meses já passa do Focus de 2027 (acumulado_12m 4,8; ipca_2027_pct 4,2).\n'
+        'Hipótese: a implícita embute prêmio de risco.\n'
+        '\n## Riscos, limitações e premissas\n'
+        '1. O título é o mais sensível a juros (pu (compra) 764,05).\n'
+        '2. Sem dado e sem marca.\n'
+        '\n**O que faria mudar de ideia:**\n'
+        '- IPCA médio acima de 5,88% a.a.,\n'
+        '  com o Focus subindo (inflacao_implicita_pct_aa 5,88).\n'
+        '\n**Observação**\n'
+        '- Fora de bloco.\n',
+        encoding='utf-8',
+    )
+    rascunho = tmp_path / 'rascunho.md'
+    rascunho.write_text(
+        '# Tese\n\n## Contras\n\n## Riscos, limitações e premissas\n- Linha do ator.\n\n'
+        '## Decisão de alocação\nComprar.\n\n## Fontes\n- BCB\n',
+        encoding='utf-8',
+    )
+    saida = tmp_path / 'tese.md'
+
+    code, lista, _ = rodar(['itens', str(resposta)])
+    assert code == 0
+    assert [(i['n'], i['bloco']) for i in lista['itens']] == [
+        (1, 'contras'), (2, 'contras'), (3, 'riscos'), (4, 'riscos'), (5, 'o que faria mudar de ideia')]
+    assert lista['itens'][4]['linha'] == 'IPCA médio acima de 5,88% a.a., com o Focus subindo (inflacao_implicita_pct_aa 5,88).'
+    assert lista['ignoradas'] == ['Li o rascunho e o pacote.', '**Observação**', '- Fora de bloco.']
+
+    # Escolha sem --saida e erro: nao devolve a lista nem deixa o texto final de outra passada em uso.
+    code, _, _ = rodar(['itens', str(resposta), '--rascunho', str(rascunho), '--levar', '1'])
+    assert code != 0 and not saida.exists()
+
+    base = ['itens', str(resposta), '--rascunho', str(rascunho), '--saida', str(saida)]
+    for escolha in (['--levar', '4'], ['--levar', '1,1'], ['--levar', '1', '--hipotese', '1'], ['--levar', '9']):
+        code, _, _ = rodar(base + escolha)
+        assert code != 0 and not saida.exists(), escolha
+
+    code, res, _ = rodar(base + ['--levar', '1,2,5', '--hipotese', '3'])
+    assert code == 0 and res['fora'] == [4]
+    assert saida.read_text(encoding='utf-8') == (
+        '# Tese\n\n## Contras\n'
+        '- O IPCA de 12 meses já passa do Focus de 2027 (acumulado_12m 4,8; ipca_2027_pct 4,2).\n'
+        '- Hipótese: a implícita embute prêmio de risco.\n'
+        '\n## Riscos, limitações e premissas\n- Linha do ator.\n'
+        '- Hipótese: O título é o mais sensível a juros\n'
+        '\n## Decisão de alocação\nComprar.\n'
+        '- IPCA médio acima de 5,88% a.a., com o Focus subindo (inflacao_implicita_pct_aa 5,88).\n'
+        '\n## Fontes\n- BCB\n'
+    )
+
+    # Sem item escolhido, o texto final e o rascunho.
+    code, _, _ = rodar(base)
+    assert code == 0 and saida.read_text(encoding='utf-8') == rascunho.read_text(encoding='utf-8')
+
+    # Secao de destino que falta no rascunho e erro, nao outra secao.
+    rascunho.write_text('# Tese\n\n## Riscos, limitações e premissas\n', encoding='utf-8')
+    code, falta, _ = rodar(base + ['--levar', '1'])
+    assert code != 0 and '## Contras' in falta['erro']
+
+
 def test_subcomando_desconhecido_lista_uso():
     err = io.StringIO()
     with contextlib.redirect_stderr(err):
@@ -461,9 +526,9 @@ def comando():
 def test_comando_download_igual_e_versao():
     cmd = comando()
     minima = MINIMA.read_text(encoding='utf-8')
-    assert minima == '4\n'
+    assert minima == '5\n'
     primeira = SCRIPT.read_text(encoding='utf-8').splitlines()[0]
-    assert primeira == '# mercado.py v4'
+    assert primeira == '# mercado.py v5'
     assert int(primeira.split()[2][1:]) >= int(minima.strip())
     for path in (RAIZ / 'skills').glob('*/SKILL.md'):
         texto = path.read_text(encoding='utf-8')
@@ -597,8 +662,10 @@ def test_eval_revisor_monta_os_casos(tmp_path):
         cabeca, entradas[nome] = (caso / 'prompt.md').read_text(encoding='utf-8').split('## Rascunho', 1)
         assert 'runs: 5' in cabeca
         # O caso recebe o papel do arquivo dele.
-        papeis[nome] = cabeca.split('Papel: ', 1)[1].strip()
+        papeis[nome] = cabeca.split('Papel: ', 1)[1].split('## Mensagens do dono', 1)[0].strip()
         assert papeis[nome] == (pasta / papel).read_text(encoding='utf-8').strip()
+        # So o conferente recebe as mensagens do dono, que sustenta o dado "informado pelo dono" do pacote.
+        assert ('## Mensagens do dono' in cabeca) == (papel == 'papel-conferente.md'), nome
         assert sorted(p.stem for p in (caso / 'graders').iterdir()) == sorted(gabarito)
     assert usados == {p.stem for p in (pasta / 'graders').iterdir()}
     # Os papeis de um rascunho recebem a mesma entrada; o rascunho sem erro nao traz nenhum erro plantado.
@@ -640,7 +707,7 @@ def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys)
         return {'error': erro, 'graders': [{'name': n, 'passed': p, 'evidence': resposta} for n, p in criterios.items()]}
 
     def linha(resposta, veredito, **contagens):
-        zero = dict.fromkeys(('erros', 'de_erros', 'contestadas', 'de_corretas', 'apontadas', 'de_hipoteses', 'papel', 'de_papel'), 0)
+        zero = dict.fromkeys(('erros', 'de_erros', 'contestadas', 'de_corretas', 'aceitas', 'de_hipoteses', 'papel', 'de_papel'), 0)
         return {**zero, 'aprovou': None, **contagens, 'resposta': resposta, 'veredito': veredito}
 
     soma = rodar_eval.somar({'cases': [
@@ -659,7 +726,7 @@ def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys)
         ]}},
     ]})
     assert soma == {
-        'advogado': [linha(refazer, 'refazer', erros=1, de_erros=2, contestadas=1, de_corretas=2, apontadas=1, de_hipoteses=2)],
+        'advogado': [linha(refazer, 'refazer', erros=1, de_erros=2, contestadas=1, de_corretas=2, aceitas=1, de_hipoteses=2)],
         'advogado-limpo': [linha(fragil, 'frágil', de_corretas=1, aprovou=False)],
         'antagonista': [linha(itens, None, papel=1, de_papel=2)],
     }

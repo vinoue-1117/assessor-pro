@@ -12,7 +12,7 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 2. Tamanho sugerido sem entrada
 
-- **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem. Ou o tamanho aparece no rascunho sem conta nenhuma: sem chave em `contas` e sem saída de Python que o imprima.
+- **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem. Ou o tamanho aparece no rascunho sem conta nenhuma: sem chave em `contas` e sem saída de Python que o imprima. Ou uma chave `origem_*` diz `"informado pelo dono"` para um dado que nenhuma mensagem do dono traz.
 - **Contraria:** `analista-tese`, seção 2 ("sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta"), e `analista-core`, Persona (o tamanho é insumo para a decisão do dono).
 - **Visto:** no ensaio fora da plataforma. O bot inventou um orçamento de perda e chegou a um teto de alocação. Em dois dry runs seguidos, a divisão entre os dois títulos (70% e 30%) foi escolhida sem conta e chegou ao painel, a `## Decisão` e ao chat.
 
@@ -84,15 +84,15 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 14. Tese reprovada entregue no chat
 
-- **No transcript:** depois da segunda conferência com `reescrever`, a mensagem final traz, além das divergências, a decisão de alocação (lado, tamanho, horizonte), números da tese ou ressalvas em lista. Ou oferece corrigir e rodar uma nova conferência.
-- **Contraria:** `analista-tese`, seção 4 ("Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: sem a decisão, o tamanho, os números ou as ressalvas da tese, e sem oferecer outra conferência").
+- **No transcript:** depois da segunda conferência com `reescrever`, a mensagem final traz, além dos trechos das divergências, a decisão de alocação (lado, tamanho, horizonte), outros números da tese ou ressalvas em lista. Ou oferece corrigir e rodar uma nova conferência.
+- **Contraria:** `analista-tese`, seção 4 ("Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: da tese, só os trechos das divergências; sem a decisão, as ressalvas e os outros números, e sem oferecer outra conferência").
 - **Visto:** num dry run. A Page não saiu, mas o chat trouxe a compra recomendada, com a divisão entre os títulos e cinco ressalvas, uma delas num trecho que a conferência tinha apontado.
 
 ## 15. Item do antagonista mudado no caminho para o texto final
 
-- **No transcript:** comparar cada item da resposta do antagonista com a linha que o ator grava no texto final. É desvio: dois itens juntados num, um dado entre parênteses que o antagonista não citou, a conclusão do item trocada, o item gravado numa seção diferente da que o antagonista indicou, ou a seção que leva um item `Hipótese:` enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
-- **Contraria:** `analista-tese`, seção 4 ("Copie a linha do item: não junte dois itens, não troque a conclusão e não acrescente dado"; "fique primeiro com os apoiados em dado").
-- **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. O conferente não recebe a resposta do antagonista e não tem como ver a troca.
+- **No transcript:** o texto final não sai do `mercado.py itens`: o ator grava itens à mão nas seções ou edita o texto final depois do `itens`, em vez de mudar o rascunho e rodar o `itens` de novo. Ou o `/tmp/analista-antagonista-<slug>.md` difere da resposta que o subagente devolveu. Também conta a escolha: um item `Hipótese:` levado enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
+- **Contraria:** `analista-tese`, seção 3 ("Grave a resposta inteira, como veio") e seção 4 ("Quem copia os itens é o `mercado.py itens`. Não digite item à mão"; "primeiro os apoiados em dado").
+- **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. Num terceiro, a ordem escrita de copiar a linha também não segurou a cópia.
 
 ## 16. Tese sem catalisador nem assimetria
 
