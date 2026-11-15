@@ -6,7 +6,7 @@ Ficha do bot: [`bot.md`](bot.md).
 
 ## Instalar
 
-Cole no chat deste bot. O mesmo prompt atualiza um bot já instalado. A conferência é pela função, não pelo nome nem pelo título do `bot.md`.
+Cole no chat deste bot para instalar, atualizar um bot já instalado ou conferir se ele está funcionando. Bot de time só se instala por este prompt. Bot pessoal também pode ser instalado pelo [bot construtor](../../docs/grokbot.md#bot-construtor), sem ele. A conferência é pela função, não pelo nome nem pelo título do `bot.md`.
 
 ```
 Atualize suas skills pelo repositório de bots, caminho analista, seguindo https://raw.githubusercontent.com/vinoue-1117/assessor-pro/stable/bots/instalar.md.

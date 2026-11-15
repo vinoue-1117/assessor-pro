@@ -12,7 +12,7 @@ _Evitar_: usuário
 
 **criador**:
 Pessoa que constrói e mantém os bots no repositório: edita a main, promove para a stable e escolhe entre as amostras no eixo de gosto. Nos bots pessoais dele, é também o dono.
-_Evitar_: dono do repositório, construtor
+_Evitar_: dono do repositório
 
 **assessor**:
 Assessor de investimentos que usa os bots do Assessor Pro: manda o lote e a planilha de clientes e aprova o envio.
@@ -43,6 +43,9 @@ _Evitar_: bot Analista, analista-tese
 Produto formado pelos dois bots que entregam o relatório XP performance aos clientes: o bot de relatórios e o bot de WhatsApp.
 _Evitar_: Assessor
 
+**bot construtor**:
+Bot da plataforma que cria os outros bots e grava as skills deles na biblioteca de skills do dono. Opcional, e só para bot pessoal: não acessa as skills próprias de um bot de time.
+
 **skill core**:
 Skill de cada bot que traz a persona, o que o bot nunca faz e as regras dele, seguida em toda conversa.
 
@@ -68,7 +71,7 @@ Ato do criador de levar para a stable o que está na main, por push direto e nun
 _Evitar_: publicar
 
 **prompt de instalação**:
-Texto que o dono cola no chat do bot para ele instalar ou atualizar as próprias skills. Diz a função do bot e a pasta dele no repositório.
+Texto que o dono cola no chat do bot para ele instalar ou atualizar as próprias skills, ou para conferir se ele está funcionando. Diz a função do bot e a pasta dele no repositório. Bot pessoal também pode ser instalado pelo bot construtor, sem este texto.
 
 **skill órfã**:
 Skill instalada que aponta para a pasta de um bot mas cujo nome não está mais na lista de skills dele.
@@ -82,8 +85,8 @@ _Evitar_: Teams, escopo bot
 Bot de um plano particular, que não guarda skill própria e enxerga a biblioteca de skills do dono.
 
 **biblioteca de skills do dono**:
-Conjunto de skills compartilhado por todos os bots pessoais de um mesmo dono.
-_Evitar_: biblioteca user, pasta user, escopo user, biblioteca pessoal
+Conjunto de skills que todo bot acessa e pode alterar. Na plataforma é a pasta `user`.
+_Evitar_: biblioteca user, escopo user, biblioteca pessoal
 
 **catálogo de erros**:
 Lista numerada de padrões de erro de comportamento já vistos no repositório, conferida antes de mexer em script ou skill de bot.
