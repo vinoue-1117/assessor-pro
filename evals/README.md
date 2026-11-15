@@ -35,7 +35,7 @@ Um ator faz o papel do bot sobre um cenário, e um avaliador lê o transcript. A
 
 ### O ator
 
-`claude -p`, headless, com Sonnet, pelo login do plano. O script tira a `ANTHROPIC_API_KEY` do ambiente do ator e do avaliador: com ela definida, o `claude -p` se autentica pela chave e cobra pela API. Ele roda numa pasta de execução fora do repositório, com as skills da branch copiadas para `.claude/skills/`. O prompt de sistema é o do Claude Code com o `## Perfil` do `bot.md` e a seção `## Plataforma` do cenário. As skills são as da branch, não as da `stable`: o cenário troca o endereço do download pelo `file:///` do repositório.
+`claude -p`, headless, pelo login do plano, com o modelo de `--modelo` (padrão: `sonnet`; vale também no gosto). O `--modelo` muda só o ator: o subagente do `agentes.json` fica com o modelo escrito nele. O script tira a `ANTHROPIC_API_KEY` do ambiente do ator e do avaliador: com ela definida, o `claude -p` se autentica pela chave e cobra pela API. Ele roda numa pasta de execução fora do repositório, com as skills da branch copiadas para `.claude/skills/`. O prompt de sistema é o do Claude Code com o `## Perfil` do `bot.md` e a seção `## Plataforma` do cenário. As skills são as da branch, não as da `stable`: o cenário troca o endereço do download pelo `file:///` do repositório.
 
 As instruções de quem roda ficam fora do contexto do ator: `--setting-sources project` tira as skills e as rules do usuário, e o `claudeMdExcludes` tira o `~/.claude/CLAUDE.md`.
 
@@ -53,7 +53,7 @@ O agente `avaliador-transcript`, com Opus, roda a partir da raiz do repositório
 
 ### A pasta de execução
 
-Uma pasta temporária nova por rodada, ou a de `--saida`. O script recusa pasta dentro do repositório.
+Uma pasta temporária nova por execução, ou a de `--saida`. O script recusa pasta dentro do repositório. Com `--rodadas N`, a execução roda o ator e o avaliador N vezes, cada rodada na sua pasta, `rodada-<n>`, dentro da pasta da execução; com uma rodada só, que é o padrão, a pasta da execução é a da rodada. Rodada em que o ator cai ou o avaliador falha não interrompe as seguintes: o script segue, imprime a tabela de métricas e, no fim, sai com erro listando as rodadas incompletas.
 
 Para guardar as rodadas, crie o `.env` na raiz do repositório a partir do [`.env.example`](../.env.example), com a pasta de dados privada em `ASSESSOR_EVALS_DADOS`. No fim de cada rodada, completa ou incompleta, o script copia a pasta de execução inteira para `<pasta de dados>/execucoes/<bot>/<data>-<fluxo>-dry-run`; a segunda rodada do dia ganha o sufixo `-2`. O ator roda sempre na pasta de execução, nunca na pasta de dados, que só armazena. Sem o `.env`, nada é copiado. O `.env` não é versionado.
 
@@ -68,6 +68,30 @@ Para guardar as rodadas, crie o `.env` na raiz do repositório a partir do [`.en
 | `workspace/`, `tmp/` | o que o ator gravou no lugar de `/workspace/` e `/tmp/` |
 
 O repositório é público: transcript e relatório não entram nele.
+
+### Métricas
+
+No fim da execução, o script imprime as tabelas de métricas das rodadas dela. As mesmas tabelas saem, sem rodar nada, para rodadas já guardadas:
+
+`python scripts/dry-run.py --metricas <pasta> [<pasta> ...]`
+
+Cada `transcript.jsonl` dentro das pastas, em qualquer nível, é uma rodada. A tabela agrupa só pelo modelo do ator, então as pastas têm que ser execuções do mesmo fluxo: uma pasta de `execucoes/<bot>` inteira junta fluxos diferentes e amostras de gosto na mesma linha. Pasta que não existe para o script. Cada métrica traz a mediana das rodadas e, se elas diferem, a faixa entre parênteses. A rodada cujo stream não tem um `result` de sucesso (sem o evento, ou com `subtype` diferente de `success` ou `is_error`: ator que caiu no meio) fica fora, com aviso.
+
+- A primeira tabela tem uma linha por modelo do ator (o `model` do evento `init`), com o número de rodadas, os turnos e os minutos.
+- A segunda tem uma linha por modelo do ator e modelo usado na rodada (o ator, o subagente e o que as ferramentas chamam por dentro), com as requisições e os tokens só daquele modelo. Os tokens de um modelo nunca entram na linha de outro. A rodada que não usou o modelo entra com zero na mediana.
+
+| Métrica | De onde vem |
+| --- | --- |
+| `requisicoes no stream` | as mensagens distintas (`message.id`) do ator e dos subagentes, pelo `model` de cada mensagem. Uma resposta com vários blocos chega em vários eventos com o mesmo id e conta uma vez. A ferramenta que chama um modelo por dentro (o `WebFetch` resume a página com o Haiku) não emite mensagem: esse modelo aparece com tokens e zero requisições |
+| `turnos` | o `num_turns` do `result`, que conta cada resultado de ferramenta do ator; por isso passa das requisições quando o ator chama ferramentas em paralelo |
+| `entrada`, `cache lido`, `cache gravado`, `saida` | os tokens do modelo no `modelUsage` do `result`, que separa por modelo e inclui os subagentes e as chamadas internas das ferramentas. O `usage` de cada evento do stream não serve, porque o de saída é parcial |
+| `minutos` | o `duration_ms` do `result` |
+
+A métrica principal é requisições e tokens. O tempo varia com a carga da máquina e só se compara pela mediana de várias rodadas.
+
+Para comparar modelos, rode o mesmo fluxo com cada um e passe as pastas das execuções ao `--metricas`:
+
+`python scripts/dry-run.py evals/analista/fluxo/tese --modelo haiku --rodadas 3`
 
 ### Limites
 
@@ -96,7 +120,7 @@ O que não muda entre rodadas:
 | --- | --- |
 | `variantes/<nome>/` | só os arquivos que mudam em `bots/<bot>/`: `bot.md` (o `## Perfil` dele vai para o prompt de sistema no lugar do perfil do bot) ou arquivos de `skills/<skill>/`, que substituem os da cópia das skills. A variante vazia, com só um `.gitkeep`, é o bot de hoje. Arquivo que o bot não tem, com o mesmo caminho e as mesmas maiúsculas, para o script antes de rodar |
 | `--variantes [NOME ...]` | as variantes da rodada; sem nome, todas as pastas de `variantes/`. Sem avaliador |
-| `--amostras M` | amostras de cada variante, rodadas uma de cada variante por volta |
+| `--amostras M` | amostras de cada variante, rodadas uma de cada variante por volta. O `--rodadas` não vale no gosto |
 | `--partida PASTA` | os arquivos congelados, só nas pastas `tmp/` e `workspace/`, copiados sobre as da pasta de execução antes de o ator rodar. Qualquer outra coisa na pasta (o `.claude/` de uma rodada anterior, por exemplo) para o script antes de rodar. Cenário com a seção `## Partida` exige essa opção; a seção diz o que a pasta tem que ter |
 
 Cada amostra roda na sua pasta de execução, `<variante>-<n>`, dentro da pasta da rodada, com os mesmos arquivos do dry run de fluxo. A pasta da rodada tem um `index.html`, uma linha por variante e uma coluna por amostra, com o link da `page.html`, o tempo e o transcript de cada uma. Com o `.env`, a rodada inteira é copiada para `<pasta de dados>/execucoes/<bot>/<data>-<pergunta>-gosto`; sem ele, fica na pasta temporária.
