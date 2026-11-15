@@ -33,7 +33,8 @@ dentro da pasta da execução, e imprime no fim a tabela de métricas das rodada
 
 Com `--metricas PASTA ...`, o script não roda nada: lê cada transcript.jsonl guardado
 nas pastas (em qualquer nível) e imprime a tabela de métricas, uma linha por modelo do
-ator, com a mediana e a faixa de cada métrica.
+ator, com a mediana e a faixa de cada métrica, e as requisições e os tokens separados por
+modelo usado na rodada.
 
 Roda pelo login do plano do Claude Code, sem chave de API.
 
@@ -296,24 +297,30 @@ def legivel(linhas, do_bot):
     return "\n\n".join(saida) + "\n"
 
 
-# (chave, rótulo) de cada métrica, na ordem das colunas da tabela.
-METRICAS = [
-    ("requisicoes", "requisicoes"), ("turnos", "turnos"), ("entrada", "entrada"), ("cache_lido", "cache lido"),
-    ("cache_gravado", "cache gravado"), ("saida", "saida"), ("minutos", "minutos"),
+# (chave, rótulo) das métricas da rodada e das métricas de cada modelo, na ordem das colunas.
+DA_RODADA = [("turnos", "turnos"), ("minutos", "minutos")]
+DO_MODELO = [
+    ("requisicoes", "requisicoes no stream"), ("entrada", "entrada"), ("cache_lido", "cache lido"),
+    ("cache_gravado", "cache gravado"), ("saida", "saida"),
 ]
+# Campo do `modelUsage` do `result` de cada métrica de tokens.
+USO = {"entrada": "inputTokens", "cache_lido": "cacheReadInputTokens",
+       "cache_gravado": "cacheCreationInputTokens", "saida": "outputTokens"}
 
 
 def metricas(linhas):
     """Métricas de uma rodada a partir do stream-json do ator, ou None se o stream não tem o evento `result`.
 
-    Requisições são as mensagens distintas do modelo (o `message.id`) do ator e dos subagentes: uma
-    resposta com vários blocos chega em vários eventos com o mesmo id. A ferramenta que chama um
-    modelo por dentro (o WebFetch resume a página com o Haiku) não emite mensagem e fica fora dessa
-    conta. Os tokens vêm do `modelUsage` do `result`, somados entre os modelos: ele inclui os
+    Devolve o modelo do ator (do `init`), os turnos e os minutos da rodada e, em `modelos`, as
+    requisições e os tokens de cada modelo que a rodada usou. Requisições são as mensagens distintas
+    (o `message.id`) do ator e dos subagentes, pelo `model` de cada mensagem: uma resposta com vários
+    blocos chega em vários eventos com o mesmo id. A ferramenta que chama um modelo por dentro (o
+    WebFetch resume a página com o Haiku) não emite mensagem: o modelo dela tem tokens e zero
+    requisições no stream. Os tokens vêm do `modelUsage` do `result`, que traz cada modelo com os
     subagentes e essas chamadas internas. O `usage` de cada evento não serve: o de saída é parcial.
     Os turnos são o `num_turns` do `result`, que conta cada resultado de ferramenta do ator.
     """
-    modelo, ids, fim = "?", set(), None
+    ator, mensagens, fim = "?", {}, None
     for linha in linhas:
         try:
             evento = json.loads(linha)
@@ -321,24 +328,21 @@ def metricas(linhas):
             continue
         tipo = evento.get("type")
         if tipo == "system" and evento.get("subtype") == "init":
-            modelo = evento.get("model") or "?"
+            ator = evento.get("model") or "?"
         elif tipo == "assistant":
-            ids.add((evento.get("parent_tool_use_id"), evento["message"].get("id")))
+            m = evento["message"]
+            mensagens[(evento.get("parent_tool_use_id"), m.get("id"))] = m.get("model") or "?"
         elif tipo == "result":
             fim = evento
     if fim is None:
         return None
-    uso = fim.get("modelUsage", {}).values()
-
-    def soma(campo):
-        return sum(u.get(campo, 0) for u in uso)
-
-    return {
-        "modelo": modelo, "requisicoes": len(ids), "turnos": fim.get("num_turns", 0),
-        "entrada": soma("inputTokens"), "cache_lido": soma("cacheReadInputTokens"),
-        "cache_gravado": soma("cacheCreationInputTokens"), "saida": soma("outputTokens"),
-        "minutos": fim.get("duration_ms", 0) / 60000,
-    }
+    uso = fim.get("modelUsage", {})
+    modelos = {}
+    for modelo in set(uso) | set(mensagens.values()):
+        modelos[modelo] = {chave: uso.get(modelo, {}).get(campo, 0) for chave, campo in USO.items()}
+        modelos[modelo]["requisicoes"] = sum(1 for m in mensagens.values() if m == modelo)
+    return {"ator": ator, "turnos": fim.get("num_turns", 0), "minutos": fim.get("duration_ms", 0) / 60000,
+            "modelos": modelos}
 
 
 def numero(valor):
@@ -347,36 +351,45 @@ def numero(valor):
     return texto.translate(str.maketrans(",.", ".,"))
 
 
-def tabela(pastas):
-    """Tabela em markdown das rodadas guardadas nas pastas: uma linha por modelo do ator, com a mediana e a faixa.
+def faixa(valores):
+    """Mediana dos valores e, se eles diferem, o mínimo e o máximo entre parênteses."""
+    texto = numero(statistics.median(valores))
+    if min(valores) != max(valores):
+        texto += f" ({numero(min(valores))} a {numero(max(valores))})"
+    return texto
 
-    Cada transcript.jsonl das pastas, em qualquer nível, é uma rodada. A que não tem o evento
-    `result` (ator que caiu no meio) fica fora, com aviso no stderr. Devolve "" sem rodada completa.
+
+def tabela(pastas):
+    """Tabelas em markdown das rodadas guardadas nas pastas, com a mediana e a faixa de cada métrica.
+
+    A primeira tem uma linha por modelo do ator (turnos e minutos da rodada). A segunda tem uma
+    linha por modelo do ator e modelo usado na rodada (requisições e tokens só daquele modelo); a
+    rodada que não usou o modelo entra com zero. Cada transcript.jsonl das pastas, em qualquer
+    nível, é uma rodada. A que não tem o evento `result` (ator que caiu no meio) fica fora, com
+    aviso no stderr. Devolve "" sem rodada completa.
     """
-    por_modelo = {}
+    por_ator = {}
     for pasta in pastas:
         for jsonl in sorted(Path(pasta).rglob("transcript.jsonl")):
             m = metricas(jsonl.read_text(encoding="utf-8").splitlines())
             if m is None:
                 print(f"sem evento result, fora da tabela: {jsonl}", file=sys.stderr, flush=True)
                 continue
-            por_modelo.setdefault(m["modelo"], []).append(m)
-    if not por_modelo:
+            por_ator.setdefault(m["ator"], []).append(m)
+    if not por_ator:
         return ""
-    linhas = [
-        "| modelo | rodadas | " + " | ".join(rotulo for _, rotulo in METRICAS) + " |",
-        "| --- | --- |" + " --- |" * len(METRICAS),
-    ]
-    for modelo, rodadas in sorted(por_modelo.items()):
-        celulas = []
-        for chave, _ in METRICAS:
-            valores = [r[chave] for r in rodadas]
-            celula = numero(statistics.median(valores))
-            if min(valores) != max(valores):
-                celula += f" ({numero(min(valores))} a {numero(max(valores))})"
-            celulas.append(celula)
-        linhas.append(f"| {modelo} | {len(rodadas)} | " + " | ".join(celulas) + " |")
-    return "\n".join(linhas) + "\n"
+
+    def cabecalho(*colunas):
+        return [f"| {' | '.join(colunas)} |", "|" + " --- |" * len(colunas)]
+
+    rodada = cabecalho("ator", "rodadas", *(r for _, r in DA_RODADA))
+    modelo = cabecalho("ator", "modelo", *(r for _, r in DO_MODELO))
+    for ator, rodadas in sorted(por_ator.items()):
+        rodada.append(f"| {ator} | {len(rodadas)} | " + " | ".join(faixa([r[c] for r in rodadas]) for c, _ in DA_RODADA) + " |")
+        for usado in sorted({u for r in rodadas for u in r["modelos"]}):
+            celulas = (faixa([r["modelos"].get(usado, {}).get(c, 0) for r in rodadas]) for c, _ in DO_MODELO)
+            modelo.append(f"| {ator} | {usado} | " + " | ".join(celulas) + " |")
+    return "\n".join(rodada) + "\n\n" + "\n".join(modelo) + "\n"
 
 
 def avaliar(claude, fluxo, dest):

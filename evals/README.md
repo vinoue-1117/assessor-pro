@@ -35,7 +35,7 @@ Um ator faz o papel do bot sobre um cenário, e um avaliador lê o transcript. A
 
 ### O ator
 
-`claude -p`, headless, pelo login do plano, com o modelo de `--modelo` (padrão: `sonnet`; vale também no gosto). O subagente do `agentes.json` fica com o modelo escrito nele. O script tira a `ANTHROPIC_API_KEY` do ambiente do ator e do avaliador: com ela definida, o `claude -p` se autentica pela chave e cobra pela API. Ele roda numa pasta de execução fora do repositório, com as skills da branch copiadas para `.claude/skills/`. O prompt de sistema é o do Claude Code com o `## Perfil` do `bot.md` e a seção `## Plataforma` do cenário. As skills são as da branch, não as da `stable`: o cenário troca o endereço do download pelo `file:///` do repositório.
+`claude -p`, headless, pelo login do plano, com o modelo de `--modelo` (padrão: `sonnet`; vale também no gosto). O `--modelo` muda só o ator: o subagente do `agentes.json` fica com o modelo escrito nele. O script tira a `ANTHROPIC_API_KEY` do ambiente do ator e do avaliador: com ela definida, o `claude -p` se autentica pela chave e cobra pela API. Ele roda numa pasta de execução fora do repositório, com as skills da branch copiadas para `.claude/skills/`. O prompt de sistema é o do Claude Code com o `## Perfil` do `bot.md` e a seção `## Plataforma` do cenário. As skills são as da branch, não as da `stable`: o cenário troca o endereço do download pelo `file:///` do repositório.
 
 As instruções de quem roda ficam fora do contexto do ator: `--setting-sources project` tira as skills e as rules do usuário, e o `claudeMdExcludes` tira o `~/.claude/CLAUDE.md`.
 
@@ -71,17 +71,20 @@ O repositório é público: transcript e relatório não entram nele.
 
 ### Métricas
 
-No fim da execução, o script imprime a tabela de métricas das rodadas dela. A mesma tabela sai, sem rodar nada, para rodadas já guardadas:
+No fim da execução, o script imprime as tabelas de métricas das rodadas dela. As mesmas tabelas saem, sem rodar nada, para rodadas já guardadas:
 
 `python scripts/dry-run.py --metricas <pasta> [<pasta> ...]`
 
-Cada `transcript.jsonl` dentro das pastas, em qualquer nível, é uma rodada; passar `<pasta de dados>/execucoes/analista` junta todas as rodadas guardadas do bot. A tabela tem uma linha por modelo do ator (o `model` do evento `init`), com o número de rodadas e, em cada métrica, a mediana e, se as rodadas diferem, a faixa entre parênteses. A rodada cujo stream não tem o evento `result` (ator que caiu no meio) fica fora, com aviso.
+Cada `transcript.jsonl` dentro das pastas, em qualquer nível, é uma rodada; passar `<pasta de dados>/execucoes/analista` junta todas as rodadas guardadas do bot. Cada métrica traz a mediana das rodadas e, se elas diferem, a faixa entre parênteses. A rodada cujo stream não tem o evento `result` (ator que caiu no meio) fica fora, com aviso.
+
+- A primeira tabela tem uma linha por modelo do ator (o `model` do evento `init`), com o número de rodadas, os turnos e os minutos.
+- A segunda tem uma linha por modelo do ator e modelo usado na rodada (o ator, o subagente e o que as ferramentas chamam por dentro), com as requisições e os tokens só daquele modelo. Os tokens de um modelo nunca entram na linha de outro. A rodada que não usou o modelo entra com zero na mediana.
 
 | Métrica | De onde vem |
 | --- | --- |
-| `requisicoes` | as mensagens distintas do modelo (`message.id`) do ator e dos subagentes. Uma resposta com vários blocos chega em vários eventos com o mesmo id e conta uma vez. A ferramenta que chama um modelo por dentro (o `WebFetch` resume a página com o Haiku) não emite mensagem e fica fora da conta |
+| `requisicoes no stream` | as mensagens distintas (`message.id`) do ator e dos subagentes, pelo `model` de cada mensagem. Uma resposta com vários blocos chega em vários eventos com o mesmo id e conta uma vez. A ferramenta que chama um modelo por dentro (o `WebFetch` resume a página com o Haiku) não emite mensagem: esse modelo aparece com tokens e zero requisições |
 | `turnos` | o `num_turns` do `result`, que conta cada resultado de ferramenta do ator; por isso passa das requisições quando o ator chama ferramentas em paralelo |
-| `entrada`, `cache lido`, `cache gravado`, `saida` | os tokens do `modelUsage` do `result`, somados entre os modelos: entram os subagentes e as chamadas internas das ferramentas. O `usage` de cada evento do stream não serve, porque o de saída é parcial |
+| `entrada`, `cache lido`, `cache gravado`, `saida` | os tokens do modelo no `modelUsage` do `result`, que separa por modelo e inclui os subagentes e as chamadas internas das ferramentas. O `usage` de cada evento do stream não serve, porque o de saída é parcial |
 | `minutos` | o `duration_ms` do `result` |
 
 A métrica principal é requisições e tokens. O tempo varia com a carga da máquina e só se compara pela mediana de várias rodadas.

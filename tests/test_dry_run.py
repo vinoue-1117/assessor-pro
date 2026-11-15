@@ -188,39 +188,47 @@ def test_gosto_sobrepoe_variante_copia_partida_e_indexa(tmp_path, monkeypatch):
     assert indice.count('fora do bot') == 1 and indice.index('nova-1/transcript.md') < indice.index(marca) < indice.index('nova-2')
 
 
-def _rodada(pasta, modelo, mensagens, minutos, saida, com_fim=True):
-    """Stream fictício: `mensagens` é a lista de (pai, id) de cada evento assistant."""
-    eventos = [{'type': 'system', 'subtype': 'init', 'model': modelo}]
-    eventos += [_assistente([{'type': 'text', 'text': 'x'}], pai=pai) | {'message': {'id': i, 'content': []}}
-                for pai, i in mensagens]
+def _rodada(pasta, ator, mensagens, minutos, uso, com_fim=True):
+    """Stream fictício: `mensagens` é a lista de (pai, id, modelo) de cada evento assistant e `uso` dá (entrada, saída) por modelo."""
+    eventos = [{'type': 'system', 'subtype': 'init', 'model': ator}]
+    eventos += [_assistente([], pai=pai) | {'message': {'id': i, 'model': m, 'content': []}} for pai, i, m in mensagens]
+    tokens = {m: {'inputTokens': e, 'outputTokens': s} | ({'cacheReadInputTokens': 1000, 'cacheCreationInputTokens': 200} if m == ator else {})
+              for m, (e, s) in uso.items()}
     if com_fim:
         eventos.append({'type': 'result', 'subtype': 'success', 'num_turns': len(mensagens) + 1,
-                        'duration_ms': minutos * 60000, 'modelUsage': {
-                            modelo: {'inputTokens': 10, 'outputTokens': saida, 'cacheReadInputTokens': 1000,
-                                     'cacheCreationInputTokens': 200},
-                            'claude-interno': {'inputTokens': 5, 'outputTokens': 1}}})
+                        'duration_ms': minutos * 60000, 'modelUsage': tokens})
     _escrever(pasta / 'transcript.jsonl', '\n'.join(json.dumps(e) for e in eventos) + '\naviso solto\n')
 
 
 def test_tabela_de_metricas_por_modelo(tmp_path, capsys):
     dry = _dry_run()
+    a, b, sub = 'modelo-a', 'modelo-b', 'modelo-sub'
     # Resposta com vários blocos chega em vários eventos com o mesmo id: conta uma requisição.
-    # A mensagem do subagente (com pai) conta à parte.
-    _rodada(tmp_path / 'a/rodada-1', 'modelo-a', [(None, 'm1'), (None, 'm1'), (None, 'm2'), ('t1', 's1')], 2, 100)
-    _rodada(tmp_path / 'a/rodada-2', 'modelo-a', [(None, 'm1')], 4, 1300)
-    _rodada(tmp_path / 'a/rodada-3', 'modelo-a', [(None, 'm1'), (None, 'm2')], 3, 700)
-    _rodada(tmp_path / 'b', 'modelo-b', [(None, 'm1')], 1, 50)
+    # A mensagem do subagente (com pai) conta no modelo dela.
+    _rodada(tmp_path / 'a/rodada-1', a, [(None, 'm1', a), (None, 'm1', a), (None, 'm2', a), ('t1', 's1', sub)], 2,
+            {a: (10, 100), sub: (20, 30)})
+    # O modelo que a ferramenta chama por dentro tem tokens e nenhuma mensagem no stream.
+    _rodada(tmp_path / 'a/rodada-2', a, [(None, 'm1', a)], 4, {a: (10, 1300), 'claude-interno': (5, 1)})
+    _rodada(tmp_path / 'a/rodada-3', a, [(None, 'm1', a), (None, 'm2', a)], 3, {a: (10, 700)})
+    _rodada(tmp_path / 'b', b, [(None, 'm1', b)], 1, {b: (10, 50)})
     # Ator que caiu antes do result fica fora da tabela, com aviso.
-    _rodada(tmp_path / 'a/rodada-4', 'modelo-a', [(None, 'm1')] * 9, 9, 9, com_fim=False)
+    _rodada(tmp_path / 'a/rodada-4', a, [(None, 'm1', a)] * 9, 9, {a: (9, 9)}, com_fim=False)
 
     texto = dry.tabela([tmp_path / 'a', tmp_path / 'b'])
 
     assert texto.splitlines() == [
-        '| modelo | rodadas | requisicoes | turnos | entrada | cache lido | cache gravado | saida | minutos |',
-        '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
-        # Tokens somados entre os modelos do modelUsage; mediana e faixa de cada métrica.
-        '| modelo-a | 3 | 2 (1 a 3) | 3 (2 a 5) | 15 | 1.000 | 200 | 701 (101 a 1.301) | 3 (2 a 4) |',
-        '| modelo-b | 1 | 1 | 2 | 15 | 1.000 | 200 | 51 | 1 |',
+        '| ator | rodadas | turnos | minutos |',
+        '| --- | --- | --- | --- |',
+        '| modelo-a | 3 | 3 (2 a 5) | 3 (2 a 4) |',
+        '| modelo-b | 1 | 2 | 1 |',
+        '',
+        '| ator | modelo | requisicoes no stream | entrada | cache lido | cache gravado | saida |',
+        '| --- | --- | --- | --- | --- | --- | --- |',
+        # Cada modelo com os seus tokens, nunca somados sob o nome do ator; rodada sem o modelo entra com zero.
+        '| modelo-a | claude-interno | 0 | 0 (0 a 5) | 0 | 0 | 0 (0 a 1) |',
+        '| modelo-a | modelo-a | 2 (1 a 2) | 10 | 1.000 | 200 | 700 (100 a 1.300) |',
+        '| modelo-a | modelo-sub | 0 (0 a 1) | 0 (0 a 20) | 0 | 0 | 0 (0 a 30) |',
+        '| modelo-b | modelo-b | 1 | 10 | 1.000 | 200 | 50 |',
     ]
     assert 'rodada-4' in capsys.readouterr().err
     assert dry.tabela([tmp_path / 'vazia']) == ''
