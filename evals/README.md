@@ -12,11 +12,12 @@ Uma mudança de skill é avaliada por três eixos independentes:
 
 ```text
 evals/<bot>/
+  acerto/<caso>/      rodar.py, a entrada, o gabarito, os critérios do juiz (graders/) e o README do caso
   fluxo/<fluxo>/      cenario.md, erros.md e, se o fluxo usar subagente, agentes.json
   gosto/<pergunta>/   cenario.md, variantes/<nome>/ e, depois que o dono decide, decisao.md
 ```
 
-O eixo de acerto do Analista está em [`bots/analista/evals/revisor/`](../bots/analista/evals/revisor), pelo `claude plugin eval`.
+O eixo de acerto roda pelo `claude plugin eval`. O caso do Analista está em [`analista/acerto/revisor/`](analista/acerto/revisor), com o README dele.
 
 ## Fluxo: dry run
 

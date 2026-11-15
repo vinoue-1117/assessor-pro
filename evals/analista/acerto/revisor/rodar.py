@@ -7,7 +7,7 @@ do plano e soma a regua a partir do JSON de resultado. O papel do advogado do
 diabo e lido da `analista-tese`.
 
 Uso:
-  python bots/analista/evals/revisor/rodar.py [--runs N] [--caso GLOB] [--saida PASTA] [--so-entrada]
+  python evals/analista/acerto/revisor/rodar.py [--runs N] [--caso GLOB] [--saida PASTA] [--so-entrada]
 """
 import argparse
 import html
@@ -20,7 +20,7 @@ import tempfile
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
-SKILL = AQUI.parents[1] / "skills/analista-tese/SKILL.md"
+SKILL = AQUI.parents[3] / "bots/analista/skills/analista-tese/SKILL.md"
 MODELO = "sonnet"
 PAPEL = re.compile(r"^- o papel: (.+)$", re.M)
 # A palavra "veredito" ou "resultado" seguida do termo, so com pontuacao ou marca no meio.
