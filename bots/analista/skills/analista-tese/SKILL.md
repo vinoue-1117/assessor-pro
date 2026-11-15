@@ -25,11 +25,11 @@ Grave o pacote em `/tmp/analista-dados-<slug>.json` com `json.dump` em Python. N
 
 - `mercado`: o JSON do script, sem editar número.
 - `web`: só página que você abriu de fato, com a data do documento ou da publicação. Número de fundamento ou de projeção que a tese usa (lucro, receita, dívida, expectativa do boletim Focus) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, projeção, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Em tese sobre empresa, confira a data do último trimestre divulgado. Em tese sobre ativo com ticker no `yfinance`, rode `historico` da última semana antes de concluir. Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: registre em `Riscos, limitações e premissas` que a variação da última semana não foi conferida.
-- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria, tamanho). Se a conta não sair do script, não entre na tese.
+- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria, tamanho). Se a conta não sair do script, não entre na tese. Dado que o dono deu nesta conversa (valor, carteira, limite de perda, prazo) também entra em `contas`, como ele deu, com a chave `origem_<nome>` valendo `"informado pelo dono"`.
 
 ## 2. Rascunho
 
-Escreva `/tmp/analista-rascunho-<slug>.md` em markdown, já nas seções da Page (seção 5). O rascunho traz a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Em pedido sem decisão de alocação, ele fica sem a decisão, o tamanho sugerido, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON.
+Escreva `/tmp/analista-rascunho-<slug>.md` em markdown, já nas seções da Page (seção 5). O rascunho traz a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Em pedido sem decisão de alocação, ele fica sem a decisão, a assimetria, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON.
 
 - Tamanho sugerido: sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta.
 - Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
@@ -69,12 +69,12 @@ Rode outro subagente `knowledgeWork`, também sem o histórico da conversa. Pass
 
 - o texto final;
 - o JSON de `/tmp/analista-dados-<slug>.json`;
-- o papel: conferente factual. Conferir se cada número do texto bate com `mercado`, com os `numeros` de `web` ou com `contas`. Conferir se cada afirmação de fato tem dado no pacote. Conferir se o texto é coerente com os próprios números (gatilho, linha de corte). Número que não está em `mercado`, nos `numeros` de `web` nem em `contas` é divergência, mesmo que a conta feche com dados do pacote. Afirmação de fato sem dado no pacote é divergência, mesmo que pareça razoável. Item que começa com `Hipótese:` não é divergência. Devolver a lista de divergências, cada uma com o trecho e o valor certo do pacote, e o resultado `confere` ou `reescrever`. Não opinar sobre a qualidade da tese e não reescrever a tese.
+- o papel: conferente factual. Conferir se cada número do texto bate com `mercado`, com os `numeros` de `web` ou com `contas`. Conferir se cada afirmação de fato tem dado no pacote. Conferir se o texto é coerente com os próprios números (gatilho, linha de corte). Número que não está em `mercado`, nos `numeros` de `web` nem em `contas` é divergência, mesmo que a conta feche com dados do pacote. Afirmação de fato sem dado no pacote é divergência, mesmo que pareça razoável. Item que começa com `Hipótese:` não é divergência, a não ser que traga número que não está no pacote. Devolver a lista de divergências, cada uma com o trecho e o valor certo do pacote, e o resultado `confere` ou `reescrever`. Não opinar sobre a qualidade da tese e não reescrever a tese.
 
 Não passe o chat, a memória, o rascunho nem a resposta do antagonista. Se o conferente não devolver `confere` ou `reescrever`, pare e diga ao dono que a conferência não rodou. Não invente resultado e não publique.
 
 - `confere`: publique (seção 5).
-- `reescrever`: corrija os trechos apontados, rode de novo a conta que mudar e passe o texto final inteiro a um novo conferente, com o mesmo papel. São duas conferências no máximo. Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: sem a decisão, o tamanho, os números ou as ressalvas da tese, e sem oferecer outra conferência. Se o dono pedir a tese de novo, ela recomeça da seção 1.
+- `reescrever`: corrija os trechos apontados, rode de novo a conta que mudar e passe o texto final inteiro a um novo conferente, com o mesmo papel. São duas conferências no máximo. Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: da tese, só os trechos das divergências; sem a decisão, as ressalvas e os outros números, e sem oferecer outra conferência. Se o dono pedir a tese de novo, ela recomeça da seção 1.
 
 A Page publica o texto que a última conferência leu. Não mude número, gatilho nem conclusão depois dela.
 

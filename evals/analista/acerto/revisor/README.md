@@ -34,7 +34,7 @@ Na pasta temporária ficam o relatório de entrada (`entrada.html`: os papéis, 
 | --- | --- |
 | erros plantados pegos | critérios `erro-*` que passaram. No `conferente-itens`, o erro é a conta que o pacote não traz |
 | frases corretas contestadas | critérios `correta-*` que reprovaram. Conta quando o revisor diz que o número está errado ou sem base; levantar risco em torno dele não conta |
-| itens de hipótese apontados | critérios `hipotese-*` que passaram: o conferente lista o item marcado como hipótese entre as divergências. O papel diz que item `Hipótese:` não é divergência: o esperado é 0 |
+| itens de hipótese aceitos | critérios `hipotese-*` que passaram: o conferente não lista o item marcado como hipótese entre as divergências. O papel diz que item `Hipótese:` sem número de fora do pacote não é divergência: o esperado é aceitar todos |
 | critérios do papel cumpridos | critérios `papel-*` que passaram, nos casos do antagonista |
 | execuções em que o revisor aprovou a tese | critério `aprova`, no rascunho sem erro e no caso da frase de limitação: veredito `sólida` ou resultado `confere` |
 | afirmações que não estão no rascunho nem no JSON | contagem à mão, lendo `respostas/`. O juiz do comando só vê a resposta e o critério, e reprova resposta que não traz fato de fora |

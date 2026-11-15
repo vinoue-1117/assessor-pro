@@ -684,7 +684,7 @@ def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys)
         return {'error': erro, 'graders': [{'name': n, 'passed': p, 'evidence': resposta} for n, p in criterios.items()]}
 
     def linha(resposta, veredito, **contagens):
-        zero = dict.fromkeys(('erros', 'de_erros', 'contestadas', 'de_corretas', 'apontadas', 'de_hipoteses', 'papel', 'de_papel'), 0)
+        zero = dict.fromkeys(('erros', 'de_erros', 'contestadas', 'de_corretas', 'aceitas', 'de_hipoteses', 'papel', 'de_papel'), 0)
         return {**zero, 'aprovou': None, **contagens, 'resposta': resposta, 'veredito': veredito}
 
     soma = rodar_eval.somar({'cases': [
@@ -703,7 +703,7 @@ def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys)
         ]}},
     ]})
     assert soma == {
-        'advogado': [linha(refazer, 'refazer', erros=1, de_erros=2, contestadas=1, de_corretas=2, apontadas=1, de_hipoteses=2)],
+        'advogado': [linha(refazer, 'refazer', erros=1, de_erros=2, contestadas=1, de_corretas=2, aceitas=1, de_hipoteses=2)],
         'advogado-limpo': [linha(fragil, 'frágil', de_corretas=1, aprovou=False)],
         'antagonista': [linha(itens, None, papel=1, de_papel=2)],
     }

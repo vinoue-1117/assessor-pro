@@ -84,8 +84,8 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 14. Tese reprovada entregue no chat
 
-- **No transcript:** depois da segunda conferência com `reescrever`, a mensagem final traz, além das divergências, a decisão de alocação (lado, tamanho, horizonte), números da tese ou ressalvas em lista. Ou oferece corrigir e rodar uma nova conferência.
-- **Contraria:** `analista-tese`, seção 4 ("Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: sem a decisão, o tamanho, os números ou as ressalvas da tese, e sem oferecer outra conferência").
+- **No transcript:** depois da segunda conferência com `reescrever`, a mensagem final traz, além dos trechos das divergências, a decisão de alocação (lado, tamanho, horizonte), outros números da tese ou ressalvas em lista. Ou oferece corrigir e rodar uma nova conferência.
+- **Contraria:** `analista-tese`, seção 4 ("Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: da tese, só os trechos das divergências; sem a decisão, as ressalvas e os outros números, e sem oferecer outra conferência").
 - **Visto:** num dry run. A Page não saiu, mas o chat trouxe a compra recomendada, com a divisão entre os títulos e cinco ressalvas, uma delas num trecho que a conferência tinha apontado.
 
 ## 15. Item do antagonista mudado no caminho para o texto final

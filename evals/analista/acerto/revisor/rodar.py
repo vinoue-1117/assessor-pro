@@ -186,7 +186,7 @@ def descarte(execucao):
 
 
 def somar(resultado):
-    """Por caso, uma linha por execucao: erros pegos, corretas contestadas, hipoteses apontadas, criterios do papel cumpridos, aprovou (None sem o criterio), o veredito e a resposta."""
+    """Por caso, uma linha por execucao: erros pegos, corretas contestadas, hipoteses aceitas, criterios do papel cumpridos, aprovou (None sem o criterio), o veredito e a resposta."""
     saida = {}
     for caso in resultado["cases"]:
         linhas = []
@@ -196,7 +196,7 @@ def somar(resultado):
                 print(f"execucao de {caso['name']} fora da soma: {motivo}", file=sys.stderr)
                 continue
             linha = {"erros": 0, "de_erros": 0, "contestadas": 0, "de_corretas": 0,
-                     "apontadas": 0, "de_hipoteses": 0, "papel": 0, "de_papel": 0, "aprovou": None}
+                     "aceitas": 0, "de_hipoteses": 0, "papel": 0, "de_papel": 0, "aprovou": None}
             for g in execucao["graders"]:
                 if g["name"].startswith("erro-"):
                     linha["erros"] += g["passed"]
@@ -205,7 +205,7 @@ def somar(resultado):
                     linha["contestadas"] += not g["passed"]
                     linha["de_corretas"] += 1
                 elif g["name"].startswith("hipotese-"):
-                    linha["apontadas"] += g["passed"]
+                    linha["aceitas"] += g["passed"]
                     linha["de_hipoteses"] += 1
                 elif g["name"].startswith("papel-"):
                     linha["papel"] += g["passed"]
@@ -237,7 +237,7 @@ def relatar(soma, dest):
         if linhas[0]["de_corretas"]:
             print(f"  frases corretas contestadas (de {linhas[0]['de_corretas']}): {resumo([l['contestadas'] for l in linhas])}")
         if linhas[0]["de_hipoteses"]:
-            print(f"  itens de hipotese apontados (de {linhas[0]['de_hipoteses']}): {resumo([l['apontadas'] for l in linhas])}")
+            print(f"  itens de hipotese aceitos (de {linhas[0]['de_hipoteses']}): {resumo([l['aceitas'] for l in linhas])}")
         if linhas[0]["de_papel"]:
             print(f"  criterios do papel cumpridos (de {linhas[0]['de_papel']}): {resumo([l['papel'] for l in linhas])}")
         if linhas[0]["aprovou"] is not None:
