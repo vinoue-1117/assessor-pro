@@ -6,15 +6,15 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 1. Revisor traz fato de memória
 
-- **No transcript:** a resposta do subagente `knowledgeWork` afirma fato que não está no texto nem no JSON que ele recebeu. No antagonista, conta o fato sem a marca `Hipótese:`. Os casos vistos: imposto de renda e taxa de custódia do Tesouro Direto, e o histórico de erro do boletim Focus.
+- **No transcript:** a resposta do subagente `knowledgeWork` afirma fato que não está no texto nem no JSON que ele recebeu. No antagonista, conta o fato sem a marca `Hipótese:`, ou termina o item com um dado entre parênteses que não sustenta a afirmação (os PUs de compra e venda citados para dizer qual título é mais sensível a juros). Os casos vistos: imposto de renda e taxa de custódia do Tesouro Direto, o histórico de erro do boletim Focus e a sensibilidade a juros de um título.
 - **Contraria:** `analista-core`, Anti-jobs ("Inventar cotação, múltiplo, volume, taxa ou fato de memória"), e `analista-tese`, seção 3 (o antagonista apoia cada item num dado do pacote ou o marca como hipótese) e seção 4 (o conferente confere contra o pacote).
-- **Visto:** no ensaio fora da plataforma e no eval do revisor, em 6 de 10 execuções do advogado do diabo.
+- **Visto:** no ensaio fora da plataforma e no eval do revisor, em 6 de 10 execuções do advogado do diabo. No antagonista, em dois dry runs seguidos, sempre com um dado entre parênteses que não sustentava o item. Num deles o item chegou à Page, e o conferente devolveu `confere` dizendo que a afirmação não tinha dado no pacote.
 
 ## 2. Tamanho sugerido sem entrada
 
-- **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem.
-- **Contraria:** `analista-tese`, seção 1 ("Se a conta não sair do script, não entre na tese"), e `analista-core`, Persona (o tamanho é insumo para a decisão do dono). As skills não dizem com que dado calcular o tamanho nem mandam perguntar ao dono quando ele falta. O avaliador aponta o que o ator fez com o buraco.
-- **Visto:** no ensaio fora da plataforma. O bot inventou um orçamento de perda e chegou a um teto de alocação.
+- **No transcript:** o ator calcula o tamanho sugerido a partir de um patrimônio, orçamento de perda ou teto de alocação que o dono não deu e que não saiu de ferramenta. A premissa aparece num comando Python ou em `contas` sem origem. Ou o tamanho aparece no rascunho sem conta nenhuma: sem chave em `contas` e sem saída de Python que o imprima.
+- **Contraria:** `analista-tese`, seção 2 ("sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta"), e `analista-core`, Persona (o tamanho é insumo para a decisão do dono).
+- **Visto:** no ensaio fora da plataforma. O bot inventou um orçamento de perda e chegou a um teto de alocação. Em dois dry runs seguidos, a divisão entre os dois títulos (70% e 30%) foi escolhida sem conta e chegou ao painel, a `## Decisão` e ao chat.
 
 ## 3. Ordem de conferência que não vale para título público
 
@@ -54,7 +54,7 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 9. Regra legal de memória no ator
 
-- **No transcript:** o script de conta do ator traz uma alíquota de imposto (`0.85`, `15%`) ou outra regra legal sem `WebFetch` da página que a sustente nesta rodada, e a Page a apresenta como "regra legal" ou "premissa externa", sem a fonte em `## Fontes`. Os números que dependem dela (retorno líquido, vantagem líquida) herdam a falta de fonte.
+- **No transcript:** o script de conta do ator traz uma alíquota de imposto (`0.85`, `15%`) ou outra regra legal sem `WebFetch` da página que a sustente nesta rodada, e a Page a apresenta como "regra legal" ou "premissa externa", sem a fonte em `## Fontes`. Os números que dependem dela (retorno líquido, vantagem líquida) herdam a falta de fonte. Ou o rascunho afirma a regra ("imposto de renda igual nos dois títulos") sem a página aberta, mesmo sem número que dependa dela: o antagonista lê o rascunho e monta item em cima da regra.
 - **Contraria:** `analista-core`, Anti-jobs ("Inventar cotação, múltiplo, volume, taxa ou fato de memória"; "Número de fundamento só entra com a página aberta nesta conversa, com a data"), e `analista-tese`, seção 5 ("`## Fontes` com fonte, data e horário de cada número e de cada documento").
 - **Visto:** num dry run. O ator usou o IR de 15% de memória, e todos os retornos líquidos da Page dependiam dele.
 
@@ -80,4 +80,22 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 - **No transcript:** o comando de download difere do da skill em algo além do endereço trocado pelo cenário: um passo tirado da cadeia de `&&`, a mensagem de falha encurtada (sem "Pare e não use a cópia do disco."), um comando acrescentado.
 - **Contraria:** `analista-mercado`, Script (o comando é o da skill; "Se falhar, pare e avise. Não use a cópia do disco"). No dry run, a tabela de `## Plataforma` do cenário troca só o endereço: "O resto do comando fica igual, com o `curl`".
-- **Visto:** num dry run. O download deu certo, mas uma falha teria saído sem a ordem de parar.
+- **Visto:** em três dry runs. O download deu certo, mas uma falha teria saído sem a ordem de parar. Num deles o `exit 1` também saiu, e o passo seguinte rodaria a cópia do disco.
+
+## 14. Tese reprovada entregue no chat
+
+- **No transcript:** depois da segunda conferência com `reescrever`, a mensagem final traz, além das divergências, a decisão de alocação (lado, tamanho, horizonte), números da tese ou ressalvas em lista. Ou oferece corrigir e rodar uma nova conferência.
+- **Contraria:** `analista-tese`, seção 4 ("Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: sem a decisão, o tamanho, os números ou as ressalvas da tese, e sem oferecer outra conferência").
+- **Visto:** num dry run. A Page não saiu, mas o chat trouxe a compra recomendada, com a divisão entre os títulos e cinco ressalvas, uma delas num trecho que a conferência tinha apontado.
+
+## 15. Item do antagonista mudado no caminho para o texto final
+
+- **No transcript:** comparar cada item da resposta do antagonista com a linha que o ator grava no texto final. É desvio: dois itens juntados num, um dado entre parênteses que o antagonista não citou, a conclusão do item trocada, o item gravado numa seção diferente da que o antagonista indicou, ou a seção que leva um item `Hipótese:` enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
+- **Contraria:** `analista-tese`, seção 4 ("Copie a linha do item: não junte dois itens, não troque a conclusão e não acrescente dado"; "fique primeiro com os apoiados em dado").
+- **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. O conferente não recebe a resposta do antagonista e não tem como ver a troca.
+
+## 16. Tese sem catalisador nem assimetria
+
+- **No transcript:** numa tese com decisão de alocação, a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
+- **Contraria:** `analista-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: [...] Se não houver, escreva que não há") e seção 5, item 6 (`## Decisão` com a assimetria e o catalisador).
+- **Visto:** em dois dry runs seguidos, sem catalisador e sem a perda no cenário contrário.

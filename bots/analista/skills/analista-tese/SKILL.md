@@ -31,6 +31,10 @@ Grave o pacote em `/tmp/analista-dados-<slug>.json` com `json.dump` em Python. N
 
 Escreva `/tmp/analista-rascunho-<slug>.md` em markdown, já nas seções da Page (seção 5). O rascunho traz a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Em pedido sem decisão de alocação, ele fica sem a decisão, o tamanho sugerido, o horizonte e o que faria mudar de ideia. Cada número rastreável ao JSON.
 
+- Tamanho sugerido: sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta.
+- Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
+- Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
+
 ## 3. Antagonista
 
 Rode um subagente `knowledgeWork` pela ferramenta `Task`, com `subagent_type` `knowledgeWork`. Esse subagente começa sem o histórico da conversa. Passe somente:
@@ -51,7 +55,7 @@ Escreva `/tmp/analista-tese-<slug>.md`: o rascunho com os itens do antagonista n
 | `Riscos` | `## Riscos, limitações e premissas` |
 | `O que faria mudar de ideia` | `## Decisão`; em pedido sem decisão de alocação, `## Riscos, limitações e premissas` |
 
-O item entra só na seção de destino, como veio: o dado entre parênteses no fim, ou `Hipótese:` no começo. Não reescreva o resto da tese por causa dele. Item de risco ou de gatilho com limite numérico ganha também uma linha na tabela de sinais.
+O item entra só na seção de destino, como veio: o dado entre parênteses no fim, ou `Hipótese:` no começo. Copie a linha do item: não junte dois itens, não troque a conclusão e não acrescente dado. Item cujo dado entre parênteses não sustenta a afirmação entra como `Hipótese:`, sem o dado, ou sai. Não reescreva o resto da tese por causa dele. Item de risco ou de gatilho com limite numérico ganha também uma linha na tabela de sinais.
 
 Antes de levar os itens:
 
@@ -64,12 +68,12 @@ Rode outro subagente `knowledgeWork`, também sem o histórico da conversa. Pass
 
 - o texto final;
 - o JSON de `/tmp/analista-dados-<slug>.json`;
-- o papel: conferente factual. Conferir se cada número do texto bate com `mercado`, com os `numeros` de `web` ou com `contas`. Conferir se cada afirmação de fato tem dado no pacote. Conferir se o texto é coerente com os próprios números (gatilho, linha de corte). Devolver a lista de divergências, cada uma com o trecho e o valor certo do pacote, e o resultado `confere` ou `reescrever`. Não opinar sobre a qualidade da tese e não reescrever a tese.
+- o papel: conferente factual. Conferir se cada número do texto bate com `mercado`, com os `numeros` de `web` ou com `contas`. Conferir se cada afirmação de fato tem dado no pacote. Conferir se o texto é coerente com os próprios números (gatilho, linha de corte). Número que não está em `mercado`, nos `numeros` de `web` nem em `contas` é divergência, mesmo que a conta feche com dados do pacote. Afirmação de fato sem dado no pacote é divergência, mesmo que pareça razoável. Item que começa com `Hipótese:` não é divergência. Devolver a lista de divergências, cada uma com o trecho e o valor certo do pacote, e o resultado `confere` ou `reescrever`. Não opinar sobre a qualidade da tese e não reescrever a tese.
 
 Não passe o chat, a memória, o rascunho nem a resposta do antagonista. Se o conferente não devolver `confere` ou `reescrever`, pare e diga ao dono que a conferência não rodou. Não invente resultado e não publique.
 
 - `confere`: publique (seção 5).
-- `reescrever`: corrija os trechos apontados, rode de novo a conta que mudar e passe o texto final inteiro a um novo conferente, com o mesmo papel. São duas conferências no máximo. Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote.
+- `reescrever`: corrija os trechos apontados, rode de novo a conta que mudar e passe o texto final inteiro a um novo conferente, com o mesmo papel. São duas conferências no máximo. Se a segunda devolver `reescrever`, não publique: diga ao dono no chat que a tese não passou na conferência e liste cada divergência que ficou, com o trecho e o valor do pacote. O chat leva só isso: sem a decisão, o tamanho, os números ou as ressalvas da tese, e sem oferecer outra conferência. Se o dono pedir a tese de novo, ela recomeça da seção 1.
 
 A Page publica o texto que a última conferência leu. Não mude número, gatilho nem conclusão depois dela.
 
@@ -84,7 +88,7 @@ A Page tem estas seções, nesta ordem:
 3. `## Contras`: os itens do antagonista.
 4. Tabela de sinais: cada catalisador, risco e gatilho de invalidação numa linha, com o valor de hoje, o limite e o status (verde: a favor; amarelo: a acompanhar; vermelho: contra). A cor fica só na palavra do status.
 5. `## Riscos, limitações e premissas`.
-6. `## Decisão`, em destaque: lado, tamanho sugerido, horizonte e o que faria mudar de ideia.
+6. `## Decisão`, em destaque: lado, tamanho sugerido, horizonte, assimetria, catalisador e o que faria mudar de ideia.
 7. Uma seção `## Fontes` com fonte, data e horário de cada número e de cada documento.
 
 Seção sem conteúdo sai da Page. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) sai sem o painel e sem `## Decisão`, e os itens de `O que faria mudar de ideia` vão para `## Riscos, limitações e premissas`.
