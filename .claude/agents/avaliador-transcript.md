@@ -27,6 +27,10 @@ Leia tudo antes de escrever: o cenário, o `bot.md`, cada skill que o ator usou 
 - Confira cada número da `page.md` e da resposta final contra um resultado de ferramenta desta rodada. Número sem origem no transcript é desvio.
 - O que a tabela de `## Plataforma` do cenário substitui não é desvio. Desvio é usar o item da esquerda da tabela, ou um terceiro caminho no lugar dos dois.
 - Quando a skill não diz o que fazer num caso, isso não é desvio do ator: é lacuna da skill. Registre na seção de lacunas o que o ator fez com o buraco.
+- Se o `transcript.md` tem a seção `## fora do bot`, o ator viu ou chamou skill que o bot não tem. Isso é falha do ambiente, não desvio. Cite os nomes e os passos no resumo do relatório, separando três casos:
+  - skill só em `no init:`: visível, não carregada;
+  - chamada com `recusada`: o ator tentou, e a ferramenta não carregou;
+  - chamada sem `recusada`: carga. Só neste caso, diga em "O que esta rodada não mediu" que o trecho depois do passo da carga mede a skill do bot somada à de fora.
 
 Cada desvio cita as duas coisas, ou não entra no relatório:
 
