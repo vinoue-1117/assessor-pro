@@ -1,45 +1,55 @@
 # Acerto: o revisor da tese
 
-Este caso compara dois papéis de revisor sobre os mesmos rascunhos de tese e o mesmo pacote de dados: o advogado do diabo e o conferente factual. Os rascunhos e o pacote (`dados.json`) têm valor fictício em tudo.
+Este caso mede papéis de revisor sobre rascunhos de tese e um pacote de dados. Os rascunhos e o pacote (`dados.json`) têm valor fictício em tudo.
 
 Cada papel fica num arquivo desta pasta, e o script não lê a skill:
 
-| Arquivo | Papel | Braço |
+| Arquivo | Papel |
+| --- | --- |
+| `papel-advogado.md` | o que a seção 3 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao revisor |
+| `papel-conferente.md` | confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever` |
+| `papel-antagonista.md` | procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` |
+| `regra-limitacao.md` | frase que se soma ao papel do conferente no caso `conferente-limitacao-regra` |
+
+## Casos
+
+| Caso | Rascunho | O que mede |
 | --- | --- | --- |
-| `papel-advogado.md` | o que a seção 3 da [`analista-tese`](../../../../bots/analista/skills/analista-tese/SKILL.md) passa ao revisor | `advogado` |
-| `papel-conferente.md` | confere o texto contra o pacote, só por fato, e devolve `confere` ou `reescrever` | `conferente` |
-| `papel-antagonista.md` | procura contras e riscos e devolve os itens agrupados pela seção de destino (`Contras`, `Riscos`, `O que faria mudar de ideia`), sem veredito. Item sem dado do pacote começa com `Hipótese:` | nenhum: a régua deste caso conta veredito |
+| `advogado`, `conferente` | `rascunho.md`: seis erros plantados e cinco frases corretas | os erros que o revisor pega e as frases corretas que ele contesta |
+| `advogado-limpo`, `conferente-limpo` | `rascunho-limpo.md`: o mesmo texto com os seis erros corrigidos | se o revisor aprova a tese sem erro |
+| `conferente-itens` | `rascunho-itens.md`: o rascunho sem erro com seis itens do antagonista nas seções de destino | o que o conferente faz com cada tipo de item: três apoiados em dado do pacote, dois marcados como hipótese e um com conta que o pacote não traz |
+| `conferente-limitacao` | `rascunho-limitacao.md`: o rascunho sem erro com a frase que diz que as taxas são as da manhã do Tesouro Direto | a base: a frase vem do texto da `analista-mercado`, e o pacote não a sustenta |
+| `conferente-limitacao-campo` | o mesmo | a mesma frase com o pacote trazendo a limitação num campo do objeto do Tesouro (`CAMPO_LIMITACAO`, no `rodar.py`) |
+| `conferente-limitacao-regra` | o mesmo | a mesma frase com a `regra-limitacao.md` no papel do conferente |
+| `antagonista`, `antagonista-limpo` | `rascunho.md` e `rascunho-limpo.md` | se o antagonista cumpre o papel: não dá veredito e põe todo item numa seção de destino |
 
-| Rascunho | Conteúdo | Gabarito | Casos |
-| --- | --- | --- | --- |
-| `rascunho.md` | seis erros plantados e cinco frases corretas | `gabarito.json` | `advogado`, `conferente` |
-| `rascunho-limpo.md` | o mesmo texto com os seis erros corrigidos | `gabarito-limpo.json` | `advogado-limpo`, `conferente-limpo` |
+A lista dos casos é o `CASOS`, no `rodar.py`: os arquivos do papel, o rascunho e o gabarito de cada um. Os critérios do juiz ficam em `graders/`. O gabarito lista os critérios que valem para o caso e o trecho do rascunho que cada um confere; critério sem trecho julga a resposta inteira.
 
-Os critérios do juiz ficam em `graders/`. O gabarito de cada rascunho lista os critérios que valem para ele e o trecho que cada um confere.
-
-No rascunho sem erro, toda afirmação de fato tem dado no pacote. Frase de limitação cujo dado vem do texto de uma skill e não do pacote (a taxa do Tesouro Direto ser a da manhã) fica fora dos rascunhos: o conferente factual a aponta como divergência, e o caso mediria o rascunho, não o papel.
+No rascunho sem erro, toda afirmação de fato tem dado no pacote. A frase de limitação fica fora dele e tem rascunho próprio: no caso `conferente-limpo` ela mediria o rascunho, não o papel.
 
 `python evals/analista/acerto/revisor/rodar.py`
 
-O script monta os quatro casos numa pasta temporária, fora do repositório, e roda `claude plugin eval` pelo login do plano, com cinco execuções por caso e Sonnet no revisor e no juiz. `--caso` roda só os casos que casam com o glob (`--caso "*-limpo"`). Ele não usa shell e roda no Windows. O revisor roda em Claude, não no modelo do bot: o resultado compara os papéis, não mede o bot.
+O script monta os casos numa pasta temporária, fora do repositório, e roda `claude plugin eval` pelo login do plano, com cinco execuções por caso e Sonnet no revisor e no juiz. `--caso` roda só os casos que casam com o glob (`--caso "*-limpo"`). Ele não usa shell e roda no Windows. O revisor roda em Claude, não no modelo do bot: o resultado compara os papéis, não mede o bot.
 
 Na pasta temporária ficam o relatório de entrada (`entrada.html`: os papéis, cada rascunho com os trechos do gabarito marcados e os critérios dele, e o JSON), o resultado (`aggregate-result.json`), o relatório de saída do comando (`relatorio.html`) e as respostas (`respostas/`). `--so-entrada` grava só o relatório de entrada, sem rodar o eval.
 
 | Contagem | De onde sai |
 | --- | --- |
-| erros plantados pegos | critérios `erro-*` que passaram |
+| erros plantados pegos | critérios `erro-*` que passaram. No `conferente-itens`, o erro é a conta que o pacote não traz |
 | frases corretas contestadas | critérios `correta-*` que reprovaram. Conta quando o revisor diz que o número está errado ou sem base; levantar risco em torno dele não conta |
-| execuções em que o revisor aprovou a tese | critério `aprova`, só no rascunho sem erro: veredito `sólida` ou resultado `confere` |
+| itens de hipótese apontados | critérios `hipotese-*` que passaram: o conferente lista o item marcado como hipótese entre as divergências. Não há resposta certa aqui: a contagem mostra o que o conferente faz |
+| critérios do papel cumpridos | critérios `papel-*` que passaram, nos casos do antagonista |
+| execuções em que o revisor aprovou a tese | critério `aprova`, no rascunho sem erro e nos casos da frase de limitação: veredito `sólida` ou resultado `confere` |
 | afirmações que não estão no rascunho nem no JSON | contagem à mão, lendo `respostas/`. O juiz do comando só vê a resposta e o critério, e reprova resposta que não traz fato de fora |
 
-O script imprime a média, o mínimo e o máximo das duas primeiras contagens por caso, as aprovações e o veredito de cada execução. Fica fora da soma, com o motivo no stderr, a execução com erro, com critério que o juiz não julgou ou com resposta sem veredito: os critérios `correta-*` passam quando a resposta não menciona o trecho, e uma resposta vazia ou cortada contaria zero frases contestadas.
+O script imprime a média, o mínimo e o máximo de cada contagem por caso, as aprovações e o veredito de cada execução. Fica fora da soma, com o motivo no stderr, a execução com erro, com critério que o juiz não julgou ou com resposta vazia ou cortada: os critérios `correta-*` e `papel-*` passam quando a resposta não traz nada. A prova de resposta inteira é o veredito; no antagonista, que não dá veredito, é a resposta ter pelo menos um item de lista.
 
-Mudou um rascunho ou o pacote? Mude o critério em `graders/` e o trecho no gabarito no mesmo diff. O prefixo do nome do critério (`erro-`, `correta-`) decide em qual contagem ele entra.
+Mudou um rascunho ou o pacote? Mude o critério em `graders/` e o trecho no gabarito no mesmo diff. O prefixo do nome do critério (`erro-`, `correta-`, `hipotese-`, `papel-`) decide em qual contagem ele entra. O `rascunho-itens.md` e o `rascunho-limitacao.md` são o `rascunho-limpo.md` com linhas a mais: mudou o limpo, mude os dois.
 
 Mudou o papel do revisor na `analista-tese`? O teste para enquanto a linha `- o papel:` da skill não for igual ao arquivo do papel que ela usa, hoje o `papel-advogado.md`: mude os dois no mesmo diff. O script roda com o arquivo, mesmo com a skill diferente.
 
-Braço novo? Crie o `papel-<braço>.md` e ponha o nome em `BRACOS`, no `rodar.py`. Papel que não dá veredito precisa antes de critérios próprios: sem veredito, toda execução dele fica fora da soma.
+Caso novo? Uma linha em `CASOS`. Papel que não dá veredito leva o critério `papel-sem-veredito` no gabarito: é por ele que o script troca a prova de resposta inteira, do veredito para o item de lista.
 
 ## Teste
 
-[`bots/analista/tests/test_analista.py`](../../../../bots/analista/tests/test_analista.py) cobre a montagem dos casos e o relatório de entrada, sem rodar modelo. O teste fica na pasta do bot porque o `python scripts/check.py` roda o pytest em `bots` e `tests`, e não em `evals`.
+[`bots/analista/tests/test_analista.py`](../../../../bots/analista/tests/test_analista.py) cobre a montagem dos casos, o relatório de entrada e a soma, sem rodar modelo. O teste fica na pasta do bot porque o `python scripts/check.py` roda o pytest em `bots` e `tests`, e não em `evals`.
