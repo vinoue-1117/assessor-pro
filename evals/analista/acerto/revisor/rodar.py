@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Eval do revisor da tese: dois papeis sobre os mesmos rascunhos e o mesmo JSON.
+"""Eval do revisor da tese: os papeis de revisor sobre rascunhos de tese e o pacote de dados.
 
-Monta um caso por braco e por rascunho numa pasta fora do repositorio, grava
-o relatorio de entrada (entrada.html), roda o `claude plugin eval` pelo login
-do plano e soma a regua a partir do JSON de resultado. O papel de cada braco
-vem do arquivo `papel-<braco>.md` desta pasta.
+Monta os casos de CASOS numa pasta fora do repositorio, grava o relatorio de
+entrada (entrada.html), roda o `claude plugin eval` pelo login do plano e soma
+a regua a partir do JSON de resultado. O papel de cada caso vem dos arquivos
+`papel-*.md` desta pasta.
 
 Uso:
   python evals/analista/acerto/revisor/rodar.py [--runs N] [--caso GLOB] [--saida PASTA] [--so-entrada]
@@ -21,28 +21,42 @@ from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
 MODELO = "sonnet"
-# A regua conta veredito: papel que nao da veredito (papel-antagonista.md) nao entra aqui.
-BRACOS = ("advogado", "conferente")
 # A palavra "veredito" ou "resultado" seguida do termo, so com pontuacao ou marca no meio.
 # "o resultado confere com o JSON", no corpo da resposta, nao casa.
 VEREDITO = re.compile(
     r"(?:veredito|resultado)(?: final)?[ \t*`_]*[:\n—–-][\s*`_]*(s[oó]lida|fr[aá]gil|refazer|confere|reescrever)\b", re.I
 )
-# Sufixo do nome do caso: (titulo, rascunho, gabarito).
-RASCUNHOS = {
-    "": ("Rascunho com erros plantados", "rascunho.md", "gabarito.json"),
-    "-limpo": ("Rascunho sem erro", "rascunho-limpo.md", "gabarito-limpo.json"),
+# O campo que o pacote ganha no objeto do Tesouro, no caso que mede a limitacao vinda do pacote.
+CAMPO_LIMITACAO = {"limitacao": "taxas da manhã do Tesouro Direto, não a taxa indicativa do mercado secundário"}
+# Nome do caso: (arquivos do papel, rascunho, gabarito, pacote com o campo da limitacao).
+CASOS = {
+    "advogado": (("papel-advogado.md",), "rascunho.md", "gabarito.json", False),
+    "advogado-limpo": (("papel-advogado.md",), "rascunho-limpo.md", "gabarito-limpo.json", False),
+    "conferente": (("papel-conferente.md",), "rascunho.md", "gabarito.json", False),
+    "conferente-limpo": (("papel-conferente.md",), "rascunho-limpo.md", "gabarito-limpo.json", False),
+    "conferente-itens": (("papel-conferente.md",), "rascunho-itens.md", "gabarito-itens.json", False),
+    "conferente-limitacao": (("papel-conferente.md",), "rascunho-limitacao.md", "gabarito-limitacao.json", False),
+    "conferente-limitacao-campo": (("papel-conferente.md",), "rascunho-limitacao.md", "gabarito-limitacao.json", True),
+    "conferente-limitacao-regra": (("papel-conferente.md", "regra-limitacao.md"), "rascunho-limitacao.md", "gabarito-limitacao.json", False),
+    "antagonista": (("papel-antagonista.md",), "rascunho.md", "gabarito-antagonista.json", False),
+    "antagonista-limpo": (("papel-antagonista.md",), "rascunho-limpo.md", "gabarito-antagonista.json", False),
 }
-ROTULO = {"erro": "erro plantado", "correta": "frase correta", "aprova": "veredito"}
+TITULO = {
+    "rascunho.md": "Rascunho com erros plantados",
+    "rascunho-limpo.md": "Rascunho sem erro",
+    "rascunho-itens.md": "Rascunho sem erro, com os itens do antagonista",
+    "rascunho-limitacao.md": "Rascunho sem erro, com a frase de limitação",
+}
+ROTULO = {"erro": "erro plantado", "correta": "frase correta", "aprova": "veredito", "hipotese": "hipótese", "papel": "papel"}
 CSS = """
-:root{--fundo:#f6f5f1;--cartao:#fff;--texto:#1c1b19;--suave:#5f5c55;--borda:#d6d2c8;--erro:#f6c9c0;--correta:#c9e8cf;--aprova:#cfd8f0}
-@media (prefers-color-scheme:dark){:root{--fundo:#17171a;--cartao:#212126;--texto:#ecebe7;--suave:#a8a59d;--borda:#3a3a42;--erro:#7a2e22;--correta:#225a31;--aprova:#2c3a63}}
+:root{--fundo:#f6f5f1;--cartao:#fff;--texto:#1c1b19;--suave:#5f5c55;--borda:#d6d2c8;--erro:#f6c9c0;--correta:#c9e8cf;--aprova:#cfd8f0;--hipotese:#f3e2b0}
+@media (prefers-color-scheme:dark){:root{--fundo:#17171a;--cartao:#212126;--texto:#ecebe7;--suave:#a8a59d;--borda:#3a3a42;--erro:#7a2e22;--correta:#225a31;--aprova:#2c3a63;--hipotese:#6b5516}}
 body{margin:0;padding:32px 16px 48px;background:var(--fundo);color:var(--texto);font:17px/1.55 system-ui,"Segoe UI",sans-serif}
 main{max-width:900px;margin:0 auto}
 section{background:var(--cartao);border:1px solid var(--borda);border-radius:10px;padding:8px 22px 16px;margin:0 0 20px}
 h1{font-size:1.6rem;margin:0 0 4px} h2{font-size:1.2rem} h3{font-size:1.05rem}
 .suave{color:var(--suave)}
-mark{color:inherit;padding:1px 3px;border-radius:4px} mark.erro{background:var(--erro)} mark.correta{background:var(--correta)} mark.aprova{background:var(--aprova)}
+mark{color:inherit;padding:1px 3px;border-radius:4px} mark.erro{background:var(--erro)} mark.correta{background:var(--correta)} mark.aprova,mark.papel{background:var(--aprova)} mark.hipotese{background:var(--hipotese)}
 pre{overflow-x:auto;font:.85rem/1.45 ui-monospace,Consolas,monospace}
 code{font:.9em ui-monospace,Consolas,monospace}
 table{border-collapse:collapse;width:100%} td,th{border-top:1px solid var(--borda);padding:8px 10px 8px 0;text-align:left;vertical-align:top}
@@ -57,9 +71,25 @@ def esc(texto):
     return html.escape(texto, quote=False)
 
 
-def bracos():
-    """Nome do braco e papel de cada um."""
-    return {nome: ler(f"papel-{nome}.md") for nome in BRACOS}
+def papel(arquivos):
+    return " ".join(ler(a) for a in arquivos)
+
+
+def pacote(campo):
+    """O JSON que o caso recebe: dados.json, com o campo da limitacao no objeto do Tesouro se `campo`."""
+    if not campo:
+        return ler("dados.json")
+    dados = json.loads(ler("dados.json"))
+    dados["mercado"][0].update(CAMPO_LIMITACAO)
+    return json.dumps(dados, ensure_ascii=False, indent=1)
+
+
+def por_rascunho():
+    """Rascunho -> gabarito -> casos que usam os dois."""
+    saida = {}
+    for nome, (_, rascunho, gab, _) in CASOS.items():
+        saida.setdefault(rascunho, {}).setdefault(gab, []).append(nome)
+    return saida
 
 
 def gabarito(arquivo):
@@ -68,24 +98,26 @@ def gabarito(arquivo):
 
 
 def montar(dest, runs):
-    """Grava em dest/evals um caso por braco e por rascunho. Os bracos de um rascunho recebem a mesma entrada e os mesmos criterios."""
-    for sufixo, (_, rascunho, gab) in RASCUNHOS.items():
-        entrada = f"## Rascunho\n\n{ler(rascunho)}\n\n## JSON\n\n```json\n{ler('dados.json')}\n```\n"
-        for nome, papel in bracos().items():
-            caso = Path(dest) / "evals" / (nome + sufixo)
-            (caso / "graders").mkdir(parents=True)
-            for criterio in gabarito(gab):
-                shutil.copy(AQUI / "graders" / f"{criterio}.md", caso / "graders")
-            texto = f"---\nruns: {runs}\nmax_turns: 3\nallowed_tools: []\n---\n\nPapel: {papel}\n\n{entrada}"
-            (caso / "prompt.md").write_text(texto, encoding="utf-8", newline="\n")
+    """Grava em dest/evals um caso por entrada de CASOS: o papel, o rascunho e o JSON, com os criterios do gabarito."""
+    for nome, (papeis, rascunho, gab, campo) in CASOS.items():
+        caso = Path(dest) / "evals" / nome
+        (caso / "graders").mkdir(parents=True)
+        for criterio in gabarito(gab):
+            shutil.copy(AQUI / "graders" / f"{criterio}.md", caso / "graders")
+        texto = (
+            f"---\nruns: {runs}\nmax_turns: 3\nallowed_tools: []\n---\n\nPapel: {papel(papeis)}\n\n"
+            f"## Rascunho\n\n{ler(rascunho)}\n\n## JSON\n\n```json\n{pacote(campo)}\n```\n"
+        )
+        (caso / "prompt.md").write_text(texto, encoding="utf-8", newline="\n")
 
 
-def rascunho_marcado(rascunho, gab):
-    """HTML do rascunho com cada trecho do gabarito marcado. O revisor recebe o texto sem marca."""
+def rascunho_marcado(rascunho, gabs):
+    """HTML do rascunho com cada trecho dos gabaritos marcado. O revisor recebe o texto sem marca."""
     texto = esc(ler(rascunho))
-    for nome, trecho in gabarito(gab).items():
-        if trecho:
-            texto = texto.replace(esc(trecho), f'<mark class="{nome.split("-")[0]}" title="{nome}">{esc(trecho)}</mark>')
+    for gab in gabs:
+        for nome, trecho in gabarito(gab).items():
+            if trecho:
+                texto = texto.replace(esc(trecho), f'<mark class="{nome.split("-")[0]}" title="{nome}">{esc(trecho)}</mark>')
     texto = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", texto)
     blocos = []
     for bloco in texto.split("\n\n"):
@@ -111,22 +143,29 @@ def tabela_criterios(gab):
 
 
 def relatorio_entrada(dest, runs):
-    """Grava dest/entrada.html: os papeis, cada rascunho com o gabarito e os criterios, e o JSON."""
-    papeis = "".join(f"<h3>{nome}</h3><p>{esc(papel)}</p>" for nome, papel in bracos().items())
+    """Grava dest/entrada.html: os papeis, cada rascunho com os gabaritos e os criterios, e o JSON."""
+    por_papel = {}
+    for nome, (arquivos, *_) in CASOS.items():
+        por_papel.setdefault(papel(arquivos), []).append(nome)
+    papeis = "".join(f"<h3>{', '.join(casos)}</h3><p>{esc(texto)}</p>" for texto, casos in por_papel.items())
     rascunhos = "".join(
-        f"<section><h2>{titulo}</h2>{rascunho_marcado(rascunho, gab)}<h3>Critérios do juiz</h3>{tabela_criterios(gab)}</section>"
-        for titulo, rascunho, gab in RASCUNHOS.values()
+        f"<section><h2>{TITULO[rascunho]}</h2>{rascunho_marcado(rascunho, gabs)}"
+        + "".join(f"<h3>Critérios do juiz: {', '.join(casos)}</h3>{tabela_criterios(gab)}" for gab, casos in gabs.items())
+        + "</section>"
+        for rascunho, gabs in por_rascunho().items()
     )
+    com_campo = ", ".join(nome for nome, caso in CASOS.items() if caso[3])
     pagina = f"""<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Entrada do eval do revisor</title><style>{CSS}</style></head><body><main>
 <h1>Entrada do eval do revisor</h1>
-<p class="suave">{runs} execuções por braço e por rascunho. Revisor e juiz em {MODELO}. Cada braço recebe o papel, um rascunho e o JSON, sem as marcas.
+<p class="suave">{runs} execuções por caso. Revisor e juiz em {MODELO}. Cada caso recebe o papel, um rascunho e o JSON, sem as marcas.
 O juiz recebe a resposta do revisor e um critério por vez, e vota três vezes.</p>
-<p class="suave"><mark class="erro">erro plantado</mark> <mark class="correta">frase correta</mark> O nome do critério aparece ao passar o mouse.</p>
-<section><h2>Braços</h2>{papeis}</section>
+<p class="suave"><mark class="erro">erro plantado</mark> <mark class="correta">frase correta</mark> <mark class="hipotese">hipótese</mark> O nome do critério aparece ao passar o mouse.</p>
+<section><h2>Papéis</h2>{papeis}</section>
 {rascunhos}
-<section><h2>JSON</h2><pre>{esc(ler('dados.json'))}</pre></section>
+<section><h2>JSON</h2><pre>{esc(ler('dados.json'))}</pre>
+<p>Em {com_campo}, o objeto do Tesouro traz também <code>{esc(json.dumps(CAMPO_LIMITACAO, ensure_ascii=False))}</code>.</p></section>
 </main></body></html>
 """
     caminho = Path(dest) / "entrada.html"
@@ -143,8 +182,9 @@ def veredito(resposta):
 def descarte(execucao):
     """Motivo para a execucao ficar fora da soma, ou None.
 
-    Resposta sem veredito (vazia ou cortada) fica fora: os criterios `correta-*`
-    passam quando a resposta nao menciona o trecho.
+    Resposta vazia ou cortada fica fora: os criterios `correta-*` e `papel-*`
+    passam quando a resposta nao traz nada. Do papel que da veredito, a prova e
+    o veredito; do que nao da (criterio `papel-sem-veredito`), um item de lista.
     """
     if execucao.get("error"):
         return f"erro: {execucao['error']}"
@@ -156,13 +196,16 @@ def descarte(execucao):
         return f"criterio sem julgamento: {', '.join(sem)}"
     # O `evidence` de todo criterio e a resposta inteira do revisor.
     resposta = graders[0].get("evidence") or ""
-    if not veredito(resposta):
+    if any(g["name"] == "papel-sem-veredito" for g in graders):
+        if not re.search(r"^\s*[-*] \S", resposta, re.M):
+            return f"resposta sem nenhum item: {resposta[:200]!r}"
+    elif not veredito(resposta):
         return f"resposta sem veredito: {resposta[:200]!r}"
     return None
 
 
 def somar(resultado):
-    """Por caso, uma linha por execucao: erros pegos, corretas contestadas, aprovou (None sem o criterio), o veredito e a resposta."""
+    """Por caso, uma linha por execucao: erros pegos, corretas contestadas, hipoteses apontadas, criterios do papel cumpridos, aprovou (None sem o criterio), o veredito e a resposta."""
     saida = {}
     for caso in resultado["cases"]:
         linhas = []
@@ -171,7 +214,8 @@ def somar(resultado):
             if motivo:
                 print(f"execucao de {caso['name']} fora da soma: {motivo}", file=sys.stderr)
                 continue
-            linha = {"erros": 0, "de_erros": 0, "contestadas": 0, "de_corretas": 0, "aprovou": None}
+            linha = {"erros": 0, "de_erros": 0, "contestadas": 0, "de_corretas": 0,
+                     "apontadas": 0, "de_hipoteses": 0, "papel": 0, "de_papel": 0, "aprovou": None}
             for g in execucao["graders"]:
                 if g["name"].startswith("erro-"):
                     linha["erros"] += g["passed"]
@@ -179,6 +223,12 @@ def somar(resultado):
                 elif g["name"].startswith("correta-"):
                     linha["contestadas"] += not g["passed"]
                     linha["de_corretas"] += 1
+                elif g["name"].startswith("hipotese-"):
+                    linha["apontadas"] += g["passed"]
+                    linha["de_hipoteses"] += 1
+                elif g["name"].startswith("papel-"):
+                    linha["papel"] += g["passed"]
+                    linha["de_papel"] += 1
                 elif g["name"] == "aprova":
                     linha["aprovou"] = g["passed"]
                 else:
@@ -203,12 +253,17 @@ def relatar(soma, dest):
             continue
         if linhas[0]["de_erros"]:
             print(f"  erros plantados pegos (de {linhas[0]['de_erros']}): {resumo([l['erros'] for l in linhas])}")
-        print(f"  frases corretas contestadas (de {linhas[0]['de_corretas']}): {resumo([l['contestadas'] for l in linhas])}")
+        if linhas[0]["de_corretas"]:
+            print(f"  frases corretas contestadas (de {linhas[0]['de_corretas']}): {resumo([l['contestadas'] for l in linhas])}")
+        if linhas[0]["de_hipoteses"]:
+            print(f"  itens de hipotese apontados (de {linhas[0]['de_hipoteses']}): {resumo([l['apontadas'] for l in linhas])}")
+        if linhas[0]["de_papel"]:
+            print(f"  criterios do papel cumpridos (de {linhas[0]['de_papel']}): {resumo([l['papel'] for l in linhas])}")
         if linhas[0]["aprovou"] is not None:
             print(f"  execucoes em que o revisor aprovou a tese: {sum(l['aprovou'] for l in linhas)} de {len(linhas)}")
         for i, linha in enumerate(linhas, 1):
             (respostas / f"{caso}-{i}.md").write_text(linha["resposta"], encoding="utf-8", newline="\n")
-            print(f"  veredito {i}: {linha['veredito']}")
+            print(f"  veredito {i}: {linha['veredito'] or 'sem veredito'}")
     print(f"\nafirmacoes de fora do rascunho e do JSON: contar a mao nas respostas em {respostas}")
 
 

@@ -568,35 +568,43 @@ def _rodar_eval():
     return mod
 
 
-def test_eval_revisor_monta_um_caso_por_braco_e_rascunho(tmp_path):
+def test_eval_revisor_monta_os_casos(tmp_path):
     rodar_eval = _rodar_eval()
     rodar_eval.montar(tmp_path, 5)
     casos = tmp_path / 'evals'
-    assert sorted(p.name for p in casos.iterdir()) == ['advogado', 'advogado-limpo', 'conferente', 'conferente-limpo']
+    assert sorted(p.name for p in casos.iterdir()) == sorted(rodar_eval.CASOS)
     pasta = EVAL_REVISOR
     papeis, entradas, usados = {}, {}, set()
-    for sufixo, (_, arquivo, gab) in rodar_eval.RASCUNHOS.items():
-        # Cada criterio do gabarito confere um trecho que existe uma vez no rascunho dele.
+    for nome, (arquivos, arquivo, gab, _) in rodar_eval.CASOS.items():
+        # Cada criterio do gabarito confere a resposta inteira ou um trecho que existe uma vez no rascunho dele.
         gabarito = rodar_eval.gabarito(gab)
         rascunho = (pasta / arquivo).read_text(encoding='utf-8')
-        for nome, trecho in gabarito.items():
-            assert nome == 'aprova' or rascunho.count(trecho) == 1, nome
+        for criterio, trecho in gabarito.items():
+            assert not trecho or rascunho.count(trecho) == 1, criterio
         usados |= set(gabarito)
-        for braco in ('advogado', 'conferente'):
-            caso = casos / (braco + sufixo)
-            cabeca, entradas[caso.name] = (caso / 'prompt.md').read_text(encoding='utf-8').split('## Rascunho', 1)
-            assert 'runs: 5' in cabeca
-            papeis[caso.name] = cabeca.split('Papel: ', 1)[1].strip()
-            assert sorted(p.stem for p in (caso / 'graders').iterdir()) == sorted(gabarito)
+        caso = casos / nome
+        cabeca, entradas[nome] = (caso / 'prompt.md').read_text(encoding='utf-8').split('## Rascunho', 1)
+        assert 'runs: 5' in cabeca
+        # O caso recebe o papel dos arquivos dele.
+        papeis[nome] = cabeca.split('Papel: ', 1)[1].strip()
+        assert papeis[nome] == ' '.join((pasta / a).read_text(encoding='utf-8').strip() for a in arquivos)
+        assert sorted(p.stem for p in (caso / 'graders').iterdir()) == sorted(gabarito)
     assert usados == {p.stem for p in (pasta / 'graders').iterdir()}
-    # Os dois bracos de um rascunho recebem a mesma entrada; o rascunho sem erro nao traz nenhum erro plantado.
-    assert entradas['advogado'] == entradas['conferente'] != entradas['advogado-limpo'] == entradas['conferente-limpo']
+    # Os papeis de um rascunho recebem a mesma entrada; o rascunho sem erro nao traz nenhum erro plantado.
+    assert entradas['advogado'] == entradas['conferente'] == entradas['antagonista']
+    assert entradas['advogado'] != entradas['advogado-limpo'] == entradas['conferente-limpo'] == entradas['antagonista-limpo']
     assert '"contas"' in entradas['advogado']
     for nome, trecho in rodar_eval.gabarito('gabarito.json').items():
         assert nome.startswith('erro-') != (trecho in entradas['advogado-limpo']), nome
-    # Cada braco recebe o papel do arquivo dele.
-    for braco in ('advogado', 'conferente'):
-        assert papeis[braco] == papeis[braco + '-limpo'] == (pasta / f'papel-{braco}.md').read_text(encoding='utf-8').strip()
+    # Os rascunhos com itens e com a frase de limitacao so acrescentam linhas ao rascunho sem erro.
+    limpo = set((pasta / 'rascunho-limpo.md').read_text(encoding='utf-8').splitlines())
+    for derivado in ('rascunho-itens.md', 'rascunho-limitacao.md'):
+        assert limpo < set((pasta / derivado).read_text(encoding='utf-8').splitlines()), derivado
+    # A frase de limitacao: so um caso recebe o campo no pacote, e so outro recebe a regra no papel.
+    campo = json.dumps(rodar_eval.CAMPO_LIMITACAO, ensure_ascii=False)[1:-1]
+    assert [n for n in entradas if campo in entradas[n]] == ['conferente-limitacao-campo']
+    regra = rodar_eval.ler('regra-limitacao.md')
+    assert [n for n in papeis if regra in papeis[n]] == ['conferente-limitacao-regra']
     # O papel que a skill passa ao revisor e o do arquivo do advogado: papel trocado na skill sem trocar o arquivo falha aqui.
     skill = (RAIZ / 'skills/analista-tese/SKILL.md').read_text(encoding='utf-8')
     assert re.findall(r'^- o papel: (.+)$', skill, re.M) == [papeis['advogado']]
@@ -605,11 +613,11 @@ def test_eval_revisor_monta_um_caso_por_braco_e_rascunho(tmp_path):
 def test_eval_revisor_relatorio_de_entrada_marca_o_gabarito(tmp_path):
     rodar_eval = _rodar_eval()
     pagina = rodar_eval.relatorio_entrada(tmp_path, 5).read_text(encoding='utf-8')
-    nomes = [n for _, _, gab in rodar_eval.RASCUNHOS.values() for n in rodar_eval.gabarito(gab)]
-    for tipo in ('erro', 'correta'):
+    nomes = [n for gabs in rodar_eval.por_rascunho().values() for n in {n for gab in gabs for n in rodar_eval.gabarito(gab)}]
+    for tipo in ('erro', 'correta', 'hipotese'):
         assert pagina.count(f'<mark class="{tipo}" title=') == sum(n.startswith(tipo) for n in nomes) > 0
-    for braco in rodar_eval.BRACOS:
-        assert rodar_eval.esc(rodar_eval.ler(f'papel-{braco}.md')) in pagina
+    for arquivos, *_ in rodar_eval.CASOS.values():
+        assert rodar_eval.esc(rodar_eval.papel(arquivos)) in pagina
 
 
 def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys):
@@ -617,28 +625,38 @@ def test_eval_revisor_soma_a_regua_so_de_execucao_julgada_e_com_veredito(capsys)
     # Vale o veredito declarado: "resultado" no corpo da resposta ou em cabecalho de tabela nao conta.
     refazer = 'O resultado da conta diverge do JSON.\n\n# Veredito: `refazer`'
     fragil = '| Item | Resultado |\n| taxa | confere |\n\n## Veredito\n\n**frágil**'
+    itens = '**Contras**\n- Hipótese: o prêmio de risco explica a diferença.'
 
     def execucao(resposta, criterios, erro=None):
         return {'error': erro, 'graders': [{'name': n, 'passed': p, 'evidence': resposta} for n, p in criterios.items()]}
 
+    def linha(resposta, veredito, **contagens):
+        zero = dict.fromkeys(('erros', 'de_erros', 'contestadas', 'de_corretas', 'apontadas', 'de_hipoteses', 'papel', 'de_papel'), 0)
+        return {**zero, 'aprovou': None, **contagens, 'resposta': resposta, 'veredito': veredito}
+
     soma = rodar_eval.somar({'cases': [
         {'name': 'advogado', 'arms': {'with': [
-            execucao(refazer, {'erro-a': True, 'erro-b': False, 'correta-a': False, 'correta-b': True}),
+            execucao(refazer, {'erro-a': True, 'erro-b': False, 'correta-a': False, 'correta-b': True, 'hipotese-a': True, 'hipotese-b': False}),
             execucao('', {}, erro='timeout'),
             execucao(refazer, {}),
             execucao(refazer, {'erro-a': None, 'correta-a': True}),
             execucao('O resultado da conta', {'erro-a': False, 'correta-a': True}),
         ]}},
         {'name': 'advogado-limpo', 'arms': {'with': [execucao(fragil, {'aprova': False, 'correta-a': True})]}},
+        # Papel sem veredito: a prova de resposta inteira e um item de lista.
+        {'name': 'antagonista', 'arms': {'with': [
+            execucao(itens, {'papel-sem-veredito': True, 'papel-secao-de-destino': False}),
+            execucao('Não encontrei contras.', {'papel-sem-veredito': True, 'papel-secao-de-destino': True}),
+        ]}},
     ]})
     assert soma == {
-        'advogado': [{'erros': 1, 'de_erros': 2, 'contestadas': 1, 'de_corretas': 2, 'aprovou': None,
-                      'resposta': refazer, 'veredito': 'refazer'}],
-        'advogado-limpo': [{'erros': 0, 'de_erros': 0, 'contestadas': 0, 'de_corretas': 1, 'aprovou': False,
-                            'resposta': fragil, 'veredito': 'frágil'}],
+        'advogado': [linha(refazer, 'refazer', erros=1, de_erros=2, contestadas=1, de_corretas=2, apontadas=1, de_hipoteses=2)],
+        'advogado-limpo': [linha(fragil, 'frágil', de_corretas=1, aprovou=False)],
+        'antagonista': [linha(itens, None, papel=1, de_papel=2)],
     }
     fora = capsys.readouterr().err
-    for motivo in ('erro: timeout', 'nenhum criterio julgado', 'criterio sem julgamento: erro-a', 'resposta sem veredito'):
+    for motivo in ('erro: timeout', 'nenhum criterio julgado', 'criterio sem julgamento: erro-a', 'resposta sem veredito',
+                   'resposta sem nenhum item'):
         assert motivo in fora, motivo
 
 

@@ -1,0 +1,1 @@
+Frase de método ou de limitação da fonte (de onde vem o dado, a que horário ele se refere, o que a fonte não traz) não é divergência só por não ter dado no pacote: apontar apenas se ela contradiz o pacote.
