@@ -45,9 +45,11 @@ Rode um subagente `knowledgeWork` pela ferramenta `Task`, com `subagent_type` `k
 
 Uma passada só. Não passe o chat nem a memória. Se a chamada falhar ou voltar vazia, pare e diga ao dono que a revisão não rodou, e não publique. Se o antagonista disser que não achou contra nem risco, siga sem itens.
 
+Grave a resposta inteira, como veio, em `/tmp/analista-antagonista-<slug>.md`. Não resuma nem edite.
+
 ## 4. Texto final e conferência
 
-Escreva `/tmp/analista-tese-<slug>.md`: o rascunho com os itens do antagonista nas seções de destino.
+O texto final, `/tmp/analista-tese-<slug>.md`, é o rascunho com os itens escolhidos nas seções de destino. Quem copia os itens é o `mercado.py itens`. Não digite item à mão: você só escolhe.
 
 | Bloco do antagonista | Seção da Page |
 | --- | --- |
@@ -55,14 +57,13 @@ Escreva `/tmp/analista-tese-<slug>.md`: o rascunho com os itens do antagonista n
 | `Riscos` | `## Riscos, limitações e premissas` |
 | `O que faria mudar de ideia` | `## Decisão`; em pedido sem decisão de alocação, `## Riscos, limitações e premissas` |
 
-O item entra só na seção de destino, como veio: o dado entre parênteses no fim, ou `Hipótese:` no começo. Copie a linha do item: não junte dois itens, não troque a conclusão e não acrescente dado. Item cujo dado entre parênteses não sustenta a afirmação entra como `Hipótese:`, sem o dado, ou sai. Não reescreva o resto da tese por causa dele. Item de risco ou de gatilho com limite numérico ganha também uma linha na tabela de sinais.
+1. `python3 /workspace/analista/mercado.py itens /tmp/analista-antagonista-<slug>.md` lista os itens numerados: `n`, `bloco` e `linha`.
+2. Item que aponta erro do rascunho ("o texto diz X, o pacote traz Y") é correção, não item: corrija o trecho do rascunho, rode de novo a conta que mudar e deixe o item de fora.
+3. Número de item que não está em `mercado`, nos `numeros` de `web` nem em `contas`: rode a conta em Python e grave o resultado em `contas`. Se a conta não sair do script, o item fica de fora.
+4. Escolha os itens. Modo padrão: até três por seção, primeiro os apoiados em dado e, entre eles, os que mais mexem na decisão. Modo rigoroso, quando o dono pede análise mais funda ou mais rigor, com as palavras que forem: sem teto. Item cujo dado entre parênteses não sustenta a afirmação vai como hipótese ou fica de fora.
+5. `python3 /workspace/analista/mercado.py itens /tmp/analista-antagonista-<slug>.md --rascunho /tmp/analista-rascunho-<slug>.md --saida /tmp/analista-tese-<slug>.md --levar <n,n> --hipotese <n>`. `--levar` copia a linha como veio; `--hipotese` tira o dado do fim e põe `Hipótese:` no começo. O item que não está em nenhuma das duas fica de fora. Se o script devolver erro, corrija a chamada ou a seção que falta no rascunho e rode de novo.
 
-Antes de levar os itens:
-
-- Item que aponta erro do rascunho ("o texto diz X, o pacote traz Y") é correção, não item: corrija o trecho do rascunho, rode de novo a conta que mudar e não leve o item para a Page.
-- Número de item que não está em `mercado`, nos `numeros` de `web` nem em `contas`: rode a conta em Python e grave o resultado em `contas`. Se a conta não sair do script, tire o número; o resto do item entra como `Hipótese:` ou sai.
-- Modo padrão: até três itens por seção. Se vierem mais, fique primeiro com os apoiados em dado e, entre eles, com os que mais mexem na decisão.
-- Modo rigoroso: sem teto de itens. Vale quando o dono pede análise mais funda ou mais rigor, com as palavras que forem.
+Não reescreva o resto da tese por causa de um item. Item de risco ou de gatilho com limite numérico ganha também uma linha na tabela de sinais.
 
 Rode outro subagente `knowledgeWork`, também sem o histórico da conversa. Passe somente:
 

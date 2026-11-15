@@ -411,6 +411,50 @@ def test_tesouro_data_base_mais_recente_e_filtro(monkeypatch):
     assert 'RuntimeError' in rede['erro']
 
 
+def test_itens_copia_a_linha_do_antagonista_para_a_secao(tmp_path):
+    # O texto do item chega ao texto final sem mudar: so a escolha e do ator.
+    resposta = tmp_path / 'antagonista.md'
+    resposta.write_text(
+        '**Contras**\n'
+        '- O IPCA de 12 meses já passa do Focus de 2027 (acumulado_12m 4,8; ipca_2027_pct 4,2).\n'
+        '- Hipótese: a implícita embute prêmio de risco.\n'
+        '\n**Riscos**\n'
+        '- O título é o mais sensível a juros (pu_compra 764,05).\n'
+        '- Sem dado e sem marca.\n'
+        '\n**O que faria mudar de ideia**\n'
+        '- IPCA médio acima de 5,88% a.a. (inflacao_implicita_pct_aa 5,88).\n',
+        encoding='utf-8',
+    )
+    rascunho = tmp_path / 'rascunho.md'
+    rascunho.write_text(
+        '# Tese\n\n## Contras\n\n## Riscos, limitações e premissas\n- Linha do ator.\n\n## Decisão\nComprar.\n\n## Fontes\n- BCB\n',
+        encoding='utf-8',
+    )
+    saida = tmp_path / 'tese.md'
+
+    code, lista, _ = rodar(['itens', str(resposta)])
+    assert code == 0
+    assert [(i['n'], i['bloco']) for i in lista['itens']] == [
+        (1, 'contras'), (2, 'contras'), (3, 'riscos'), (4, 'riscos'), (5, 'o que faria mudar de ideia')]
+
+    base = ['itens', str(resposta), '--rascunho', str(rascunho), '--saida', str(saida)]
+    code, _, _ = rodar(base + ['--levar', '4'])
+    assert code != 0 and not saida.exists()
+
+    code, res, _ = rodar(base + ['--levar', '1,2,5', '--hipotese', '3'])
+    assert code == 0 and res['fora'] == [4]
+    assert saida.read_text(encoding='utf-8') == (
+        '# Tese\n\n## Contras\n'
+        '- O IPCA de 12 meses já passa do Focus de 2027 (acumulado_12m 4,8; ipca_2027_pct 4,2).\n'
+        '- Hipótese: a implícita embute prêmio de risco.\n'
+        '\n## Riscos, limitações e premissas\n- Linha do ator.\n'
+        '- Hipótese: O título é o mais sensível a juros\n'
+        '\n## Decisão\nComprar.\n'
+        '- IPCA médio acima de 5,88% a.a. (inflacao_implicita_pct_aa 5,88).\n'
+        '\n## Fontes\n- BCB\n'
+    )
+
+
 def test_subcomando_desconhecido_lista_uso():
     err = io.StringIO()
     with contextlib.redirect_stderr(err):
@@ -461,9 +505,9 @@ def comando():
 def test_comando_download_igual_e_versao():
     cmd = comando()
     minima = MINIMA.read_text(encoding='utf-8')
-    assert minima == '4\n'
+    assert minima == '5\n'
     primeira = SCRIPT.read_text(encoding='utf-8').splitlines()[0]
-    assert primeira == '# mercado.py v4'
+    assert primeira == '# mercado.py v5'
     assert int(primeira.split()[2][1:]) >= int(minima.strip())
     for path in (RAIZ / 'skills').glob('*/SKILL.md'):
         texto = path.read_text(encoding='utf-8')

@@ -90,9 +90,9 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 
 ## 15. Item do antagonista mudado no caminho para o texto final
 
-- **No transcript:** comparar cada item da resposta do antagonista com a linha que o ator grava no texto final. É desvio: dois itens juntados num, um dado entre parênteses que o antagonista não citou, a conclusão do item trocada, o item gravado numa seção diferente da que o antagonista indicou, ou a seção que leva um item `Hipótese:` enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
-- **Contraria:** `analista-tese`, seção 4 ("Copie a linha do item: não junte dois itens, não troque a conclusão e não acrescente dado"; "fique primeiro com os apoiados em dado").
-- **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. O conferente não recebe a resposta do antagonista e não tem como ver a troca.
+- **No transcript:** o texto final não sai do `mercado.py itens`: o ator grava ou edita itens à mão nas seções, ou mexe no texto final depois do `itens` numa linha de item. Ou o `/tmp/analista-antagonista-<slug>.md` difere da resposta que o subagente devolveu. Também conta a escolha: um item `Hipótese:` levado enquanto um item com dado da mesma seção fica de fora. O item que reescreve outra seção é a entrada 8.
+- **Contraria:** `analista-tese`, seção 3 ("Grave a resposta inteira, como veio") e seção 4 ("Quem copia os itens é o `mercado.py itens`. Não digite item à mão"; "primeiro os apoiados em dado").
+- **Visto:** em dois dry runs seguidos. Num deles, duas hipóteses viraram uma linha de `## Decisão` com um gatilho que nenhuma das duas trazia. Num terceiro, a ordem escrita de copiar a linha também não segurou a cópia.
 
 ## 16. Tese sem catalisador nem assimetria
 

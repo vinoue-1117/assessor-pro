@@ -1,7 +1,7 @@
-# mercado.py v4
+# mercado.py v5
 """Consulta de mercado via yfinance, taxas do Banco Central (SGS) e do Tesouro Direto.
 
-Subcomandos: cotacao, historico, opcoes, taxa, tesouro.
+Subcomandos: cotacao, historico, opcoes, taxa, tesouro, itens.
 Saida: JSON no stdout. Erro: objeto com "erro" e "consultado_em", exit code != 0.
 Nao inventa dado.
 """
@@ -504,6 +504,83 @@ def cmd_tesouro(a):
         return erro(f"Tesouro Transparente falhou: {type(e).__name__}: {e}")
 
 
+# Bloco da resposta do antagonista -> secao do texto final.
+DESTINO_ITENS = {
+    "contras": "## Contras",
+    "riscos": "## Riscos, limitações e premissas",
+    "o que faria mudar de ideia": "## Decisão",
+}
+ITEM = re.compile(r"^\s*(?:[-*]|\d+[.)])\s+(.*\S)\s*$")
+DADO_NO_FIM = re.compile(r"\s*\([^()]*\)\s*\.?\s*$")
+HIPOTESE = "Hipótese:"
+
+
+def ler_itens(texto):
+    """Itens da resposta do antagonista, numerados na ordem em que vieram."""
+    itens, bloco = [], None
+    for linha in texto.splitlines():
+        cab = re.sub(r"[*#_:`]", "", linha).strip().lower()
+        if cab in DESTINO_ITENS:
+            bloco = cab
+            continue
+        m = ITEM.match(linha)
+        if m and bloco:
+            itens.append({"n": len(itens) + 1, "bloco": bloco, "linha": m.group(1)})
+    return itens
+
+
+def como_hipotese(linha):
+    linha = DADO_NO_FIM.sub("", linha)
+    if linha.endswith(HIPOTESE):
+        linha = linha[: -len(HIPOTESE)].rstrip()
+    return linha if linha.startswith(HIPOTESE) else f"{HIPOTESE} {linha}"
+
+
+def numeros(s):
+    return [int(x) for x in s.split(",") if x.strip()] if s else []
+
+
+def cmd_itens(a):
+    with open(a.resposta, encoding="utf-8") as f:
+        itens = ler_itens(f.read())
+    if not itens:
+        return erro("nenhum item sob Contras, Riscos ou O que faria mudar de ideia na resposta")
+    if a.levar is None and a.hipotese is None:
+        return {"itens": itens}
+    if not (a.rascunho and a.saida):
+        return erro("--levar e --hipotese exigem --rascunho e --saida")
+    levar, hipotese = numeros(a.levar), numeros(a.hipotese)
+    por_n = {i["n"]: i for i in itens}
+    fora = sorted(set(levar + hipotese) - set(por_n))
+    if fora or set(levar) & set(hipotese):
+        return erro("item inexistente ou repetido em --levar e --hipotese", inexistentes=fora)
+    with open(a.rascunho, encoding="utf-8") as f:
+        linhas = f.read().splitlines()
+    tem_decisao = DESTINO_ITENS["o que faria mudar de ideia"] in linhas
+    novas = {}
+    for n in sorted(levar + hipotese):
+        item = por_n[n]
+        texto = como_hipotese(item["linha"]) if n in hipotese else item["linha"]
+        if n in levar and not (texto.startswith(HIPOTESE) or DADO_NO_FIM.search(texto)):
+            return erro(f"item {n} sem dado entre parenteses no fim nem Hipotese: no comeco: use --hipotese", item=item)
+        destino = DESTINO_ITENS[item["bloco"]]
+        if destino == "## Decisão" and not tem_decisao:
+            destino = DESTINO_ITENS["riscos"]
+        novas.setdefault(destino, []).append(f"- {texto}")
+    for destino, bloco in novas.items():
+        if destino not in linhas:
+            return erro(f"o rascunho nao tem a secao {destino}")
+        fim = linhas.index(destino) + 1
+        while fim < len(linhas) and not linhas[fim].startswith("## "):
+            fim += 1
+        while fim > 0 and not linhas[fim - 1].strip():
+            fim -= 1
+        linhas[fim:fim] = bloco
+    with open(a.saida, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(linhas) + "\n")
+    return {"saida": a.saida, "levados": novas, "fora": sorted(set(por_n) - set(levar) - set(hipotese))}
+
+
 def tem_erro(r):
     if isinstance(r, list):
         return any(tem_erro(x) for x in r)
@@ -539,6 +616,14 @@ def main(argv=None):
     td = sp.add_parser("tesouro", help="taxas e preços do Tesouro Direto na data-base mais recente")
     td.add_argument("--tipo", help="trecho do nome do título (ex.: ipca+, prefixado, selic)")
     td.set_defaults(fn=cmd_tesouro)
+
+    it = sp.add_parser("itens", help="numera os itens do antagonista ou os copia para as secoes do rascunho")
+    it.add_argument("resposta", help="arquivo com a resposta do antagonista, sem editar")
+    it.add_argument("--rascunho")
+    it.add_argument("--saida", help="arquivo do texto final")
+    it.add_argument("--levar", help="numeros dos itens levados como vieram (ex.: 1,2,5)")
+    it.add_argument("--hipotese", help="numeros dos itens levados como Hipotese:, sem o dado")
+    it.set_defaults(fn=cmd_itens)
 
     a = p.parse_args(argv)
     try:
