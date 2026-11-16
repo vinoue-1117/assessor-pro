@@ -6,7 +6,8 @@ Issues e specs deste repo ficam nas Issues do GitHub. Toda operação usa o `gh`
 
 - **Criar issue**: `gh issue create --title "..." --body "..."`. Corpo de várias linhas vai por heredoc.
 - **Ler issue**: `gh issue view <número> --json number,title,body,labels,comments`.
-- **Listar issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`, com os filtros `--label` e `--state` que o caso pedir.
+- **Listar issues**: `gh issue list --state open --search "-label:roadmap" --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`, com os filtros `--label` e `--state` que o caso pedir. O `-label:roadmap` deixa de fora o bloco de notas de ideias (ver **Anotar ideia de feature futura**).
+- **Anotar ideia de feature futura**: as ideias ficam todas no corpo da issue #68, que tem o label `roadmap`. Não abrir issue nova nem comentar na issue em andamento. Ler o corpo com `gh issue view 68 --json body --jq .body`, gravar num arquivo o corpo lido com a ideia acrescentada e enviar com `gh issue edit 68 --body-file <arquivo>`. A gravação troca o corpo inteiro, então parte sempre do corpo recém-lido. Ideia que virar trabalho ganha issue própria e sai do corpo. Sessão que não está anotando nem promovendo ideia não lê a #68.
 - **Tornar uma issue sub-issue de outra**: `gh issue create --parent <pai> ...`, ou depois `gh issue edit <pai> --add-sub-issue <filha>` (`gh` 2.94+). Em `gh` mais antigo: `gh api --method POST repos/<owner>/<repo>/issues/<pai>/sub_issues -F sub_issue_id=<id-de-banco-da-filha>` (id de banco, como em **Bloqueio** abaixo). Sem sub-issues, pôr `Part of #<pai>` no topo do corpo da filha.
 - **Comentar**: `gh issue comment <número> --body "..."`
 - **Pôr / tirar label**: `gh issue edit <número> --add-label "..."` / `--remove-label "..."`
