@@ -1,4 +1,4 @@
-"""O live run: conversão do export do bot real para o transcript que o avaliador lê."""
+"""A análise de live run: conversão do export do bot real para o transcript que o avaliador lê."""
 import importlib.util
 import json
 from pathlib import Path

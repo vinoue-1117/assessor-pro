@@ -1,9 +1,9 @@
 ---
 name: live-run
-description: 'Roda o avaliador de transcript sobre o export de uma conversa do bot real (live run), sem ator, e ajusta o conversor do export quando o formato muda. Trigger: export de transcript do Grok Bot trazido pelo dono, "rodar o live run", "avaliar o transcript do bot real".'
+description: 'Faz a análise de live run: roda o avaliador de transcript sobre o export de uma conversa do bot real, sem ator, e ajusta o conversor do export quando o formato muda. Trigger: export de transcript do Grok Bot trazido pelo dono, "análise de live run", "avaliar o export do bot", "avaliar o transcript do bot real".'
 ---
 
-# Live run
+# Análise de live run
 
 O dono traz a pasta do export de uma conversa do bot real. O `scripts/live-run.py` converte o trecho do fluxo para o `transcript.md` que o agente `avaliador-transcript` lê, roda o avaliador e grava o relatório fora do repositório. Esta skill escolhe o trecho e, quando o export muda de formato, ajusta o conversor contra o contrato abaixo.
 

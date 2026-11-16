@@ -202,7 +202,11 @@ _Evitar_: ensaio fora da plataforma, benchmark, harness, rodada de prova
 Claude que faz o papel do bot num dry run, com as skills da branch.
 
 **live run**:
-Rodada em que o avaliador lê o export de uma conversa do bot real, sem ator e sem cenário. O pedido é a mensagem do dono no transcript.
+Rodada com o bot real, na plataforma: o dono faz o pedido ao bot e, no fim, pede o export da conversa.
+
+**análise de live run**:
+Leitura do export de um live run pelo avaliador, sem ator e sem cenário. O pedido é a mensagem do dono no transcript.
+_Evitar_: rodar o live run, para a leitura do export
 
 **avaliador**:
 Agente que lê o transcript contra as skills e as falhas já vistas no fluxo e escreve o relatório de desvios. Não dá nota nem corrige a skill.

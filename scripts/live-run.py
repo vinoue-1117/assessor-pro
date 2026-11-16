@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Live run de um fluxo de bot: o avaliador lê o export de uma conversa do bot real, sem ator.
+"""Análise de live run de um fluxo de bot: o avaliador lê o export de uma conversa do bot real, sem ator.
 
 O export é a pasta que o bot do Grok Bot grava a pedido do dono, com a ferramenta ReadTranscript:
 um `.jsonl` da sessão principal e um `.jsonl` por subagente, com `sand-subagent-<id>` no nome.
@@ -231,7 +231,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     # A lista de mensagens do dono sai pelo sys.exit, no stderr, com o acento do texto dele.
     sys.stderr.reconfigure(encoding="utf-8")
-    p = argparse.ArgumentParser(description="Live run: o avaliador le o export de uma conversa do bot real, sem ator.")
+    p = argparse.ArgumentParser(description="Analise de live run: o avaliador le o export de uma conversa do bot real, sem ator.")
     p.add_argument("fluxo", help="pasta do fluxo: evals/<bot>/fluxo/<fluxo>")
     p.add_argument("export", help="pasta do export: a sessao principal e os arquivos sand-subagent-<id>")
     p.add_argument("--desde", help="marca [tNu] da mensagem do dono que comeca o fluxo (sem ela, lista as mensagens)")

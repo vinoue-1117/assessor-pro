@@ -101,7 +101,7 @@ Para comparar modelos, rode o mesmo fluxo com cada um e passe as pastas das exec
 
 ## Fluxo: live run
 
-O avaliador lê o export de uma conversa do bot real, sem ator. O dono pede o export ao bot, traz a pasta para fora do repositório e roda a skill `live-run` do Claude Code ([`.claude/skills/live-run/SKILL.md`](../.claude/skills/live-run/SKILL.md)), que escolhe o trecho e roda:
+No live run, o dono faz o pedido ao bot real e, no fim, pede o export da conversa. Na análise de live run, o avaliador lê esse export, sem ator. O dono traz a pasta para fora do repositório e roda a skill `live-run` do Claude Code ([`.claude/skills/live-run/SKILL.md`](../.claude/skills/live-run/SKILL.md)), que escolhe o trecho e roda:
 
 `python scripts/live-run.py evals/analista/fluxo/tese <pasta do export> --desde t2u --ate t4u`
 
@@ -120,8 +120,8 @@ O avaliador lê o export de uma conversa do bot real, sem ator. O dono pede o ex
 ### Limites
 
 - **O export corta os blocos.** A ferramenta `ReadTranscript`, com que o bot grava o export, devolve todo bloco com mais de uns 4.000 caracteres com o começo e o fim, e o meio trocado por `...`, sem outro aviso. Isso vale para a mensagem, o raciocínio, a entrada e o resultado de ferramenta. Ela não tem opção que traga o bloco inteiro. Numa tese, a maior parte dos `Read`, `WebSearch` e `WebFetch` e o `WriteCanvas` da Page passam do teto.
-- **O que o corte esconde.** O avaliador não confere o número cuja origem pode estar no meio cortado, nem a comparação de textos inteiros quando um deles foi cortado. Esses casos vão para "O que esta rodada não mediu", não para os desvios. O live run mede menos que o dry run.
-- **O que o export não traz.** Não há modelo, tokens nem horário por passo, então o live run não tem métricas.
+- **O que o corte esconde.** O avaliador não confere o número cuja origem pode estar no meio cortado, nem a comparação de textos inteiros quando um deles foi cortado. Esses casos vão para "O que esta rodada não mediu", não para os desvios. A análise de live run mede menos que o dry run.
+- **O que o export não traz.** Não há modelo, tokens nem horário por passo, então a análise de live run não tem métricas.
 - **O export depende do dono.** Ele sai de um pedido do dono ao bot, na própria conversa, e esse pedido entra no export depois do fluxo.
 
 ## Gosto: variantes lidas pelo dono
