@@ -398,16 +398,22 @@ def tabela(pastas):
     return "\n".join(rodada) + "\n\n" + "\n".join(modelo) + "\n"
 
 
-def avaliar(claude, fluxo, dest):
-    """Roda o avaliador-transcript e devolve o relatório que ele imprime. Levanta RuntimeError se ele falha."""
+def avaliar(claude, fluxo, dest, live=False):
+    """Roda o avaliador-transcript e devolve o relatório que ele imprime. Levanta RuntimeError se ele falha.
+
+    No live run (`scripts/live-run.py`) não há stream do ator nem cenário: o pedido é a mensagem do dono no transcript.
+    """
     bot = pasta_do_bot(fluxo)
-    pedido = (
-        f"Avalie o dry run gravado em {barra(dest)}.\n\n"
-        f"- transcript legivel: {barra(dest / 'transcript.md')}\n"
+    do_dry_run = (
         f"- stream original: {barra(dest / 'transcript.jsonl')}\n"
         f"- Page publicada pelo ator (pode nao existir): {barra(dest / 'page.md')}\n"
         f"- cenario: {barra(fluxo / 'cenario.md')}\n"
-        f"- anti-patterns: {barra(fluxo / 'anti-patterns.md')}\n"
+    )
+    pedido = (
+        f"Avalie o {'live run' if live else 'dry run'} gravado em {barra(dest)}.\n\n"
+        f"- transcript legivel: {barra(dest / 'transcript.md')}\n"
+        + (f"- Page publicada pelo bot (pode nao existir): {barra(dest / 'page.md')}\n" if live else do_dry_run)
+        + f"- anti-patterns: {barra(fluxo / 'anti-patterns.md')}\n"
         f"- skills e ficha do bot: {barra(bot / 'skills')} e {barra(bot / 'bot.md')}\n"
     )
     comando = [

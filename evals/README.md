@@ -99,6 +99,31 @@ Para comparar modelos, rode o mesmo fluxo com cada um e passe as pastas das exec
 - O fluxo usa dado público de verdade (Banco Central, Tesouro Transparente, busca na web). A mesma rodada não se repete igual de um dia para o outro.
 - A plataforma não roda: o download da `stable`, a Page e o subagente da plataforma são substituídos pelo que o cenário descreve.
 
+## Fluxo: live run
+
+O avaliador lê o export de uma conversa do bot real, sem ator. O dono pede o export ao bot, traz a pasta para fora do repositório e roda a skill `live-run` do Claude Code ([`.claude/skills/live-run/SKILL.md`](../.claude/skills/live-run/SKILL.md)), que escolhe o trecho e roda:
+
+`python scripts/live-run.py evals/analista/fluxo/tese <pasta do export> --desde t2u --ate t4u`
+
+| Peça | O que é |
+| --- | --- |
+| [`scripts/live-run.py`](../scripts/live-run.py) | converte o trecho do export para o `transcript.md`, grava a Page em `page.md` e roda o avaliador |
+| [`.claude/skills/live-run/SKILL.md`](../.claude/skills/live-run/SKILL.md) | o contrato de entrada (o formato do export) e o de saída (o `transcript.md`), e o que fazer quando o export muda de formato |
+| `anti-patterns.md` | o mesmo do dry run |
+
+- **O trecho.** O export traz a conversa inteira: a instalação do bot, outros pedidos e o próprio pedido de export. `--desde` é a marca `[tNu]` da mensagem do dono que pede o fluxo. `--ate` é a da primeira mensagem do dono que pede outra coisa e fica fora. Sem `--desde`, o script lista as mensagens do dono e para, a não ser que haja uma só.
+- **O pedido.** Não há cenário: o pedido é a mensagem do dono que abre o trecho, e as outras mensagens dele no trecho também entram.
+- **A conversão.** O subagente fica num arquivo próprio do export e entra no `transcript.md` logo depois da chamada que o iniciou ou retomou. A chamada que o export repete entra uma vez. Cada passo cita o arquivo e a linha do export.
+- **Formato desconhecido.** Papel, bloco ou mensagem que o conversor não conhece param o script com o arquivo e a linha. A skill ajusta o conversor e o teste dele; o export não é editado à mão.
+- **A saída.** A pasta de execução tem `transcript.md`, `page.md` (se o bot publicou) e `relatorio.md`. Ela fica fora do repositório, numa pasta temporária ou na de `--saida`. Com o `.env`, ela é copiada para `<pasta de dados>/execucoes/<bot>/<data>-<fluxo>-live-run`.
+
+### Limites
+
+- **O export corta os blocos.** A ferramenta `ReadTranscript`, com que o bot grava o export, devolve todo bloco com mais de uns 4.000 caracteres com o começo e o fim, e o meio trocado por `...`, sem outro aviso. Isso vale para a mensagem, o raciocínio, a entrada e o resultado de ferramenta. Ela não tem opção que traga o bloco inteiro. Numa tese, a maior parte dos `Read`, `WebSearch` e `WebFetch` e o `WriteCanvas` da Page passam do teto.
+- **O que o corte esconde.** O avaliador não confere o número cuja origem pode estar no meio cortado, nem a comparação de textos inteiros quando um deles foi cortado. Esses casos vão para "O que esta rodada não mediu", não para os desvios. O live run mede menos que o dry run.
+- **O que o export não traz.** Não há modelo, tokens nem horário por passo, então o live run não tem métricas.
+- **O export depende do dono.** Ele sai de um pedido do dono ao bot, na própria conversa, e esse pedido entra no export depois do fluxo.
+
 ## Gosto: variantes lidas pelo dono
 
 N variantes de uma instrução do bot geram amostras sobre a mesma entrada, e o dono lê e escolhe. A pergunta muda a cada rodada (layout, persona, template de blocos, playbook), então cada rodada começa numa sessão que decide com o dono:
