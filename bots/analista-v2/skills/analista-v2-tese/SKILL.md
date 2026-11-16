@@ -40,7 +40,7 @@ Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown, já nas seções da Page 
 - Tamanho sugerido: sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta.
 - Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
 - Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
-- Contras e riscos: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Riscos, limitações e premissas`, o que pode dar errado e o que não foi conferido; `## Decisão`, o que faria mudar de ideia. Até três itens em cada, os que mais mexem na decisão. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
+- Contras e riscos: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Riscos, limitações e premissas`, o que pode dar errado e o que não foi conferido; `## Decisão`, o que faria mudar de ideia. Em cada uma, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
 
 ## 3. Conferência de fatos
 
