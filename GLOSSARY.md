@@ -213,7 +213,7 @@ Descrição do pedido feito ao bot num dry run e do que substitui a plataforma n
 _Evitar_: cenario.md
 
 **desvio**:
-Ponto em que o ator contraria a skill: faz o que ela proíbe, deixa de fazer o que ela manda ou faz fora de ordem. Quando a skill não diz o que fazer, é lacuna da skill, não desvio.
+Ponto em que o bot, ou o ator no papel dele, contraria a skill: faz o que ela proíbe, deixa de fazer o que ela manda ou faz fora de ordem. Quando a skill não diz o que fazer, é lacuna da skill, não desvio.
 
 **anti-pattern**:
 Falha já vista num fluxo, registrada com o que aparece no transcript e a instrução da skill que ela contraria. O avaliador procura cada uma no transcript da rodada.
