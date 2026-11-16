@@ -13,7 +13,7 @@ Uma mudança de skill é avaliada por três eixos independentes:
 ```text
 evals/<bot>/
   acerto/<caso>/      rodar.py, a entrada, o gabarito, os critérios do juiz (graders/) e o README do caso
-  fluxo/<fluxo>/      cenario.md, erros.md e, se o fluxo usar subagente, agentes.json
+  fluxo/<fluxo>/      cenario.md, anti-patterns.md e, se o fluxo usar subagente, agentes.json
   gosto/<pergunta>/   cenario.md, variantes/<nome>/ e, depois que o dono decide, decisao.md
 ```
 
@@ -28,7 +28,7 @@ Um ator faz o papel do bot sobre um cenário, e um avaliador lê o transcript. A
 | Peça | O que é |
 | --- | --- |
 | `cenario.md` | `## Pedido`: a mensagem do dono. `## Plataforma`: o que substitui, no computador de teste, cada parte da plataforma do bot (pastas, download da `stable`, subagente, Page). `## Para o avaliador`: o que não conta como desvio e o que a rodada não mede |
-| `erros.md` | as falhas já vistas no fluxo, cada uma com o que se vê no transcript e a instrução da skill que ela contraria. Falha nova que o relatório aponta entra aqui |
+| `anti-patterns.md` | as falhas já vistas no fluxo, cada uma com o que se vê no transcript e a instrução da skill que ela contraria. A seção `## O que entra` diz quando a falha nova que o relatório aponta entra |
 | `agentes.json` | os subagentes que a plataforma tem e o Claude Code não, no formato do `--agents` |
 | [`scripts/dry-run.py`](../scripts/dry-run.py) | monta a pasta de execução, roda o ator e o avaliador e grava tudo nela |
 | [`.claude/agents/avaliador-transcript.md`](../.claude/agents/avaliador-transcript.md) | o papel do avaliador. Cada desvio cita o passo do transcript e a instrução da skill que ele contraria |
@@ -49,7 +49,7 @@ O ator usa o `{python}` do cenário, que é o Python que roda o `dry-run.py`. Es
 
 Se o ator sai com código diferente de zero, a rodada fica incompleta: o script grava o transcript e para sem chamar o avaliador, porque um relatório sobre um fluxo cortado mediria a queda e não a skill.
 
-O agente `avaliador-transcript`, com Opus, roda a partir da raiz do repositório e lê só arquivos. Ele escreve o relatório de desvios: cada desvio com o passo do transcript e a instrução da skill, as entradas do `erros.md` que não apareceram, as lacunas da skill e o que a rodada não mediu. Não há nota nem régua automática.
+O agente `avaliador-transcript`, com Opus, roda a partir da raiz do repositório e lê só arquivos. Ele escreve o relatório de desvios: cada desvio com o passo do transcript e a instrução da skill, as entradas do `anti-patterns.md` que não apareceram, as lacunas da skill e o que a rodada não mediu. Não há nota nem régua automática.
 
 ### A pasta de execução
 
