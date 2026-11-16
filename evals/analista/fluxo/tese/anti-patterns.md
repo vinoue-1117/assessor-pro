@@ -1,8 +1,18 @@
-# Erros já vistos no fluxo da tese
+# Anti-patterns do fluxo da tese
 
-Falhas que o fluxo da tese do Analista já teve, num ensaio fora da plataforma, num dry run ou no bot real. É a régua de regressão do dry run: o avaliador procura cada uma no transcript. A falha nova que um relatório apontar entra aqui, com o mesmo formato.
+Falhas que o fluxo da tese do Analista já teve, num ensaio fora da plataforma, num dry run ou no bot real. É a régua de regressão do fluxo: o avaliador procura cada uma no transcript.
 
-Cada entrada diz como a falha aparece no transcript e qual instrução da skill ela contraria.
+## O que entra
+
+Uma falha entra quando as cinco condições abaixo valem. Falhou em uma, fica de fora. O teste vale para a falha nova que um relatório apontar e para a entrada já escrita.
+
+1. **Não depende do pedido.** A falha pode aparecer em qualquer pedido que passe pelo fluxo. A que só aparece com a mensagem de um cenário fica de fora. A que vale para uma classe de ativo (título público, ação) entra.
+2. **Afeta o produto.** Repetir a falha muda a Page ou a resposta ao dono. Chamada a mais, tempo ou custo sem efeito nos dois fica de fora.
+3. **Não é nitpick.** A falha teve consequência. Na dúvida, é nitpick.
+4. **Não tem dono melhor.** A entrada é a defesa mais fraca. Fica de fora a falha que outro já segura: a conferência de cada número contra um resultado de ferramenta, que o avaliador faz sempre; uma trava de script; o eval de acerto. A instrução da skill não conta como dono, porque toda entrada contraria uma: a entrada diz onde olhar o que a leitura da skill não mostra.
+5. **Tem gatilho reconhecível.** O "No transcript" diz como a falha aparece, estreito o bastante para não casar com qualquer passo.
+
+Cada entrada diz como a falha aparece no transcript, qual instrução da skill ela contraria e onde já foi vista.
 
 ## 1. Revisor traz fato de memória
 
@@ -21,12 +31,6 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 - **No transcript:** na tese de Tesouro Direto ou de taxa, o ator procura o último trimestre divulgado ou roda `historico` com um ticker que não existe para o título. Ou pula a conferência da última semana e a Page não diz, em `## Riscos, limitações e premissas`, que a variação da última semana não foi conferida.
 - **Contraria:** `analista-tese`, seção 1, e `analista-mercado`, Regras ("`tesouro` e `taxa` trazem só o valor mais recente: nesses casos, diga que a variação da última semana não foi conferida").
 - **Visto:** no ensaio fora da plataforma, quando a ordem valia para toda tese. A conferência foi pulada sem aviso.
-
-## 4. Expectativa de inflação ou de Selic sem página aberta
-
-- **No transcript:** a tese usa um número do boletim Focus ou de consenso sem `WebFetch` da página nesta rodada, sem a entrada em `web` com `url`, `data` e `numeros`, ou atribuído ao `mercado.py`.
-- **Contraria:** `analista-core`, Anti-jobs ("Projeção ou expectativa (boletim Focus, consenso de analistas) segue a regra do fundamento, mesmo quando é de Selic ou IPCA"), e `analista-tese`, seção 1.
-- **Visto:** no ensaio fora da plataforma, quando a regra listava IPCA e Selic como número que só vinha do script e o Focus não tinha lugar.
 
 ## 5. Título escolhido sem conferir o nome ou a disponibilidade
 
@@ -58,23 +62,11 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 - **Contraria:** `analista-core`, Anti-jobs ("Inventar cotação, múltiplo, volume, taxa ou fato de memória"; "Número de fundamento só entra com a página aberta nesta conversa, com a data"), e `analista-tese`, seção 5 ("`## Fontes` com fonte, data e horário de cada número e de cada documento").
 - **Visto:** num dry run. O ator usou o IR de 15% de memória, e todos os retornos líquidos da Page dependiam dele.
 
-## 10. Chat repete o memorando e a crítica
-
-- **No transcript:** a mensagem final ao dono traz, além do link da Page e da decisão, uma lista de justificativas com números ou uma ressalva em vários itens com as objeções da revisão.
-- **Contraria:** `analista-tese`, seção 6 ("Entregue o link da Page e a decisão de alocação (lado, tamanho sugerido, horizonte), curta. Se restou limitação de dado ou ressalva importante, uma linha curta a mais"; "Não cole o rascunho nem a crítica no chat"), e `analista-core`, Entrega ("acrescente uma linha curta. O resto fica na Page").
-- **Visto:** num dry run.
-
 ## 11. Conta de cabeça e taxa digitada no script
 
 - **No transcript:** a Page traz uma diferença ou razão (pp, "x vezes") que nenhuma saída de Python imprimiu e que não tem chave em `contas`. Ou o script de conta recebe uma taxa do JSON digitada como literal (`pre=15.03`), em vez de lida do arquivo.
 - **Contraria:** `analista-tese`, abertura ("Conta em Python, não de cabeça"), e `analista-mercado`, Regras ("Conta (variação, múltiplo, assimetria, tamanho, spread) é feita em Python, com o JSON da chamada como entrada. Não faça a conta de cabeça e não arredonde para a conta fechar").
 - **Visto:** num dry run. Os valores batiam com o JSON, mas três números da Page não tinham conta registrada para o revisor conferir.
-
-## 12. `tesouro` rodado mais de uma vez
-
-- **No transcript:** duas ou mais chamadas de `mercado.py tesouro` na mesma conversa, em geral uma por `--tipo`.
-- **Contraria:** `analista-mercado`, Comandos, `tesouro` ("A chamada baixa cerca de 15 MB e leva alguns segundos: rode uma vez e filtre o JSON").
-- **Visto:** num dry run.
 
 ## 13. Comando de download alterado
 
@@ -99,3 +91,5 @@ Cada entrada diz como a falha aparece no transcript e qual instrução da skill 
 - **No transcript:** numa tese com decisão de alocação, a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
 - **Contraria:** `analista-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: [...] Se não houver, escreva que não há") e seção 5, item 6 (`## Decisão` com a assimetria e o catalisador).
 - **Visto:** em dois dry runs seguidos, sem catalisador e sem a perda no cenário contrário.
+
+Removidas: 4, 10, 12.

@@ -8,7 +8,7 @@ como mensagem do dono. As instruções globais de quem roda (o CLAUDE.md e as
 rules do usuário) ficam fora do contexto do ator.
 
 Depois o agente `avaliador-transcript` lê o transcript contra as skills e o
-`erros.md` do fluxo e escreve o relatório de desvios. Tudo fica na pasta de
+`anti-patterns.md` do fluxo e escreve o relatório de desvios. Tudo fica na pasta de
 execução: transcript.jsonl (o stream do ator), transcript.md (a versão
 legível), page.md (se o ator publicou) e relatorio.md.
 
@@ -407,7 +407,7 @@ def avaliar(claude, fluxo, dest):
         f"- stream original: {barra(dest / 'transcript.jsonl')}\n"
         f"- Page publicada pelo ator (pode nao existir): {barra(dest / 'page.md')}\n"
         f"- cenario: {barra(fluxo / 'cenario.md')}\n"
-        f"- erros ja vistos: {barra(fluxo / 'erros.md')}\n"
+        f"- anti-patterns: {barra(fluxo / 'anti-patterns.md')}\n"
         f"- skills e ficha do bot: {barra(bot / 'skills')} e {barra(bot / 'bot.md')}\n"
     )
     comando = [
