@@ -1,6 +1,6 @@
 # Grok Bot
 
-Como a plataforma em que os bots rodam guarda skills e atualiza bots. É o que o [`bots/instalar.md`](../bots/instalar.md) supõe.
+Como a plataforma em que os bots rodam guarda skills e atualiza bots. É o que o [`bots/instalar.md`](../bots/instalar.md) supõe. O que a plataforma faz e muda a escrita de skill ou a avaliação de bot está em [`quirks-grokbot.md`](quirks-grokbot.md).
 
 ## Onde ficam as skills
 
