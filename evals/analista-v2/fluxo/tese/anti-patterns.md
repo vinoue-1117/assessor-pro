@@ -61,3 +61,15 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 - **No transcript:** numa tese com decisão de alocação, a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
 - **Contraria:** `analista-v2-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há") e seção 5, item 6 (`## Decisão` com a assimetria e o catalisador).
 - **Visto:** no Analista, em dois dry runs seguidos, sem catalisador e sem a perda no cenário contrário.
+
+## 9. Chat que repete a tese
+
+- **No transcript:** a mensagem final ao dono traz, além do link da Page, da decisão (lado e horizonte) e de uma linha curta, o corpo da tese: tópicos de argumento, assimetria, o que faria mudar de ideia ou uma lista de ressalvas. Também conta a frase do chat que não está na Page.
+- **Contraria:** `analista-v2-tese`, seção 6 ("Entregue o link da Page e a decisão de alocação (lado e horizonte), curta. Uma linha curta a mais só nestes casos: [...]"; "Não cole a tese nem a resposta do fact_checker no chat"), e `analista-v2-core`, Entrega ("O resto fica na Page").
+- **Visto:** no Analista v2, em dois dry runs seguidos, com quatro tópicos e cinco ressalvas no chat. Num deles o chat trouxe uma leitura que não estava na Page nem tinha passado pela conferência.
+
+## 10. Gatilho da Decisão sem linha na tabela de sinais
+
+- **No transcript:** a `## Decisão` da `page.md` dá um gatilho com limite numérico (um nível de taxa, de projeção ou de índice) que nenhuma linha da tabela de sinais traz com o mesmo limite. Ou a tabela traz o mesmo sinal com outro limite.
+- **Contraria:** `analista-v2-tese`, seção 2 ("Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais") e seção 5, item 4 ("cada catalisador, risco e gatilho de invalidação numa linha, com o valor de hoje, o limite e o status").
+- **Visto:** no Analista v2, em dois dry runs seguidos. Num deles a Page deu dois limites para o mesmo sinal: o Focus "perto de 7%" na `## Decisão` e "acima de 6%" na tabela. O fact_checker, que confere texto incoerente com os próprios números, não apontou.
