@@ -28,15 +28,8 @@ Grave o pacote em `/tmp/analista-v2-dados-<slug>.json` com `json.dump` em Python
 ```
 
 - `mercado`: o JSON do script, sem editar número.
-- `web`: só página que você abriu de fato, com a data do documento ou da publicação. Abra as páginas de que a decisão depende, começando pela fonte primária (tabela abaixo). Número de fundamento ou de projeção que a tese usa (lucro, receita, dívida, expectativa do boletim Focus) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, projeção, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Em tese sobre empresa, confira a data do último trimestre divulgado. Em tese sobre ativo com ticker no `yfinance`, rode `historico` da última semana antes de concluir. Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: a variação da última semana fica sem conferir, e isso vai para a linha do chat (seção 6).
+- `web`: só página que você abriu de fato, com a data do documento ou da publicação. Abra as páginas de que a decisão depende, começando pela fonte primária (`analista-v2-mercado`, Regras), e não todas as que a busca trouxer. Número de fundamento ou de projeção que a tese usa (lucro, receita, dívida, expectativa do boletim Focus) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, projeção, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Em tese sobre empresa, confira a data do último trimestre divulgado. Em tese sobre ativo com ticker no `yfinance`, rode `historico` da última semana antes de concluir. Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: a variação da última semana fica sem conferir, e isso vai para a linha do chat (seção 6).
 - `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria). Dado que o dono deu nesta conversa e que a tese usa (o prazo, por exemplo) também entra em `contas`, como ele deu, com a chave `origem_<nome>` valendo `"informado pelo dono"`.
-
-Número de fundamento ou de projeção sai da fonte primária quando ela é pública. Reportagem entra para o que a fonte primária não traz (reação do mercado, consenso de analistas, contexto) ou quando a fonte primária não abre; nesse caso, a falta vai para a linha do chat (seção 6).
-
-| Dado | Fonte primária |
-| --- | --- |
-| Resultado, balanço e guidance de empresa listada (lucro, patrimônio, número de ações, inadimplência, payout) | release de resultados, ITR ou DFP, no site de relações com investidores da empresa ou na CVM |
-| Expectativa de Selic, IPCA, câmbio e PIB | boletim Focus, do Banco Central |
 
 Conhecimento geral e estável (regra de imposto, como o título paga) não pede página aberta e não entra no pacote.
 
