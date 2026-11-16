@@ -77,5 +77,5 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 ## 11. Pedido sem decisão respondido com recomendação
 
 - **No transcript:** o pedido do dono não pede decisão (um relatório, uma comparação sem recomendação, "me fale sobre"), e mesmo assim a `page.md` traz `## Decisão`, frase de decisão antes do painel ou painel com lado, ou o chat dá lado (comprar, vender, ficar de fora).
-- **Contraria:** `analista-v2-tese`, seção 2 ("Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem esses cinco") e seção 5 ("Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos, limitações e premissas`").
+- **Contraria:** `analista-v2-tese`, seção 2 ("Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte") e seção 5 ("Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos, limitações e premissas`").
 - **Visto:** no Analista v2, num dry run com o pedido de relatório detalhado de dois ativos. A Page e o chat recomendaram comprar um e ficar fora do outro, com painel, `## Decisão` e tabela de sinais, e a assimetria da compra se apoiou numa queda de 20% escolhida sem fonte.

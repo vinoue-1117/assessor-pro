@@ -7,7 +7,7 @@ description: 'Analista v2: use quando o pedido envolver tese, comparação, rela
 
 Tese, comparação, relatório ou análise aprofundada sai como Page em pt-BR, com as seções e a ordem da seção 5. O caminho é: dados, tese, uma conferência de fatos, tese final, Page. Com o dado principal em mãos, todo pedido termina em Page publicada: a conferência corrige a tese e não decide se ela sai.
 
-O dono está esperando. Faça cada passo uma vez, você mesmo. O único subagente desta skill é o fact_checker da seção 3, chamado uma vez: não passe dados, escrita, correção nem a Page a outro subagente, e não rode outro revisor nem uma segunda conferência.
+O dono está esperando. Faça cada passo uma vez, você mesmo: refazer uma conta na tese final e republicar a Page depois de erro de compilação fazem parte do passo. O único subagente desta skill é o fact_checker da seção 3, chamado uma vez: não passe dados, escrita, correção nem a Page a outro subagente, e não rode outro revisor nem uma segunda conferência.
 
 Número de mercado só entra se `analista-v2-mercado` tiver trazido o JSON nesta conversa. Conta em Python, não de cabeça. Siga a persona de `analista-v2-core`.
 
@@ -35,7 +35,7 @@ Conhecimento geral e estável (regra de imposto, como o título paga) não pede 
 
 ## 2. Tese
 
-Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown, já nas seções da Page (seção 5). A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem esses cinco.
+Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown, já nas seções da Page (seção 5). A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte; o que faria mudar de ideia vai para `Riscos, limitações e premissas`.
 
 - Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
 - Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
@@ -89,4 +89,4 @@ A resposta do fact_checker é material de trabalho e fica fora da Page: nada de 
 
 ## 6. Chat
 
-Entregue o link da Page e a decisão de alocação (lado e horizonte), curta. Uma linha curta a mais só nestes casos: restou limitação de dado ou ressalva importante; a conferência de fatos não rodou; a decisão mudou depois da conferência; o dono pediu tamanho de alocação (a linha é a da `analista-v2-core`). Não cole a tese nem a resposta do fact_checker no chat.
+Entregue o link da Page e a decisão de alocação (lado e horizonte), curta. Uma linha curta a mais só nestes casos: restou limitação de dado ou ressalva importante; a conferência de fatos não rodou; a decisão mudou depois da conferência; o dono pediu tamanho de alocação (a linha é a da `analista-v2-core`). Não cole a tese nem a resposta do fact_checker no chat. Em pedido sem decisão de alocação, o chat leva o link da Page e a conclusão, sem lado (comprar, vender ou ficar de fora).
