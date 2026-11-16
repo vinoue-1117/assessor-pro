@@ -29,15 +29,14 @@ Grave o pacote em `/tmp/analista-v2-dados-<slug>.json` com `json.dump` em Python
 
 - `mercado`: o JSON do script, sem editar número.
 - `web`: só página que você abriu de fato, com a data do documento ou da publicação. Abra as páginas de que a decisão depende, não todas as que a busca trouxer. Número de fundamento ou de projeção que a tese usa (lucro, receita, dívida, expectativa do boletim Focus) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, projeção, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Em tese sobre empresa, confira a data do último trimestre divulgado. Em tese sobre ativo com ticker no `yfinance`, rode `historico` da última semana antes de concluir. Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: registre em `Riscos, limitações e premissas` que a variação da última semana não foi conferida.
-- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria, tamanho). Dado que o dono deu nesta conversa (valor, carteira, limite de perda, prazo) também entra em `contas`, como ele deu, com a chave `origem_<nome>` valendo `"informado pelo dono"`.
+- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria). Dado que o dono deu nesta conversa e que a tese usa (o prazo, por exemplo) também entra em `contas`, como ele deu, com a chave `origem_<nome>` valendo `"informado pelo dono"`.
 
 Conhecimento geral e estável (regra de imposto, como o título paga) não pede página aberta e não entra no pacote.
 
 ## 2. Tese
 
-Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown, já nas seções da Page (seção 5). A tese traz a decisão de alocação, a assimetria de upside contra downside, o tamanho sugerido, o catalisador, o horizonte e o que faria mudar de ideia. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem esses seis.
+Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown, já nas seções da Page (seção 5). A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem esses cinco.
 
-- Tamanho sugerido: sai de conta em `contas`, a partir do valor, da carteira ou do limite de perda que o dono deu nesta conversa. Sem esse dado, não escolha tamanho nem divisão: escreva que o tamanho não foi calculado e qual dado falta.
 - Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
 - Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
 - Contras e riscos: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Riscos, limitações e premissas`, o que pode dar errado e o que não foi conferido; `## Decisão`, o que faria mudar de ideia. Em cada uma, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
@@ -68,7 +67,7 @@ Corrija no arquivo da tese cada erro apontado. A tese final vai direto para a Pa
 - Fato errado: corrija. Se você não tiver como decidir quem está certo, tire a afirmação ou diga em `Riscos, limitações e premissas` que ela não foi conferida. Correção que traz número de mercado que não está no pacote não entra na tese.
 - Texto incoerente com os números: reescreva o trecho.
 
-Depois das correções, releia a decisão com os números novos. Se o lado, a assimetria, o tamanho ou um gatilho mudarem, reescreva a `## Decisão`, a frase de abertura e a tabela de sinais. A decisão publicada é a que os números corrigidos sustentam, mesmo que seja o contrário da primeira.
+Depois das correções, releia a decisão com os números novos. Se o lado, a assimetria ou um gatilho mudarem, reescreva a `## Decisão`, a frase de abertura e a tabela de sinais. A decisão publicada é a que os números corrigidos sustentam, mesmo que seja o contrário da primeira.
 
 ## 5. Page
 
@@ -76,12 +75,12 @@ Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a p
 
 A Page tem estas seções, nesta ordem:
 
-1. Painel de indicadores: a decisão de alocação (lado, tamanho sugerido, horizonte) e os números que sustentam a tese, cada um com valor e data. Uma frase com a decisão vem antes do painel.
+1. Painel de indicadores: a decisão de alocação (lado e horizonte) e os números que sustentam a tese, cada um com valor e data. Uma frase com a decisão vem antes do painel.
 2. Uma seção por argumento, com um gráfico dos dados dele e um parágrafo curto que diz o que o gráfico mostra para a decisão. O gráfico só entra se o pacote de dados tiver uma série ou valores para comparar: `tesouro` e `taxa` trazem só o valor mais recente. Sem isso, o argumento sai com o parágrafo e os números.
 3. `## Contras`.
 4. Tabela de sinais: cada catalisador, risco e gatilho de invalidação numa linha, com o valor de hoje, o limite e o status (verde: a favor; amarelo: a acompanhar; vermelho: contra). A cor fica só na palavra do status.
 5. `## Riscos, limitações e premissas`.
-6. `## Decisão`, em destaque: lado, tamanho sugerido, horizonte, assimetria, catalisador e o que faria mudar de ideia.
+6. `## Decisão`, em destaque: lado, horizonte, assimetria, catalisador e o que faria mudar de ideia.
 7. Uma seção `## Fontes` com fonte, data e horário de cada número de mercado e de cada documento aberto.
 
 Seção sem conteúdo sai da Page. Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos, limitações e premissas`.
@@ -90,4 +89,4 @@ A resposta do fact_checker é material de trabalho e fica fora da Page: nada de 
 
 ## 6. Chat
 
-Entregue o link da Page e a decisão de alocação (lado, tamanho sugerido, horizonte), curta. Uma linha curta a mais só nestes casos: restou limitação de dado ou ressalva importante; a conferência de fatos não rodou; a decisão mudou depois da conferência. Não cole a tese nem a resposta do fact_checker no chat.
+Entregue o link da Page e a decisão de alocação (lado e horizonte), curta. Uma linha curta a mais só nestes casos: restou limitação de dado ou ressalva importante; a conferência de fatos não rodou; a decisão mudou depois da conferência; o dono pediu tamanho de alocação (a linha é a da `analista-v2-core`). Não cole a tese nem a resposta do fact_checker no chat.
