@@ -14,7 +14,7 @@ O pedido traz os caminhos de:
 - `transcript.md`: o transcript legível. Cada chamada de ferramenta tem um número de passo, e o resultado e as mensagens de subagente apontam para esse número.
 - `page.md`: a Page que o bot publicou. Pode não existir.
 - Só no dry run, `transcript.jsonl`: o stream original. Bloco longo do `transcript.md` vem cortado, com a linha do `transcript.jsonl` onde está a íntegra. Leia o trecho da linha indicada quando o corte esconder algo de que você precisa.
-- Só no dry run, `cenario.md`: o pedido do dono, o que substitui a plataforma e o que vale só para você (`## Para o avaliador`).
+- Só no dry run, o cenário: o pedido do dono, o que substitui a plataforma e o que vale só para você (`## Para o avaliador`). No fluxo com vários pedidos, o cenário traz o pedido e o `plataforma.md` do fluxo traz o resto; leia os dois.
 - `anti-patterns.md`: as falhas já vistas neste fluxo.
 - A pasta de skills e o `bot.md` do bot: a régua.
 

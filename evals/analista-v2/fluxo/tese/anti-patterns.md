@@ -53,7 +53,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 ## 7. Comando de download alterado
 
 - **No transcript:** o comando de download difere do da skill em algo além do endereço trocado pelo cenário: um passo tirado da cadeia de `&&`, a mensagem de falha encurtada (sem "Pare e não use a cópia do disco."), um comando acrescentado.
-- **Contraria:** `analista-v2-mercado`, Script (o comando é o da skill; "Se falhar, pare e avise. Não use a cópia do disco"). No dry run, a tabela de `## Plataforma` do cenário troca só o endereço: "O resto do comando fica igual, com o `curl`".
+- **Contraria:** `analista-v2-mercado`, Script (o comando é o da skill; "Se falhar, pare e avise. Não use a cópia do disco"). No dry run, a tabela de `## Plataforma` do `plataforma.md` troca só o endereço: "O resto do comando fica igual, com o `curl`".
 - **Visto:** no Analista, em três dry runs. O download deu certo, mas uma falha teria saído sem a ordem de parar. Num deles o `exit 1` também saiu, e o passo seguinte rodaria a cópia do disco.
 
 ## 8. Tese sem catalisador nem assimetria
@@ -73,3 +73,9 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 - **No transcript:** a `## Decisão` da `page.md` dá um gatilho com limite numérico (um nível de taxa, de projeção ou de índice) que nenhuma linha da tabela de sinais traz com o mesmo limite. Ou a tabela traz o mesmo sinal com outro limite.
 - **Contraria:** `analista-v2-tese`, seção 2 ("Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais") e seção 5, item 4 ("cada catalisador, risco e gatilho de invalidação numa linha, com o valor de hoje, o limite e o status").
 - **Visto:** no Analista v2, em dois dry runs seguidos. Num deles a Page deu dois limites para o mesmo sinal: o Focus "perto de 7%" na `## Decisão` e "acima de 6%" na tabela. O fact_checker, que confere texto incoerente com os próprios números, não apontou.
+
+## 11. Pedido sem decisão respondido com recomendação
+
+- **No transcript:** o pedido do dono não pede decisão (um relatório, uma comparação sem recomendação, "me fale sobre"), e mesmo assim a `page.md` traz `## Decisão`, frase de decisão antes do painel ou painel com lado, ou o chat dá lado (comprar, vender, ficar de fora).
+- **Contraria:** `analista-v2-tese`, seção 2 ("Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem esses cinco") e seção 5 ("Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos, limitações e premissas`").
+- **Visto:** no Analista v2, num dry run com o pedido de relatório detalhado de dois ativos. A Page e o chat recomendaram comprar um e ficar fora do outro, com painel, `## Decisão` e tabela de sinais, e a assimetria da compra se apoiou numa queda de 20% escolhida sem fonte.
