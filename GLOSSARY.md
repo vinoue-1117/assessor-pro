@@ -202,6 +202,9 @@ _Evitar_: revisor, verificador
 Cada uma das três perguntas independentes com que se avalia uma mudança de skill: fluxo (o bot segue a skill?), acerto (a resposta está certa contra uma referência conhecida?) e gosto (qual formato de saída o criador prefere?). Não são etapas e não têm ordem.
 _Evitar_: alicerce, etapa, modo de gosto
 
+**teste estático**:
+Leitura do `bot.md` e das skills de um bot pela skill `prompt-audit-light`, sem ator e sem transcript. É um dos três testes do eixo de fluxo, com o dry run e o live run.
+
 **dry run**:
 Rodada em que um ator faz o papel do bot sobre um cenário, fora da plataforma, e um avaliador lê o transcript.
 _Evitar_: ensaio fora da plataforma, benchmark, harness, rodada de prova

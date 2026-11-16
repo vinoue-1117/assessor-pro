@@ -19,6 +19,28 @@ evals/<bot>/
 
 O eixo de acerto roda pelo `claude plugin eval`. O caso do Analista está em [`analista/acerto/revisor/`](analista/acerto/revisor), com o README dele.
 
+O eixo de fluxo tem três testes independentes, e cada um roda sozinho: o estático lê o texto das skills, o dry run roda um ator sobre um cenário, e o live run usa o bot real.
+
+## Fluxo: estático
+
+A skill `prompt-audit-light` lê o `bot.md` e as skills do bot, numa sessão do Claude Code. Não há ator, cenário nem transcript. Ela é uma skill global do dono e fica fora deste repositório.
+
+`/prompt-audit-light bots/<bot>/bot.md bots/<bot>/skills`
+
+| Peça | O que é |
+| --- | --- |
+| Entrada | o `bot.md` e cada `SKILL.md` de `bots/<bot>/skills/` |
+| Relatório | cada achado com `arquivo:linha`, padrão, motivo e confiança |
+| Diff proposto | as edições dos achados que as merecem. A skill só aplica quando o pedido manda |
+
+- **O que ele pega.** Instrução escrita para modelo antigo, fato que o repositório contradiz e arquivos de instrução em conflito.
+- **Modelo alvo.** Sem modelo no pedido, é o da sessão que roda a skill.
+
+### Limites
+
+- O modelo alvo é Claude, não o modelo do bot.
+- O teste lê texto. Se o bot segue a skill numa conversa, quem mostra é o dry run ou o live run.
+
 ## Fluxo: dry run
 
 Um ator faz o papel do bot sobre um cenário, e um avaliador lê o transcript. A rodada vai do disparo ao relatório sem o dono no meio e para no relatório.
