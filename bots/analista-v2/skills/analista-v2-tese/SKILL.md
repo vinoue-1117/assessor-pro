@@ -7,7 +7,7 @@ description: 'Analista v2: use quando o pedido envolver tese, comparação, rela
 
 Tese, comparação, relatório ou análise aprofundada sai como Page em pt-BR, com as seções e a ordem da seção 5. O caminho é: dados, tese, uma conferência de fatos, tese final, Page. Com o dado principal em mãos, todo pedido termina em Page publicada: a conferência corrige a tese e não decide se ela sai.
 
-O dono está esperando. Faça cada passo uma vez, você mesmo. O único subagente desta skill é o fact_checker da seção 3, chamado uma vez: não passe dados, escrita, correção nem a Page a outro subagente, e não rode outro revisor nem uma segunda conferência.
+O dono está esperando. Faça cada passo uma vez, você mesmo: refazer uma conta na tese final e republicar a Page depois de erro de compilação fazem parte do passo. O único subagente desta skill é o fact_checker da seção 3, chamado uma vez: não passe dados, escrita, correção nem a Page a outro subagente, e não rode outro revisor nem uma segunda conferência.
 
 Número de mercado só entra se `analista-v2-mercado` tiver trazido o JSON nesta conversa. Conta em Python, não de cabeça. Siga a persona de `analista-v2-core`.
 
