@@ -249,7 +249,7 @@ def test_rodadas_seguem_quando_ator_ou_avaliador_falham(tmp_path, monkeypatch, c
         (dest / 'transcript.md').write_text('t', encoding='utf-8')
         return 1 if dest.name == 'rodada-3' else 0
 
-    def avaliador_falso(claude, fluxo, dest):
+    def avaliador_falso(claude, fluxo, dest, cenario=None):
         avaliadas.append(dest.name)
         if dest.name == 'rodada-1':
             raise RuntimeError('o avaliador falhou (exit 1): x')
@@ -275,3 +275,55 @@ def test_rodadas_seguem_quando_ator_ou_avaliador_falham(tmp_path, monkeypatch, c
     monkeypatch.setattr(sys, 'argv', ['dry-run.py', '--metricas', str(saida), str(tmp_path / 'nao-existe')])
     with pytest.raises(SystemExit, match='nao existe'):
         dry.main()
+
+
+def test_cenarios_do_fluxo_rodam_todos_com_a_plataforma_comum(tmp_path, monkeypatch, capsys):
+    dry = _dry_run()
+    repo = tmp_path / 'repo'
+    monkeypatch.setattr(dry, 'ROOT', repo)
+    monkeypatch.setattr(dry.shutil, 'which', lambda nome: 'claude')
+    dados = tmp_path / 'dados'
+    dados.mkdir()
+    monkeypatch.setattr(dry, 'pasta_de_dados', lambda: dados)
+    bot, fluxo = repo / 'bots/bot', repo / 'evals/bot/fluxo/tese'
+    _escrever(bot / 'bot.md', '## Perfil\n\nperfil\n')
+    _escrever(bot / 'skills/um/SKILL.md', 'um')
+    _escrever(fluxo / 'plataforma.md', '## Plataforma\n\nplataforma comum\n')
+    _escrever(fluxo / 'cenarios/acao.md', '## Pedido\n\npedido da acao\n')
+    _escrever(fluxo / 'cenarios/titulo.md', '## Pedido\n\npedido do titulo\n')
+    vistos, avaliados = {}, {}
+
+    def ator_falso(claude, fluxo, pedido, sistema, dest, modelo):
+        vistos[dest.name] = (pedido, sistema)
+        (dest / 'page.md').write_text('# Tese\n\n| a | b |\n| - | - |\n| 1 | 2 |\n', encoding='utf-8')
+        _rodada(dest, modelo, [(None, 'm1', modelo)], 1, {modelo: (10, 5)})
+        (dest / 'transcript.md').write_text('t', encoding='utf-8')
+        return 0
+
+    def avaliador_falso(claude, fluxo, dest, cenario=None):
+        avaliados[dest.name] = cenario.name
+        return 'relatorio'
+
+    monkeypatch.setattr(dry, 'atuar', ator_falso)
+    monkeypatch.setattr(dry, 'avaliar', avaliador_falso)
+    saida = tmp_path / 'execucao'
+
+    # Com mais de um cenário, sem --cenario nem --all, para e lista os nomes.
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--saida', str(saida)])
+    with pytest.raises(SystemExit, match='acao, titulo'):
+        dry.main()
+
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--all', '--saida', str(saida)])
+    dry.main()
+    # Cada cenário roda na sua pasta, com o próprio pedido e a plataforma comum, e é avaliado contra o próprio arquivo.
+    assert vistos == {'acao': ('pedido da acao', 'perfil\n\nplataforma comum'),
+                      'titulo': ('pedido do titulo', 'perfil\n\nplataforma comum')}
+    assert avaliados == {'acao': 'acao.md', 'titulo': 'titulo.md'}
+    assert (saida / 'acao' / 'relatorio.md').is_file() and (saida / 'titulo' / 'relatorio.md').is_file()
+    # A Page em markdown ganha uma cópia em HTML, com a tabela renderizada.
+    assert '<td>1</td>' in (saida / 'acao' / 'page.html').read_text(encoding='utf-8')
+    # A cópia de cada cenário leva o nome dele.
+    hoje = dry.date.today().isoformat()
+    assert sorted(p.name for p in (dados / 'execucoes' / 'bot').iterdir()) == [
+        f'{hoje}-tese-acao-dry-run', f'{hoje}-tese-titulo-dry-run']
+    assert '## acao' in capsys.readouterr().out

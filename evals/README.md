@@ -13,7 +13,7 @@ Uma mudança de skill é avaliada por três eixos independentes:
 ```text
 evals/<bot>/
   acerto/<caso>/      rodar.py, a entrada, o gabarito, os critérios do juiz (graders/) e o README do caso
-  fluxo/<fluxo>/      cenario.md, anti-patterns.md e, se o fluxo usar subagente, agentes.json
+  fluxo/<fluxo>/      cenario.md (ou cenarios/<nome>.md e plataforma.md), anti-patterns.md e, se o fluxo usar subagente, agentes.json
   gosto/<pergunta>/   cenario.md, variantes/<nome>/ e, depois que o dono decide, decisao.md
 ```
 
@@ -47,9 +47,14 @@ Um ator faz o papel do bot sobre um cenário, e um avaliador lê o transcript. A
 
 `python scripts/dry-run.py evals/analista/fluxo/tese`
 
+Um fluxo com vários pedidos guarda cada um em `cenarios/<nome>.md`, e o `## Plataforma` comum fica no `plataforma.md` do fluxo. `--cenario <nome>` roda um cenário; `--all` roda todos em paralelo, cada um em `<execucao>/<nome>`, com as tabelas de métricas separadas por cenário. Sem uma das duas opções, o script para e lista os nomes.
+
+`python scripts/dry-run.py evals/analista-v2/fluxo/tese --all`
+
 | Peça | O que é |
 | --- | --- |
 | `cenario.md` | `## Pedido`: a mensagem do dono. `## Plataforma`: o que substitui, no computador de teste, cada parte da plataforma do bot (pastas, download da `stable`, subagente, Page). `## Para o avaliador`: o que não conta como desvio e o que a rodada não mede |
+| `cenarios/<nome>.md` e `plataforma.md` | no fluxo com vários pedidos, cada cenário traz o `## Pedido` e, se precisar, um `## Para o avaliador` só dele; o `plataforma.md` traz o `## Plataforma` e o `## Para o avaliador` comuns |
 | `anti-patterns.md` | as falhas já vistas no fluxo, cada uma com o que se vê no transcript e a instrução da skill que ela contraria. A seção `## O que entra` diz quando a falha nova que o relatório aponta entra |
 | `agentes.json` | os subagentes que a plataforma tem e o Claude Code não, no formato do `--agents` |
 | [`scripts/dry-run.py`](../scripts/dry-run.py) | monta a pasta de execução, roda o ator e o avaliador e grava tudo nela |
@@ -77,13 +82,14 @@ O agente `avaliador-transcript`, com Opus, roda a partir da raiz do repositório
 
 Uma pasta temporária nova por execução, ou a de `--saida`. O script recusa pasta dentro do repositório. Com `--rodadas N`, a execução roda o ator e o avaliador N vezes, cada rodada na sua pasta, `rodada-<n>`, dentro da pasta da execução; com uma rodada só, que é o padrão, a pasta da execução é a da rodada. Rodada em que o ator cai ou o avaliador falha não interrompe as seguintes: o script segue, imprime a tabela de métricas e, no fim, sai com erro listando as rodadas incompletas.
 
-Para guardar as rodadas, crie o `.env` na raiz do repositório a partir do [`.env.example`](../.env.example), com a pasta de dados privada em `ASSESSOR_EVALS_DADOS`. No fim de cada rodada, completa ou incompleta, o script copia a pasta de execução inteira para `<pasta de dados>/execucoes/<bot>/<data>-<fluxo>-dry-run`; a segunda rodada do dia ganha o sufixo `-2`. O ator roda sempre na pasta de execução, nunca na pasta de dados, que só armazena. Sem o `.env`, nada é copiado. O `.env` não é versionado.
+Para guardar as rodadas, crie o `.env` na raiz do repositório a partir do [`.env.example`](../.env.example), com a pasta de dados privada em `ASSESSOR_EVALS_DADOS`. No fim de cada rodada, completa ou incompleta, o script copia a pasta de execução inteira para `<pasta de dados>/execucoes/<bot>/<data>-<fluxo>-dry-run`, com `-<cenario>` depois do fluxo quando o fluxo tem `cenarios/`; a segunda rodada do dia ganha o sufixo `-2`. O ator roda sempre na pasta de execução, nunca na pasta de dados, que só armazena. Sem o `.env`, nada é copiado. O `.env` não é versionado.
 
 | Arquivo | Conteúdo |
 | --- | --- |
 | `transcript.jsonl` | o stream do ator (`--output-format stream-json`), com o texto dos subagentes |
 | `transcript.md` | a versão legível: um passo por chamada de ferramenta, bloco longo cortado com a linha do jsonl |
 | `page.md` | a Page, se o ator publicou |
+| `page.html` | o `page.md` renderizado pelo script, só para leitura. O avaliador lê o `page.md` |
 | `relatorio.md` | o relatório do avaliador |
 | `sistema.md` | o que foi acrescentado ao prompt de sistema do ator (`--append-system-prompt-file`) |
 | `ator.err` | o stderr do ator |

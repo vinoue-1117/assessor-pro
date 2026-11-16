@@ -10,11 +10,16 @@ rules do usuário) ficam fora do contexto do ator.
 Depois o agente `avaliador-transcript` lê o transcript contra as skills e o
 `anti-patterns.md` do fluxo e escreve o relatório de desvios. Tudo fica na pasta de
 execução: transcript.jsonl (o stream do ator), transcript.md (a versão
-legível), page.md (se o ator publicou) e relatorio.md.
+legível), page.md (se o ator publicou), page.html (o page.md renderizado, só para
+leitura) e relatorio.md.
+
+Um fluxo tem um `cenario.md`, ou vários cenários em `cenarios/<nome>.md` com o
+`## Plataforma` comum num `plataforma.md`. Com vários, `--cenario NOME` roda um e
+`--all` roda todos em paralelo, cada um em `<execucao>/<nome>`.
 
 Se o `.env` da raiz do repositório tiver a linha `ASSESSOR_EVALS_DADOS=<pasta>`,
 a pasta de execução é copiada no fim da rodada para
-`<pasta>/execucoes/<bot>/<data>-<fluxo>-dry-run`. O ator nunca roda dentro dela.
+`<pasta>/execucoes/<bot>/<data>-<fluxo>[-<cenario>]-dry-run`. O ator nunca roda dentro dela.
 
 Com `--variantes`, o script roda o eixo de gosto sobre um cenário de
 `evals/<bot>/gosto/<pergunta>/`: cada variante de `variantes/<nome>/` (só os
@@ -40,6 +45,7 @@ Roda pelo login do plano do Claude Code, sem chave de API.
 
 Uso:
   python scripts/dry-run.py evals/analista/fluxo/tese [--modelo MODELO] [--rodadas N] [--saida PASTA]
+  python scripts/dry-run.py evals/analista-v2/fluxo/tese (--cenario NOME | --all) [--modelo MODELO] [--rodadas N] [--saida PASTA]
   python scripts/dry-run.py evals/analista/gosto/layout --variantes [NOME ...] [--amostras M] [--partida PASTA] [--modelo MODELO] [--saida PASTA]
   python scripts/dry-run.py --metricas PASTA [PASTA ...]
 """
@@ -54,6 +60,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
 
@@ -98,15 +105,28 @@ def secao(arquivo, titulo):
     return texto
 
 
-def ler_fluxo(fluxo, variante=None):
+def cenarios(fluxo):
+    """{nome: arquivo} dos cenários do fluxo: um por `.md` de `cenarios/`, ou o `cenario.md` sozinho, de nome vazio."""
+    pasta = fluxo / "cenarios"
+    if not pasta.is_dir():
+        return {"": fluxo / "cenario.md"}
+    achados = {f.stem: f for f in sorted(pasta.glob("*.md"))}
+    if not achados:
+        sys.exit(f"{pasta} sem cenario")
+    return achados
+
+
+def ler_fluxo(fluxo, variante=None, cenario=None):
     """(pasta do bot, pedido, prompt de sistema) do ator, lidos antes de criar a pasta de execução.
 
-    O `## Perfil` vem do `bot.md` da variante, se ela tiver um, e do bot se não tiver.
+    O `## Perfil` vem do `bot.md` da variante, se ela tiver um, e do bot se não tiver. O `## Plataforma`
+    vem do `plataforma.md` do fluxo, que vale para todos os cenários de `cenarios/`, ou do próprio cenário.
     """
     bot = pasta_do_bot(fluxo)
     ficha = variante / "bot.md" if variante and (variante / "bot.md").is_file() else bot / "bot.md"
-    cenario = fluxo / "cenario.md"
-    sistema = f"{secao(ficha, 'Perfil')}\n\n{secao(cenario, 'Plataforma')}"
+    cenario = cenario or fluxo / "cenario.md"
+    plataforma = fluxo / "plataforma.md" if (fluxo / "plataforma.md").is_file() else cenario
+    sistema = f"{secao(ficha, 'Perfil')}\n\n{secao(plataforma, 'Plataforma')}"
     return bot, secao(cenario, "Pedido"), sistema
 
 
@@ -398,16 +418,18 @@ def tabela(pastas):
     return "\n".join(rodada) + "\n\n" + "\n".join(modelo) + "\n"
 
 
-def avaliar(claude, fluxo, dest, live=False):
+def avaliar(claude, fluxo, dest, live=False, cenario=None):
     """Roda o avaliador-transcript e devolve o relatório que ele imprime. Levanta RuntimeError se ele falha.
 
     No live run (`scripts/live-run.py`) não há stream do ator nem cenário: o pedido é a mensagem do dono no transcript.
     """
     bot = pasta_do_bot(fluxo)
+    plataforma = fluxo / "plataforma.md"
     do_dry_run = (
         f"- stream original: {barra(dest / 'transcript.jsonl')}\n"
         f"- Page publicada pelo ator (pode nao existir): {barra(dest / 'page.md')}\n"
-        f"- cenario: {barra(fluxo / 'cenario.md')}\n"
+        f"- cenario: {barra(cenario or fluxo / 'cenario.md')}\n"
+        + (f"- plataforma do fluxo, comum a todos os cenarios: {barra(plataforma)}\n" if plataforma.is_file() else "")
     )
     pedido = (
         f"Avalie o {'live run' if live else 'dry run'} gravado em {barra(dest)}.\n\n"
@@ -440,12 +462,13 @@ def pasta_de_dados(arquivo=ROOT / ".env"):
     return None
 
 
-def arquivar(dest, bot, fluxo, dados, sufixo="dry-run"):
-    """Copia a pasta de execução para <dados>/execucoes/<bot>/<data>-<fluxo>-<sufixo> e devolve o destino.
+def arquivar(dest, bot, fluxo, dados, sufixo="dry-run", cenario=""):
+    """Copia a pasta de execução para <dados>/execucoes/<bot>/<data>-<fluxo>[-<cenario>]-<sufixo> e devolve o destino.
 
     Segunda rodada no mesmo dia ganha o sufixo -2, a terceira -3.
     """
-    base = dados / "execucoes" / bot.relative_to(ROOT / "bots") / f"{date.today().isoformat()}-{fluxo.name}-{sufixo}"
+    nome = f"{fluxo.name}-{cenario}" if cenario else fluxo.name
+    base = dados / "execucoes" / bot.relative_to(ROOT / "bots") / f"{date.today().isoformat()}-{nome}-{sufixo}"
     alvo, n = base, 1
     while alvo.exists():
         n += 1
@@ -454,12 +477,12 @@ def arquivar(dest, bot, fluxo, dados, sufixo="dry-run"):
     return alvo
 
 
-def guardar(dest, bot, fluxo, dados, sufixo="dry-run"):
+def guardar(dest, bot, fluxo, dados, sufixo="dry-run", cenario=""):
     """Copia a rodada para a pasta de dados, se houver uma, e devolve o destino (None sem cópia)."""
     if not dados:
         return None
     try:
-        alvo = arquivar(dest, bot, fluxo, dados, sufixo)
+        alvo = arquivar(dest, bot, fluxo, dados, sufixo, cenario)
     except OSError as e:
         # Falha da cópia não esconde o motivo da parada da rodada, que sai logo depois.
         print(f"copia falhou ({e}); a rodada continua em {dest}", file=sys.stderr, flush=True)
@@ -560,6 +583,73 @@ def ler_variantes(fluxo, bot, nomes):
     return variantes
 
 
+def pagina_html(pasta):
+    """Grava page.html a partir do page.md do ator, só para leitura: o avaliador lê o page.md."""
+    import markdown  # O Python que roda o script é o do ator, que já precisa ter o yfinance; o markdown vem junto no Conda.
+
+    md = pasta / "page.md"
+    if md.is_file():
+        corpo = markdown.markdown(md.read_text(encoding="utf-8"), extensions=["tables"])
+        (pasta / "page.html").write_text(f'<!doctype html>\n<meta charset="utf-8">\n<title>Page</title>\n{corpo}\n',
+                                         encoding="utf-8", newline="\n")
+
+
+def rodar_cenario(claude, fluxo, bot, nome, arquivo, pedido, sistema, dest, rodadas, modelo, dados):
+    """Roda as rodadas (ator e avaliador) de um cenário em dest e devolve as mensagens das rodadas incompletas.
+
+    Com mais de um cenário, cada linha impressa começa com `[<nome>]`, porque os cenários rodam em paralelo.
+    """
+    def log(texto):
+        print(f"[{nome}] {texto}" if nome else texto, flush=True)
+
+    # Uma rodada fica na própria pasta de execução; com mais de uma, cada uma tem a sua dentro dela.
+    pastas = [dest] if rodadas == 1 else [dest / f"rodada-{n}" for n in range(1, rodadas + 1)]
+    incompletas = []
+    try:
+        for pasta in pastas:
+            pasta.mkdir(parents=True, exist_ok=True)
+            ped, sis = montar(bot, pedido, sistema, pasta)
+            log(f"execucao: {pasta}")
+            codigo = atuar(claude, fluxo, ped, sis, pasta, modelo)
+            pagina_html(pasta)
+            if not (pasta / "transcript.md").is_file():
+                incompletas.append(f"o ator nao gravou transcript (exit {codigo}); veja {pasta / 'ator.err'}")
+                continue
+            log(f"ator: exit {codigo}, transcript em {pasta / 'transcript.md'}")
+            # Ator que caiu no meio deixa um fluxo truncado: um relatório sobre ele mediria a queda, não a skill.
+            if codigo != 0:
+                incompletas.append(f"rodada incompleta: o ator saiu com exit {codigo}, sem avaliacao; veja {pasta / 'ator.err'}")
+                continue
+            try:
+                relatorio = avaliar(claude, fluxo, pasta, cenario=arquivo)
+            except RuntimeError as e:
+                incompletas.append(f"{e}; rodada em {pasta}")
+                continue
+            (pasta / "relatorio.md").write_text(relatorio, encoding="utf-8", newline="\n")
+            log(f"relatorio: {pasta / 'relatorio.md'}")
+    finally:
+        # A rodada que parou no meio também é copiada: o transcript dela explica a parada.
+        guardar(dest, bot, fluxo, dados, cenario=nome)
+    return [f"[{nome}] {m}" if nome else m for m in incompletas]
+
+
+def escolher_cenarios(fluxo, nome, todos):
+    """{nome: arquivo} dos cenários que a rodada usa: o de --cenario, todos com --all, ou o único que houver."""
+    disponiveis = cenarios(fluxo)
+    lista = ", ".join(disponiveis)
+    if todos and nome:
+        sys.exit("passe --cenario ou --all, nao os dois")
+    if todos:
+        return disponiveis
+    if nome:
+        if nome not in disponiveis:
+            sys.exit(f"cenario '{nome}' nao existe em {fluxo / 'cenarios'}; ha: {lista}")
+        return {nome: disponiveis[nome]}
+    if len(disponiveis) > 1:
+        sys.exit(f"{fluxo} tem varios cenarios: passe --cenario NOME ou --all (ha: {lista})")
+    return disponiveis
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description="Dry run de um fluxo de bot com avaliacao do transcript, ou amostras de gosto.")
@@ -572,6 +662,9 @@ def main():
     p.add_argument("--partida", help="gosto: pasta copiada sobre cada pasta de execucao antes do ator (arquivos congelados)")
     p.add_argument("--modelo", default=ATOR, help=f"modelo do ator (padrao: {ATOR})")
     p.add_argument("--rodadas", type=int, default=1, help="fluxo: rodadas do ator e do avaliador, cada uma em rodada-<n> (padrao: 1)")
+    p.add_argument("--cenario", metavar="NOME", help="fluxo: o cenario <fluxo>/cenarios/NOME.md")
+    p.add_argument("--all", dest="todos", action="store_true",
+                   help="fluxo: todos os cenarios de <fluxo>/cenarios/, em paralelo, cada um em <execucao>/<nome>")
     p.add_argument("--metricas", nargs="+", metavar="PASTA",
                    help="so le: tabela de metricas dos transcript.jsonl guardados nas pastas, sem rodar nada")
     a = p.parse_args()
@@ -596,8 +689,13 @@ def main():
             sys.exit("--amostras e --partida so valem com --variantes")
         if a.rodadas < 1:
             sys.exit("--rodadas tem que ser 1 ou mais")
-        bot, pedido, sistema = ler_fluxo(fluxo)
+        # Todos os cenários são lidos antes de qualquer ator rodar: seção faltando para a execução inteira.
+        lidos = {nome: (arquivo, *ler_fluxo(fluxo, cenario=arquivo))
+                 for nome, arquivo in escolher_cenarios(fluxo, a.cenario, a.todos).items()}
+        bot = pasta_do_bot(fluxo)
     else:
+        if a.cenario or a.todos:
+            sys.exit("--cenario e --all so valem no modo de fluxo")
         bot = pasta_do_bot(fluxo)
         variantes = ler_variantes(fluxo, bot, a.variantes)
         if a.rodadas != 1:
@@ -624,8 +722,10 @@ def main():
         base.mkdir(parents=True)
         dest = base
     else:
-        prefixo = "dry-run" if a.variantes is None else "gosto"
-        dest = Path(tempfile.mkdtemp(prefix=f"{prefixo}-{fluxo.name}-", dir=base))
+        prefixo = "gosto" if a.variantes is not None else "dry-run"
+        sozinho = a.variantes is None and len(lidos) == 1 and next(iter(lidos))
+        nome = f"{fluxo.name}-{sozinho}" if sozinho else fluxo.name
+        dest = Path(tempfile.mkdtemp(prefix=f"{prefixo}-{nome}-", dir=base))
 
     if a.variantes is not None:
         print(f"rodada: {dest}", flush=True)
@@ -639,34 +739,18 @@ def main():
             sys.exit(f"amostras com exit diferente de zero ou sem page.html: {', '.join(falhas)}")
         return
 
-    # Uma rodada fica na própria pasta de execução; com mais de uma, cada uma tem a sua dentro dela.
-    pastas = [dest] if a.rodadas == 1 else [dest / f"rodada-{n}" for n in range(1, a.rodadas + 1)]
-    incompletas = []
-    try:
-        for pasta in pastas:
-            pasta.mkdir(exist_ok=True)
-            ped, sis = montar(bot, pedido, sistema, pasta)
-            print(f"execucao: {pasta}", flush=True)
-            codigo = atuar(claude, fluxo, ped, sis, pasta, a.modelo)
-            if not (pasta / "transcript.md").is_file():
-                incompletas.append(f"o ator nao gravou transcript (exit {codigo}); veja {pasta / 'ator.err'}")
-                continue
-            print(f"ator: exit {codigo}, transcript em {pasta / 'transcript.md'}", flush=True)
-            # Ator que caiu no meio deixa um fluxo truncado: um relatório sobre ele mediria a queda, não a skill.
-            if codigo != 0:
-                incompletas.append(f"rodada incompleta: o ator saiu com exit {codigo}, sem avaliacao; veja {pasta / 'ator.err'}")
-                continue
-            try:
-                relatorio = avaliar(claude, fluxo, pasta)
-            except RuntimeError as e:
-                incompletas.append(f"{e}; rodada em {pasta}")
-                continue
-            (pasta / "relatorio.md").write_text(relatorio, encoding="utf-8", newline="\n")
-            print(f"relatorio: {pasta / 'relatorio.md'}", flush=True)
-    finally:
-        # A rodada que parou no meio também é copiada: o transcript dela explica a parada.
-        guardar(dest, bot, fluxo, dados)
-    print(tabela([dest]), end="")
+    # Um cenário roda na pasta da execução; com mais de um, cada um tem a sua, <execucao>/<nome>, e todos rodam
+    # em paralelo: cada ator e cada avaliador é um processo próprio, numa pasta própria.
+    destinos = {nome: dest if len(lidos) == 1 else dest / nome for nome in lidos}
+    with ThreadPoolExecutor(max_workers=len(lidos)) as grupo:
+        futuros = {nome: grupo.submit(rodar_cenario, claude, fluxo, bot, nome if len(lidos) > 1 else "", arquivo,
+                                      pedido, sistema, destinos[nome], a.rodadas, a.modelo, dados)
+                   for nome, (arquivo, _, pedido, sistema) in lidos.items()}
+    incompletas = [m for f in futuros.values() for m in f.result()]
+    for nome, pasta in destinos.items():
+        if len(lidos) > 1:
+            print(f"\n## {nome}\n")
+        print(tabela([pasta]), end="")
     if incompletas:
         sys.exit("\n".join(incompletas))
 
