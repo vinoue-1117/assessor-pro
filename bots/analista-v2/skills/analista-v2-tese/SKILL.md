@@ -39,7 +39,7 @@ Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown, já nas seções da Page 
 
 - Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
 - Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
-- Contras e riscos: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Riscos e premissas`, o que pode dar errado e as premissas de que a decisão depende; `## Decisão`, o que faria mudar de ideia. Em cada uma, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
+- Contras e riscos: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Riscos e premissas`, o que pode dar errado e as premissas de que a decisão depende, com a ressalva sobre o que um número é; `## Decisão`, o que faria mudar de ideia. Em cada uma, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
 
 ## 3. Conferência de fatos
 
@@ -87,7 +87,7 @@ Seção sem conteúdo sai da Page. Pedido sem decisão de alocação sai sem o p
 
 A resposta do fact_checker é material de trabalho e fica fora da Page: nada de resultado da conferência, selo, seção de resposta à revisão ou ressalva espalhada pelos parágrafos.
 
-A Page fala do ativo e da decisão, não do trabalho. Fica fora dela o que descreve a conversa ou o processo: dado que faltou ou que o dono não informou, e o que não foi conferido, aberto ou achado. Premissa de que a decisão depende entra como premissa ("Horizonte: até o balanço do próximo trimestre"), sem dizer de onde veio. O que faltou vai na linha curta do chat (seção 6). Ressalva que diz o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento) descreve o dado e fica na Page, em `## Riscos e premissas`.
+A Page fala do ativo e da decisão, não do trabalho. Fica fora dela o que descreve a conversa ou o processo: dado que faltou ou que o dono não informou, e o que não foi conferido, aberto ou achado. Premissa de que a decisão depende entra como premissa ("Horizonte: até o balanço do próximo trimestre"), sem dizer de onde veio. O que faltou vai na linha curta do chat (seção 6). Ressalva que diz o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento, número de balanço tirado de reportagem) descreve o dado e fica na Page, em `## Riscos e premissas`. Ela diz de onde o número vem, de quando é ou como foi medido, sem dizer o que deixou de ser aberto ou conferido.
 
 ## 6. Chat
 

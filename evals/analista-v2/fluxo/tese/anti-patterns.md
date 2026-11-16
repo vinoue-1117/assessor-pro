@@ -64,7 +64,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 9. Chat que repete a tese
 
-- **No transcript:** a mensagem final ao dono traz, além do link da Page, da decisão (lado e horizonte) e de uma linha curta, o corpo da tese: tópicos de argumento, assimetria, o que faria mudar de ideia ou uma lista de ressalvas. Também conta a frase do chat que não está na Page.
+- **No transcript:** a mensagem final ao dono traz, além do link da Page, da decisão (lado e horizonte) e de uma linha curta, o corpo da tese: tópicos de argumento, assimetria, o que faria mudar de ideia ou uma lista de ressalvas. Também conta a leitura ou o argumento que o chat traz e a Page não. O aviso do que faltou ou não foi conferido, na linha curta da seção 6, não conta.
 - **Contraria:** `analista-v2-tese`, seção 6 ("Entregue o link da Page e a decisão de alocação (lado e horizonte), curta. Uma linha curta a mais só nestes casos: [...]"; "Não cole a tese nem a resposta do fact_checker no chat"), e `analista-v2-core`, Entrega ("O resto fica na Page").
 - **Visto:** no Analista v2, em dois dry runs seguidos, com quatro tópicos e cinco ressalvas no chat. Num deles o chat trouxe uma leitura que não estava na Page nem tinha passado pela conferência.
 
@@ -82,6 +82,6 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 12. Page que narra o trabalho
 
-- **No transcript:** a `page.md` traz frase sobre a conversa ou o processo, e não sobre o ativo ou a decisão: dado que faltou ou que o dono não informou ("você não deu prazo", "não informado", "ausente"), ou o que o bot não conferiu, não abriu ou não achou ("não conferi", "não abri o release", "não achei"). Vale em qualquer seção, inclusive em `## Contras` e em `## Riscos e premissas`. Premissa dita como premissa ("Horizonte: até o balanço do 4T26") e ressalva sobre o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento) não contam.
+- **No transcript:** a `page.md` traz frase sobre a conversa ou o processo, e não sobre o ativo ou a decisão: dado que faltou ou que o dono não informou ("você não deu prazo", "não informado", "ausente"), ou o que o bot não conferiu, não abriu ou não achou ("não conferi", "não abri o release", "não achei"). Vale em qualquer seção, inclusive em `## Contras` e em `## Riscos e premissas`. Premissa dita como premissa ("Horizonte: até o balanço do 4T26") e ressalva sobre o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento, número de balanço tirado de reportagem) não contam. A mesma ressalva conta quando diz o que não foi aberto ou conferido ("não do release do banco").
 - **Contraria:** `analista-v2-tese`, seção 5 ("A Page fala do ativo e da decisão, não do trabalho. Fica fora dela o que descreve a conversa ou o processo: dado que faltou ou que o dono não informou, e o que não foi conferido, aberto ou achado").
 - **Visto:** no Analista v2, num dry run da tese de BBAS3, quando a skill mandava registrar na Page o que faltou. A frase de abertura dizia "Você não deu prazo; assumo 6 a 12 meses", um contra dizia "Não conferi múltiplo (P/VP, P/L) do 3T26" e `## Riscos` dizia "não abri o release oficial".
