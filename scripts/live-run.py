@@ -221,7 +221,7 @@ def converter(principal, subagentes, desde, ate=None):
         "# Transcript do bot\n\n"
         f"origem: export {principal.name}, da mensagem do dono [{desde}] {fim}\n\n"
         "entrega ao dono: a chamada SendToUser; o texto solto do bot nao chega ao dono\n\n"
-        "Page: o contents da ultima chamada WriteCanvas, gravado em page.md\n\n"
+        "Page: o contents da ultima chamada WriteCanvas, gravado em page.md; edicao posterior da Page (EditCanvas) so aparece nos passos\n\n"
         "teto do export: todo bloco com mais de uns 4.000 caracteres vem com o meio trocado por '...', sem outro aviso"
     )
     return "\n\n".join([cabeca, *saida]) + "\n", estado["page"]
@@ -229,6 +229,8 @@ def converter(principal, subagentes, desde, ate=None):
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
+    # A lista de mensagens do dono sai pelo sys.exit, no stderr, com o acento do texto dele.
+    sys.stderr.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description="Live run: o avaliador le o export de uma conversa do bot real, sem ator.")
     p.add_argument("fluxo", help="pasta do fluxo: evals/<bot>/fluxo/<fluxo>")
     p.add_argument("export", help="pasta do export: a sessao principal e os arquivos sand-subagent-<id>")

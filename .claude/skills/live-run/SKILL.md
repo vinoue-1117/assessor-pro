@@ -58,4 +58,4 @@ Na pasta de execução, o `transcript.md`, o `page.md` (se o trecho tem `WriteCa
 - `### mensagem do dono [tNu]`, `### mensagem da plataforma`, `### entrada para <quem>`, `### texto de <quem>` e `### raciocinio de <quem>`, cada um com `[<arquivo>:<linha>]`.
 - O trecho do subagente entra logo depois do resultado da chamada que o iniciou ou retomou.
 - Chamada repetida entra uma vez.
-- O `page.md` é o `contents` do último `WriteCanvas` do trecho.
+- O `page.md` é o `contents` do último `WriteCanvas` do trecho. Edição posterior da Page (`EditCanvas`) só aparece nos passos.

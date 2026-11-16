@@ -115,7 +115,7 @@ O avaliador lê o export de uma conversa do bot real, sem ator. O dono pede o ex
 - **O pedido.** Não há cenário: o pedido é a mensagem do dono que abre o trecho, e as outras mensagens dele no trecho também entram.
 - **A conversão.** O subagente fica num arquivo próprio do export e entra no `transcript.md` logo depois da chamada que o iniciou ou retomou. A chamada que o export repete entra uma vez. Cada passo cita o arquivo e a linha do export.
 - **Formato desconhecido.** Papel, bloco ou mensagem que o conversor não conhece param o script com o arquivo e a linha. A skill ajusta o conversor e o teste dele; o export não é editado à mão.
-- **A saída.** A pasta de execução tem `transcript.md`, `page.md` (se o bot publicou) e `relatorio.md`. Ela fica fora do repositório, numa pasta temporária ou na de `--saida`. Com o `.env`, ela é copiada para `<pasta de dados>/execucoes/<bot>/<data>-<fluxo>-live-run`.
+- **A saída.** A pasta de execução tem `transcript.md`, `page.md` (se o bot publicou) e `relatorio.md`. O `page.md` é o texto do último `WriteCanvas`: edição posterior da Page, pelo `EditCanvas`, só aparece nos passos do transcript. Ela fica fora do repositório, numa pasta temporária ou na de `--saida`. Com o `.env`, ela é copiada para `<pasta de dados>/execucoes/<bot>/<data>-<fluxo>-live-run`.
 
 ### Limites
 
