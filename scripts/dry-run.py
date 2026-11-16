@@ -44,9 +44,9 @@ modelo usado na rodada.
 Roda pelo login do plano do Claude Code, sem chave de API.
 
 Uso:
-  python scripts/dry-run.py evals/analista/fluxo/tese [--modelo MODELO] [--rodadas N] [--saida PASTA]
+  python scripts/dry-run.py evals/<bot>/fluxo/<fluxo> [--modelo MODELO] [--rodadas N] [--saida PASTA]
   python scripts/dry-run.py evals/analista-v2/fluxo/tese (--cenario NOME | --all) [--modelo MODELO] [--rodadas N] [--saida PASTA]
-  python scripts/dry-run.py evals/analista/gosto/layout --variantes [NOME ...] [--amostras M] [--partida PASTA] [--modelo MODELO] [--saida PASTA]
+  python scripts/dry-run.py evals/<bot>/gosto/<pergunta> --variantes [NOME ...] [--amostras M] [--partida PASTA] [--modelo MODELO] [--saida PASTA]
   python scripts/dry-run.py --metricas PASTA [PASTA ...]
 """
 import argparse

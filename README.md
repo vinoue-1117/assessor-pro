@@ -12,7 +12,6 @@ Bots para assessores enviarem o relatório mensal de performance da corretora (P
 | --- | --- | --- | --- |
 | [`assessor/envio`](bots/assessor/envio) | Relatórios - Assessor Pro | recebe o zip do lote e a planilha de clientes, monta um pacote por cliente com script determinístico, confere, pede UMA aprovação do lote e entrega cada envio ao bot de WhatsApp | enviar direto, reescrever texto, responder cliente, inventar número |
 | [`assessor/zap`](bots/assessor/zap) | Whatsapp - Assessor Pro | lê e envia no WhatsApp Web exatamente o que outro bot do dono pediu (o gate é de quem pede); exporta conversas; acompanha conversas por rotas pedidas pelos bots e encaminha as respostas | escrever conteúdo, escolher destinatário, responder por conta própria |
-| [`analista`](bots/analista) | Analista | consulta cotação, histórico e opções pelo `yfinance`, Selic, CDI e IPCA no Banco Central e taxa do Tesouro Direto, faz as contas em Python e entrega tese ou comparação em Page, com os contras levantados e os números conferidos antes de publicar | mandar ordem, acessar corretora ou conta, falar com terceiros, inventar número |
 | [`analista-v2`](bots/analista-v2) | Analista v2 | consulta cotação, histórico e opções pelo `yfinance`, Selic, CDI e IPCA no Banco Central e taxa do Tesouro Direto, faz as contas em Python e entrega tese ou comparação em Page: escreve a tese com os contras, um fact_checker aponta uma vez o que está errado, e o bot corrige e publica | mandar ordem, acessar corretora ou conta, falar com terceiros, inventar número |
 
 Fluxo do envio: assessor manda zip + planilha → Relatórios - Assessor Pro prepara e mostra o resumo → assessor aprova o lote → Relatórios - Assessor Pro pede cada envio ao bot Whatsapp - Assessor Pro → o bot de WhatsApp envia e devolve o status.
@@ -27,7 +26,7 @@ Bot pessoal pode ser instalado pelo [bot construtor](docs/grokbot.md#bot-constru
 
 O discurso macro do mês vem de [`discurso/discurso-macro.md`](discurso/), baixado a cada lote.
 
-O Analista se instala do mesmo jeito, com o [prompt dele](bots/analista/README.md#instalar), e não depende dos outros dois. O Analista v2 também, com o [prompt dele](bots/analista-v2/README.md#instalar).
+O Analista v2 se instala do mesmo jeito, com o [prompt dele](bots/analista-v2/README.md#instalar), e não depende dos outros dois.
 
 ## Como as atualizações chegam a quem instalou
 O bot instalado guarda só ponteiros: cada skill baixa a versão completa da branch `stable` a cada uso, e os scripts e o discurso vêm do mesmo lugar. A edição fica na `main`. Quem promove é o dono do repositório:
@@ -42,7 +41,7 @@ A description de cada ponteiro é fixa (quando usar a skill) e fica na seção `
 - Valide antes de cada commit: `python scripts/check.py`. Ele recusa arquivo de dado versionado, confere os ponteiros e roda os testes (os que executam o comando de download requerem `bash` e `curl` e são pulados no Windows). O mesmo comando roda em toda PR.
 - Criou, removeu ou renomeou uma skill, ou mudou a linha dela no `bot.md`? Rode `python scripts/gerar-ponteiros.py`.
 - Avaliação de mudança de skill (dry run do fluxo com avaliação do transcript, análise de live run, com o avaliador sobre o export do bot real, e amostras de variantes lidas pelo dono no eixo de gosto): [`evals/`](evals/README.md).
-- Skill passou a depender de algo novo no `assessor.py` (um subcomando, por exemplo)? Suba a versão na 1ª linha do script e o número em `bots/assessor/envio/skills/assessor-preparar-envio/scripts/versao-minima` na mesma mudança, e ajuste o número fixo em `bots/assessor/tests/test_baixar_assessor.py`. Sem isso, um bot com download falho aceita a versão anterior. O `mercado.py` do Analista segue a mesma regra, descrita no [README dele](bots/analista/README.md).
+- Skill passou a depender de algo novo no `assessor.py` (um subcomando, por exemplo)? Suba a versão na 1ª linha do script e o número em `bots/assessor/envio/skills/assessor-preparar-envio/scripts/versao-minima` na mesma mudança, e ajuste o número fixo em `bots/assessor/tests/test_baixar_assessor.py`. Sem isso, um bot com download falho aceita a versão anterior.
 - Nunca coloque dado de cliente neste repositório (nomes, contas, telefones, PDFs, planilhas). Ele é público. A lista do que não entra está em [`bots/README.md`](bots/README.md).
 - Só o dono do repositório deve ter escrita nele.
 

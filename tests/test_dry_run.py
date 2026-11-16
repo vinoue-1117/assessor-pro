@@ -258,7 +258,7 @@ def test_rodadas_seguem_quando_ator_ou_avaliador_falham(tmp_path, monkeypatch, c
     monkeypatch.setattr(dry, 'atuar', ator_falso)
     monkeypatch.setattr(dry, 'avaliar', avaliador_falso)
     saida = tmp_path / 'execucao'
-    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(RAIZ / 'evals/analista/fluxo/tese'), '--rodadas', '3',
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(RAIZ / 'evals/analista-v2/fluxo/tese'), '--cenario', 'fii', '--rodadas', '3',
                                       '--modelo', 'haiku', '--saida', str(saida)])
     with pytest.raises(SystemExit) as fim:
         dry.main()
