@@ -201,6 +201,9 @@ _Evitar_: ensaio fora da plataforma, benchmark, harness, rodada de prova
 **ator**:
 Claude que faz o papel do bot num dry run, com as skills da branch.
 
+**live run**:
+Rodada em que o avaliador lê o export de uma conversa do bot real, sem ator e sem cenário. O pedido é a mensagem do dono no transcript.
+
 **avaliador**:
 Agente que lê o transcript contra as skills e as falhas já vistas no fluxo e escreve o relatório de desvios. Não dá nota nem corrige a skill.
 _Evitar_: avaliador-transcript
@@ -211,6 +214,10 @@ _Evitar_: cenario.md
 
 **desvio**:
 Ponto em que o ator contraria a skill: faz o que ela proíbe, deixa de fazer o que ela manda ou faz fora de ordem. Quando a skill não diz o que fazer, é lacuna da skill, não desvio.
+
+**anti-pattern**:
+Falha já vista num fluxo, registrada com o que aparece no transcript e a instrução da skill que ela contraria. O avaliador procura cada uma no transcript da rodada.
+_Evitar_: erro já visto
 
 **variante**:
 Versão alternativa de uma instrução do bot, usada no eixo de gosto.
