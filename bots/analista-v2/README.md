@@ -31,7 +31,7 @@ Workspace deste bot: `/workspace/analista-v2/` (o script de trabalho fica em `/w
 
 | Passo | O que acontece |
 | --- | --- |
-| Dados | `mercado.py`, páginas abertas e contas em Python, gravados no pacote de dados. Sem o dado principal (a cotação ou a taxa do ativo da tese), o bot para aqui e diz qual dado não veio |
+| Dados | `mercado.py`, páginas abertas (o fundamento, na fonte primária) e contas em Python, gravados no pacote de dados. Sem o dado principal (a cotação ou a taxa do ativo da tese), o bot para aqui e diz qual dado não veio |
 | Tese | o bot escreve a tese já nas seções da Page, com os contras, os riscos e o que faria mudar de ideia |
 | Conferência de fatos | uma chamada ao fact_checker, um subagente que recebe a tese, o pacote de dados e as mensagens do dono. Ele devolve uma linha por erro, ou `Sem erros.`, sem veredito |
 | Tese final | o bot corrige cada erro, roda de novo a conta que mudou e revê a decisão com os números novos |
