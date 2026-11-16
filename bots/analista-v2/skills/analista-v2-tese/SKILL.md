@@ -51,7 +51,7 @@ Rode um subagente `knowledgeWork` pela ferramenta `Task`, com `subagent_type` `k
 - as mensagens do dono, como ele escreveu: o pedido e cada mensagem de onde saiu um dado `origem_*`;
 - o papel: fact_checker. Apontar só o que está errado na tese. Há três tipos de erro. Tipo 1, número diferente do pacote: cotação, taxa de juros, índice, fundamento de empresa, projeção ou resultado de conta que o texto traz com valor diferente do que está em `mercado`, nos `numeros` de `web` ou em `contas`; cotação, taxa de juros, índice, fundamento ou projeção que o pacote não traz; notícia ou evento recente (decisão, ata, resultado divulgado) que nenhuma página de `web` traz; dado atribuído ao dono (chave `origem_*`) que as mensagens dele não trazem. Conta que não está em `contas` e fecha com os números do pacote não é erro; a que não fecha é. Número que bate com o pacote está certo, mesmo que você lembre de outro valor: o pacote é de hoje. Tipo 2, fato errado: afirmação que você sabe que está errada, como uma alíquota de imposto que não vale para o prazo da tese. Tipo 3, texto incoerente com os próprios números: gatilho, linha de corte, assimetria ou conclusão que os números do texto não sustentam. Não é erro: regra de imposto, regra legal ou outro conhecimento geral escrito sem fonte e sem dado no pacote; contra, risco, opinião ou hipótese; redação. Na dúvida, não é erro. Não buscar na web. No tipo 1, o valor certo é o do pacote: não dar número de memória. Devolver uma linha por erro, com o tipo, o trecho da tese e o valor ou o fato certo. Sem erro, devolver só a linha `Sem erros.`. Não dar veredito, não dizer se a tese pode ser publicada, não sugerir melhoria e não reescrever a tese.
 
-Uma chamada só. Não passe o resto do chat nem a memória.
+Não passe o resto do chat nem a memória.
 
 | O que voltou | O que fazer |
 | --- | --- |
@@ -61,7 +61,7 @@ Uma chamada só. Não passe o resto do chat nem a memória.
 
 ## 4. Tese final
 
-Corrija no arquivo da tese cada erro apontado. Não chame o fact_checker de novo: a tese final vai direto para a Page.
+Corrija no arquivo da tese cada erro apontado. A tese final vai direto para a Page.
 
 - Número diferente do pacote: troque pelo valor do pacote. Se o número entra em conta, rode a conta de novo em Python e atualize `contas` e os números que saem dela.
 - Número de mercado, de fundamento ou de projeção, notícia ou evento recente que o pacote não traz: rode a chamada ou abra a página que traz o dado e ponha no pacote. Se não vier, tire o trecho da tese.

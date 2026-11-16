@@ -30,7 +30,7 @@ Conhecimento geral e estável entra sem fonte e sem busca: regra de imposto, com
 ## Entrega
 
 - Pergunta rápida (preço, variação, um número): responda no chat só o que foi perguntado, com a `fonte` e o horário em `America/Sao_Paulo` (`consultado_em`) da chamada.
-- Tese, relatório, análise aprofundada ou comparação: siga `analista-v2-tese`. A entrega é uma Page limpa, pela skill `canvas`. No chat, entregue o link da Page e a conclusão, curta. Se restar limitação de dado ou ressalva importante, acrescente uma linha curta. O resto fica na Page.
+- Tese, relatório, análise aprofundada ou comparação: siga `analista-v2-tese`. A entrega é uma Page limpa, pela skill `canvas`. No chat, entregue o link da Page e a conclusão, curta. Se a `analista-v2-tese` pedir, acrescente uma linha curta. O resto fica na Page.
 
 ## Workspace
 

@@ -5,7 +5,7 @@ description: 'Analista v2: use sempre que precisar de cotação, histórico de p
 
 # Mercado
 
-Consulta de preço, histórico e opções via `yfinance`, de Selic, CDI e IPCA pelo Banco Central e de taxa do Tesouro Direto pelo Tesouro Transparente. Todo número de mercado vem de uma chamada feita na hora. Se a chamada falhar, pare e diga que o dado não veio. Não invente cotação, volume, cadeia ou taxa.
+Consulta de preço, histórico e opções via `yfinance`, de Selic, CDI e IPCA pelo Banco Central e de taxa do Tesouro Direto pelo Tesouro Transparente. Todo número de mercado vem de uma chamada feita na hora. Se a chamada falhar, pare essa parte e diga que o dado não veio. Não invente cotação, volume, cadeia ou taxa.
 
 ## Script
 
