@@ -594,13 +594,15 @@ def pagina_html(pasta):
                                          encoding="utf-8", newline="\n")
 
 
-def rodar_cenario(claude, fluxo, bot, nome, arquivo, pedido, sistema, dest, rodadas, modelo, dados):
+def rodar_cenario(claude, fluxo, bot, nome, arquivo, pedido, sistema, dest, rodadas, modelo, dados, paralelo=False):
     """Roda as rodadas (ator e avaliador) de um cenário em dest e devolve as mensagens das rodadas incompletas.
 
-    Com mais de um cenário, cada linha impressa começa com `[<nome>]`, porque os cenários rodam em paralelo.
+    Em paralelo, cada linha impressa começa com `[<nome>]`. A cópia na pasta de dados leva o nome do cenário sempre.
     """
+    marca = f"[{nome}] " if paralelo else ""
+
     def log(texto):
-        print(f"[{nome}] {texto}" if nome else texto, flush=True)
+        print(f"{marca}{texto}", flush=True)
 
     # Uma rodada fica na própria pasta de execução; com mais de uma, cada uma tem a sua dentro dela.
     pastas = [dest] if rodadas == 1 else [dest / f"rodada-{n}" for n in range(1, rodadas + 1)]
@@ -630,7 +632,7 @@ def rodar_cenario(claude, fluxo, bot, nome, arquivo, pedido, sistema, dest, roda
     finally:
         # A rodada que parou no meio também é copiada: o transcript dela explica a parada.
         guardar(dest, bot, fluxo, dados, cenario=nome)
-    return [f"[{nome}] {m}" if nome else m for m in incompletas]
+    return [f"{marca}{m}" for m in incompletas]
 
 
 def escolher_cenarios(fluxo, nome, todos):
@@ -743,8 +745,8 @@ def main():
     # em paralelo: cada ator e cada avaliador é um processo próprio, numa pasta própria.
     destinos = {nome: dest if len(lidos) == 1 else dest / nome for nome in lidos}
     with ThreadPoolExecutor(max_workers=len(lidos)) as grupo:
-        futuros = {nome: grupo.submit(rodar_cenario, claude, fluxo, bot, nome if len(lidos) > 1 else "", arquivo,
-                                      pedido, sistema, destinos[nome], a.rodadas, a.modelo, dados)
+        futuros = {nome: grupo.submit(rodar_cenario, claude, fluxo, bot, nome, arquivo, pedido, sistema,
+                                      destinos[nome], a.rodadas, a.modelo, dados, len(lidos) > 1)
                    for nome, (arquivo, _, pedido, sistema) in lidos.items()}
     incompletas = [m for f in futuros.values() for m in f.result()]
     for nome, pasta in destinos.items():

@@ -327,3 +327,8 @@ def test_cenarios_do_fluxo_rodam_todos_com_a_plataforma_comum(tmp_path, monkeypa
     assert sorted(p.name for p in (dados / 'execucoes' / 'bot').iterdir()) == [
         f'{hoje}-tese-acao-dry-run', f'{hoje}-tese-titulo-dry-run']
     assert '## acao' in capsys.readouterr().out
+
+    # Um cenário só, por --cenario, também leva o nome na cópia.
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--cenario', 'acao', '--saida', str(tmp_path / 'outra')])
+    dry.main()
+    assert (dados / 'execucoes' / 'bot' / f'{hoje}-tese-acao-dry-run-2').is_dir()
