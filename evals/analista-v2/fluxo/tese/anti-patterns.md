@@ -53,7 +53,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 ## 7. Comando de download alterado
 
 - **No transcript:** o comando de download difere do da skill em algo além do endereço trocado pelo cenário: um passo tirado da cadeia de `&&`, a mensagem de falha encurtada (sem "Pare e não use a cópia do disco."), um comando acrescentado.
-- **Contraria:** `analista-v2-mercado`, Script (o comando é o da skill; "Se falhar, pare e avise. Não use a cópia do disco"). No dry run, a tabela de `## Plataforma` do cenário troca só o endereço: "O resto do comando fica igual, com o `curl`".
+- **Contraria:** `analista-v2-mercado`, Script (o comando é o da skill; "Se falhar, pare e avise. Não use a cópia do disco"). No dry run, a tabela de `## Plataforma` do `plataforma.md` troca só o endereço: "O resto do comando fica igual, com o `curl`".
 - **Visto:** no Analista, em três dry runs. O download deu certo, mas uma falha teria saído sem a ordem de parar. Num deles o `exit 1` também saiu, e o passo seguinte rodaria a cópia do disco.
 
 ## 8. Tese sem catalisador nem assimetria
