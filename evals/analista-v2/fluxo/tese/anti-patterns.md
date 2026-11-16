@@ -22,8 +22,8 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 2. Ordem de conferência que não vale para título público
 
-- **No transcript:** na tese de Tesouro Direto ou de taxa, o ator procura o último trimestre divulgado ou roda `historico` com um ticker que não existe para o título. Ou pula a conferência da última semana e a Page não diz, em `## Riscos, limitações e premissas`, que a variação da última semana não foi conferida.
-- **Contraria:** `analista-v2-tese`, seção 1 ("Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: registre em `Riscos, limitações e premissas` que a variação da última semana não foi conferida"), e `analista-v2-mercado`, Regras ("`tesouro` e `taxa` trazem só o valor mais recente: nesses casos, diga que a variação da última semana não foi conferida").
+- **No transcript:** na tese de Tesouro Direto ou de taxa, o ator procura o último trimestre divulgado ou roda `historico` com um ticker que não existe para o título. Ou pula a conferência da última semana e o chat não diz que a variação da última semana não foi conferida.
+- **Contraria:** `analista-v2-tese`, seção 1 ("Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: a variação da última semana fica sem conferir, e isso vai para a linha do chat"), e `analista-v2-mercado`, Regras ("`tesouro` e `taxa` trazem só o valor mais recente: nesses casos, diga que a variação da última semana não foi conferida").
 - **Visto:** no Analista, no ensaio fora da plataforma, quando a ordem valia para toda tese. A conferência foi pulada sem aviso.
 
 ## 3. Título escolhido sem conferir o nome ou a disponibilidade
@@ -40,7 +40,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 5. Page carregada pela revisão
 
-- **No transcript:** a `page.md` traz selo ou menção do resultado da conferência, uma seção de resposta à revisão, texto do fact_checker, ou ressalvas espalhadas pelos parágrafos em vez de reunidas em `## Riscos, limitações e premissas`.
+- **No transcript:** a `page.md` traz selo ou menção do resultado da conferência, uma seção de resposta à revisão, texto do fact_checker, ou ressalvas espalhadas pelos parágrafos em vez de reunidas em `## Riscos e premissas`.
 - **Contraria:** `analista-v2-tese`, seção 5 ("A resposta do fact_checker é material de trabalho e fica fora da Page: nada de resultado da conferência, selo, seção de resposta à revisão ou ressalva espalhada pelos parágrafos").
 - **Visto:** no Analista, no bot real, com o advogado do diabo, numa Page de 13 páginas com selo de veredito no topo e uma seção de resposta à revisão.
 
@@ -77,5 +77,11 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 ## 11. Pedido sem decisão respondido com recomendação
 
 - **No transcript:** o pedido do dono não pede decisão (um relatório, uma comparação sem recomendação, "me fale sobre"), e mesmo assim a `page.md` traz `## Decisão`, frase de decisão antes do painel ou painel com lado, ou o chat dá lado (comprar, vender, ficar de fora).
-- **Contraria:** `analista-v2-tese`, seção 2 ("Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte") e seção 5 ("Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos, limitações e premissas`").
+- **Contraria:** `analista-v2-tese`, seção 2 ("Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte") e seção 5 ("Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos e premissas`").
 - **Visto:** no Analista v2, num dry run com o pedido de relatório detalhado de dois ativos. A Page e o chat recomendaram comprar um e ficar fora do outro, com painel, `## Decisão` e tabela de sinais, e a assimetria da compra se apoiou numa queda de 20% escolhida sem fonte.
+
+## 12. Page que narra o trabalho
+
+- **No transcript:** a `page.md` traz frase sobre a conversa ou o processo, e não sobre o ativo ou a decisão: dado que faltou ou que o dono não informou ("você não deu prazo", "não informado", "ausente"), ou o que o bot não conferiu, não abriu ou não achou ("não conferi", "não abri o release", "não achei"). Vale em qualquer seção, inclusive em `## Contras` e em `## Riscos e premissas`. Premissa dita como premissa ("Horizonte: até o balanço do 4T26") e ressalva sobre o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento) não contam.
+- **Contraria:** `analista-v2-tese`, seção 5 ("A Page fala do ativo e da decisão, não do trabalho. Fica fora dela o que descreve a conversa ou o processo: dado que faltou ou que o dono não informou, e o que não foi conferido, aberto ou achado").
+- **Visto:** no Analista v2, num dry run da tese de BBAS3, quando a skill mandava registrar na Page o que faltou. A frase de abertura dizia "Você não deu prazo; assumo 6 a 12 meses", um contra dizia "Não conferi múltiplo (P/VP, P/L) do 3T26" e `## Riscos` dizia "não abri o release oficial".
