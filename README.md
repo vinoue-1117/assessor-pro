@@ -4,7 +4,7 @@
 
 # Assessor Pro
 
-Bots para assessores enviarem o relatório mensal de performance da corretora (PDF + mensagem com os números do mês) aos clientes pelo WhatsApp, usando dois bots. O repositório guarda também o Analista e o Analista v2, bots de análise de mercado que não participam do envio. Cada bot tem uma pasta em [`bots/`](bots/README.md), com a ficha que o define (`bot.md`) e as skills dele.
+Bots para assessores enviarem o relatório mensal de performance da corretora (PDF + mensagem com os números do mês) aos clientes pelo WhatsApp, usando dois bots. O repositório guarda também o Analista v2, bot de análise de mercado que não participa do envio. Cada bot tem uma pasta em [`bots/`](bots/README.md), com a ficha que o define (`bot.md`) e as skills dele.
 
 ## Os bots
 

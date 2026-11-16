@@ -17,7 +17,7 @@ evals/<bot>/
   gosto/<pergunta>/   cenario.md, variantes/<nome>/ e, depois que o dono decide, decisao.md
 ```
 
-O eixo de acerto roda pelo `claude plugin eval`. Hoje não há caso de acerto no repositório.
+O eixo de acerto roda pelo `claude plugin eval`.
 
 O eixo de fluxo tem três testes independentes, e cada um roda sozinho: o estático lê o texto das skills, o dry run roda um ator sobre um cenário, e o live run usa o bot real.
 
