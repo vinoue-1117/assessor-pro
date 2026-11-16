@@ -172,7 +172,7 @@ Nome alternativo de um contato do WhatsApp que o dono confirmou uma vez. Vale co
 ### Analista
 
 **tese**:
-Análise do Analista que sustenta uma decisão de alocação: lado, tamanho sugerido, horizonte e o que faria mudar de ideia.
+Análise do Analista que sustenta uma decisão de alocação: lado, horizonte e o que faria mudar de ideia.
 _Evitar_: relatório
 
 **Page**:
