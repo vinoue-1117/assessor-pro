@@ -64,7 +64,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 9. Chat que repete a tese
 
-- **No transcript:** a mensagem final ao dono traz, além do link da Page, da decisão (lado e horizonte) e de uma linha curta, o corpo da tese: tópicos de argumento, assimetria, o que faria mudar de ideia ou uma lista de ressalvas. Também conta a leitura ou o argumento que o chat traz e a Page não. O aviso do que faltou ou não foi conferido, na linha curta da seção 6, não conta.
+- **No transcript:** a mensagem final ao dono traz, além do link da Page, da decisão (lado e horizonte) e de uma linha curta, o corpo da tese: tópicos de argumento, assimetria, o que faria mudar de ideia ou uma lista de ressalvas. Também conta a leitura ou o argumento que o chat traz e a Page não, o relato da conferência fora dos casos da seção 6, a linha que nenhum caso pede (a recusa de tamanho sem o dono ter pedido) e o aviso do que faltou escrito em lista ou com a explicação de cada item. O aviso do que faltou ou não foi conferido, nomeado na linha curta da seção 6, não conta.
 - **Contraria:** `analista-v2-tese`, seção 6 ("Entregue o link da Page e a decisão de alocação (lado e horizonte), curta. Uma linha curta a mais só nestes casos: [...]"; "Não cole a tese nem a resposta do fact_checker no chat"), e `analista-v2-core`, Entrega ("O resto fica na Page").
 - **Visto:** no Analista v2, em dois dry runs seguidos, com quatro tópicos e cinco ressalvas no chat. Num deles o chat trouxe uma leitura que não estava na Page nem tinha passado pela conferência.
 
