@@ -240,8 +240,15 @@ def test_tabela_de_metricas_por_modelo(tmp_path, capsys):
 
 def test_rodadas_seguem_quando_ator_ou_avaliador_falham(tmp_path, monkeypatch, capsys):
     dry = _dry_run()
+    repo = tmp_path / 'repo'
+    monkeypatch.setattr(dry, 'ROOT', repo)
     monkeypatch.setattr(dry.shutil, 'which', lambda nome: 'claude')
     monkeypatch.setattr(dry, 'pasta_de_dados', lambda: None)
+    fluxo = repo / 'evals/bot/fluxo/tese'
+    _escrever(repo / 'bots/bot/bot.md', '## Perfil\n\nperfil\n')
+    _escrever(repo / 'bots/bot/skills/um/SKILL.md', 'um')
+    _escrever(fluxo / 'plataforma.md', '## Plataforma\n\nplataforma comum\n')
+    _escrever(fluxo / 'cenarios/acao.md', '## Pedido\n\npedido da acao\n')
     avaliadas = []
 
     def ator_falso(claude, fluxo, pedido, sistema, dest, modelo):
@@ -258,7 +265,7 @@ def test_rodadas_seguem_quando_ator_ou_avaliador_falham(tmp_path, monkeypatch, c
     monkeypatch.setattr(dry, 'atuar', ator_falso)
     monkeypatch.setattr(dry, 'avaliar', avaliador_falso)
     saida = tmp_path / 'execucao'
-    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(RAIZ / 'evals/analista/fluxo/tese'), '--rodadas', '3',
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--cenario', 'acao', '--rodadas', '3',
                                       '--modelo', 'haiku', '--saida', str(saida)])
     with pytest.raises(SystemExit) as fim:
         dry.main()

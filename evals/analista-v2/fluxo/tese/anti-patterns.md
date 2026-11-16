@@ -1,6 +1,6 @@
 # Anti-patterns do fluxo da tese
 
-Falhas que o fluxo da tese já teve no Analista, num ensaio fora da plataforma, num dry run ou no bot real, e que as skills do Analista v2 ainda proíbem. É a régua de regressão do fluxo: o avaliador procura cada uma no transcript.
+Falhas que o fluxo da tese já teve no Analista (o v1, aposentado), num ensaio fora da plataforma, num dry run ou no bot real, e que as skills do Analista v2 ainda proíbem. É a régua de regressão do fluxo: o avaliador procura cada uma no transcript.
 
 ## O que entra
 

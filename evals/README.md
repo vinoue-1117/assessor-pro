@@ -17,7 +17,7 @@ evals/<bot>/
   gosto/<pergunta>/   cenario.md, variantes/<nome>/ e, depois que o dono decide, decisao.md
 ```
 
-O eixo de acerto roda pelo `claude plugin eval`. O caso do Analista está em [`analista/acerto/revisor/`](analista/acerto/revisor), com o README dele.
+O eixo de acerto roda pelo `claude plugin eval`.
 
 O eixo de fluxo tem três testes independentes, e cada um roda sozinho: o estático lê o texto das skills, o dry run roda um ator sobre um cenário, e o live run usa o bot real.
 
@@ -45,7 +45,7 @@ A skill `prompt-audit-light` lê o `bot.md` e as skills do bot, numa sessão do 
 
 Um ator faz o papel do bot sobre um cenário, e um avaliador lê o transcript. A rodada vai do disparo ao relatório sem o dono no meio e para no relatório.
 
-`python scripts/dry-run.py evals/analista/fluxo/tese`
+`python scripts/dry-run.py evals/analista-v2/fluxo/tese --cenario fii`
 
 Um fluxo com vários pedidos guarda cada um em `cenarios/<nome>.md`, e o `## Plataforma` comum fica no `plataforma.md` do fluxo. `--cenario <nome>` roda um cenário; `--all` roda todos em paralelo, até 4 ao mesmo tempo (`PARALELO` no script), cada um em `<execucao>/<nome>`, com as tabelas de métricas separadas por cenário. Sem uma das duas opções, o script para e lista os nomes.
 
@@ -119,7 +119,7 @@ A métrica principal é requisições e tokens. O tempo varia com a carga da má
 
 Para comparar modelos, rode o mesmo fluxo com cada um e passe as pastas das execuções ao `--metricas`:
 
-`python scripts/dry-run.py evals/analista/fluxo/tese --modelo haiku --rodadas 3`
+`python scripts/dry-run.py evals/analista-v2/fluxo/tese --cenario fii --modelo haiku --rodadas 3`
 
 ### Limites
 
@@ -131,7 +131,7 @@ Para comparar modelos, rode o mesmo fluxo com cada um e passe as pastas das exec
 
 No live run, o dono faz o pedido ao bot real e, no fim, pede o export da conversa. Na análise de live run, o avaliador lê esse export, sem ator. O dono traz a pasta para fora do repositório e roda a skill `live-run` do Claude Code ([`.claude/skills/live-run/SKILL.md`](../.claude/skills/live-run/SKILL.md)), que escolhe o trecho e roda:
 
-`python scripts/live-run.py evals/analista/fluxo/tese <pasta do export> --desde t2u --ate t4u`
+`python scripts/live-run.py evals/analista-v2/fluxo/tese <pasta do export> --desde t2u --ate t4u`
 
 | Peça | O que é |
 | --- | --- |
@@ -167,7 +167,7 @@ O que não muda entre rodadas:
 - As amostras, os transcripts e os arquivos congelados ficam fora do repositório, na pasta de dados.
 - A decisão do dono entra em `gosto/<pergunta>/decisao.md`: a pergunta, as variantes, o que ele viu e o que entra na skill.
 
-`python scripts/dry-run.py evals/analista/gosto/layout --variantes --amostras 2 --partida <pasta>`
+`python scripts/dry-run.py evals/<bot>/gosto/<pergunta> --variantes --amostras 2 --partida <pasta>`
 
 | Peça | O que é |
 | --- | --- |

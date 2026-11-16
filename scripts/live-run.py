@@ -19,7 +19,7 @@ A pasta de execução fica fora do repositório e, com `ASSESSOR_EVALS_DADOS` no
 para `<pasta>/execucoes/<bot>/<data>-<fluxo>-live-run`, como no dry run.
 
 Uso:
-  python scripts/live-run.py evals/analista/fluxo/tese <pasta do export> [--desde tNu] [--ate tNu] [--saida PASTA]
+  python scripts/live-run.py evals/analista-v2/fluxo/tese <pasta do export> [--desde tNu] [--ate tNu] [--saida PASTA]
 """
 import argparse
 import importlib.util

@@ -35,10 +35,6 @@ _Evitar_: Bot Envio, bot de envio, assessor-envio
 Único bot que lê e envia no WhatsApp do dono. Envia exatamente o que outro bot do dono pediu.
 _Evitar_: zap, WO, assessor-zap
 
-**Analista**:
-Bot de análise de mercado buy-side: consulta dados de mercado, faz as contas e entrega a tese numa Page. Não participa do envio nem acessa corretora.
-_Evitar_: bot Analista, analista-tese
-
 **Analista v2**:
 Bot de análise de mercado buy-side: consulta dados de mercado, faz as contas, escreve a tese com os contras e publica a Page depois de uma passada do fact_checker. Não acessa corretora.
 _Evitar_: analista-v2-tese, Analista novo
@@ -169,28 +165,19 @@ _Evitar_: ref
 **apelido confirmado**:
 Nome alternativo de um contato do WhatsApp que o dono confirmou uma vez. Vale como nome exato para abrir a conversa.
 
-### Analista
+### Analista v2
 
 **tese**:
-Análise do Analista que sustenta uma decisão de alocação: lado, horizonte e o que faria mudar de ideia.
+Análise do Analista v2 que sustenta uma decisão de alocação: lado, horizonte e o que faria mudar de ideia.
 _Evitar_: relatório
 
 **Page**:
-Página que o Analista publica com a tese. No chat vão só o link e a decisão.
+Página que o Analista v2 publica com a tese. No chat vão só o link e a decisão.
 _Evitar_: canvas, markdown polido
 
 **pacote de dados**:
 Conjunto dos dados de mercado, das páginas consultadas e das contas sobre o qual a tese é escrita e conferida.
 _Evitar_: pacote, JSON de dados
-
-**revisão da tese**:
-Leitura da tese, antes da publicação, por dois subagentes que recebem só o texto e o pacote de dados: o antagonista lê o rascunho, e o conferente lê o texto final.
-
-**antagonista**:
-Subagente que procura contras e riscos no rascunho da tese e devolve itens, cada um destinado a uma seção da Page. Não dá veredito e não decide a publicação.
-
-**conferente**:
-Subagente que confere o texto final da tese contra o pacote de dados, só por fato, e devolve `confere` ou `reescrever`. É quem decide a publicação.
 
 **fact_checker**:
 Subagente do Analista v2 que lê a tese uma vez e devolve a lista do que está errado: número diferente do pacote de dados, fato errado e texto incoerente com os próprios números. Não dá veredito: o Analista v2 corrige a tese e publica.
