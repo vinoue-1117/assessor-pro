@@ -39,6 +39,10 @@ _Evitar_: zap, WO, assessor-zap
 Bot de análise de mercado buy-side: consulta dados de mercado, faz as contas e entrega a tese numa Page. Não participa do envio nem acessa corretora.
 _Evitar_: bot Analista, analista-tese
 
+**Analista v2**:
+Bot de análise de mercado buy-side: consulta dados de mercado, faz as contas, escreve a tese com os contras e publica a Page depois de uma passada do fact_checker. Não acessa corretora.
+_Evitar_: analista-v2-tese, Analista novo
+
 **Assessor Pro**:
 Produto formado pelos dois bots que entregam o relatório XP performance aos clientes: o bot de relatórios e o bot de WhatsApp.
 _Evitar_: Assessor
@@ -187,6 +191,10 @@ Subagente que procura contras e riscos no rascunho da tese e devolve itens, cada
 
 **conferente**:
 Subagente que confere o texto final da tese contra o pacote de dados, só por fato, e devolve `confere` ou `reescrever`. É quem decide a publicação.
+
+**fact_checker**:
+Subagente do Analista v2 que lê a tese uma vez e devolve a lista do que está errado: número diferente do pacote de dados, fato errado e texto incoerente com os próprios números. Não dá veredito: o Analista v2 corrige a tese e publica.
+_Evitar_: revisor, verificador
 
 ### Avaliação
 
