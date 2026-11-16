@@ -47,7 +47,7 @@ Um ator faz o papel do bot sobre um cenário, e um avaliador lê o transcript. A
 
 `python scripts/dry-run.py evals/analista/fluxo/tese`
 
-Um fluxo com vários pedidos guarda cada um em `cenarios/<nome>.md`, e o `## Plataforma` comum fica no `plataforma.md` do fluxo. `--cenario <nome>` roda um cenário; `--all` roda todos em paralelo, cada um em `<execucao>/<nome>`, com as tabelas de métricas separadas por cenário. Sem uma das duas opções, o script para e lista os nomes.
+Um fluxo com vários pedidos guarda cada um em `cenarios/<nome>.md`, e o `## Plataforma` comum fica no `plataforma.md` do fluxo. `--cenario <nome>` roda um cenário; `--all` roda todos em paralelo, até 4 ao mesmo tempo (`PARALELO` no script), cada um em `<execucao>/<nome>`, com as tabelas de métricas separadas por cenário. Sem uma das duas opções, o script para e lista os nomes.
 
 `python scripts/dry-run.py evals/analista-v2/fluxo/tese --all`
 
@@ -89,7 +89,7 @@ Para guardar as rodadas, crie o `.env` na raiz do repositório a partir do [`.en
 | `transcript.jsonl` | o stream do ator (`--output-format stream-json`), com o texto dos subagentes |
 | `transcript.md` | a versão legível: um passo por chamada de ferramenta, bloco longo cortado com a linha do jsonl |
 | `page.md` | a Page, se o ator publicou |
-| `page.html` | o `page.md` renderizado pelo script, só para leitura. O avaliador lê o `page.md` |
+| `page.html` | o `page.md` renderizado pelo script, só para leitura. Depende do pacote `markdown`: sem ele, o script avisa e a rodada segue sem o `page.html`. O avaliador lê o `page.md` |
 | `relatorio.md` | o relatório do avaliador |
 | `sistema.md` | o que foi acrescentado ao prompt de sistema do ator (`--append-system-prompt-file`) |
 | `ator.err` | o stderr do ator |

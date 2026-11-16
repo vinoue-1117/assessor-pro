@@ -312,6 +312,17 @@ def test_cenarios_do_fluxo_rodam_todos_com_a_plataforma_comum(tmp_path, monkeypa
     monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--saida', str(saida)])
     with pytest.raises(SystemExit, match='acao, titulo'):
         dry.main()
+    for opcoes, erro in [(['--cenario', 'nada'], "'nada' nao existe"), (['--cenario', 'acao', '--all'], 'nao os dois'),
+                         (['--cenario', 'acao', '--variantes'], 'so valem no modo de fluxo')]:
+        monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), *opcoes, '--saida', str(saida)])
+        with pytest.raises(SystemExit, match=erro):
+            dry.main()
+    # Fluxo com cenarios/ e cenario.md juntos para, em vez de ignorar um deles.
+    _escrever(fluxo / 'cenario.md', '## Pedido\n\nsobra\n')
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--all', '--saida', str(saida)])
+    with pytest.raises(SystemExit, match='cenarios/ e cenario.md'):
+        dry.main()
+    (fluxo / 'cenario.md').unlink()
 
     monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--all', '--saida', str(saida)])
     dry.main()
@@ -332,3 +343,17 @@ def test_cenarios_do_fluxo_rodam_todos_com_a_plataforma_comum(tmp_path, monkeypa
     monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--cenario', 'acao', '--saida', str(tmp_path / 'outra')])
     dry.main()
     assert (dados / 'execucoes' / 'bot' / f'{hoje}-tese-acao-dry-run-2').is_dir()
+
+    # Um cenário que levanta exceção não tira a tabela nem o relatório do outro, e o script sai citando o cenário.
+    def ator_que_quebra(claude, fluxo, pedido, sistema, dest, modelo):
+        if dest.name == 'titulo':
+            raise OSError('disco cheio')
+        return ator_falso(claude, fluxo, pedido, sistema, dest, modelo)
+
+    monkeypatch.setattr(dry, 'atuar', ator_que_quebra)
+    capsys.readouterr()
+    monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--all', '--saida', str(tmp_path / 'terceira')])
+    with pytest.raises(SystemExit, match='cenario titulo parou com erro: OSError'):
+        dry.main()
+    assert (tmp_path / 'terceira' / 'acao' / 'relatorio.md').is_file()
+    assert '| sonnet | 1 |' in capsys.readouterr().out.split('## titulo')[0].split('## acao')[1]

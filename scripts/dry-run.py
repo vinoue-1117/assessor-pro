@@ -73,6 +73,8 @@ FERRAMENTAS = ["Bash", "Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "We
 ESCONDIDAS = ["design", "doctor", "plugin-authoring"]
 # Linha do .env da raiz com a pasta de dados privada, que recebe a cópia de cada rodada.
 VAR_DADOS = "ASSESSOR_EVALS_DADOS"
+# Teto de cenários rodando juntos com --all: cada um tem um ator e um avaliador próprios.
+PARALELO = 4
 # Caracteres de cada bloco no transcript legível. A íntegra fica no transcript.jsonl.
 LIMITE = 4000
 
@@ -108,7 +110,12 @@ def secao(arquivo, titulo):
 def cenarios(fluxo):
     """{nome: arquivo} dos cenários do fluxo: um por `.md` de `cenarios/`, ou o `cenario.md` sozinho, de nome vazio."""
     pasta = fluxo / "cenarios"
+    # Fluxo com as duas formas ao mesmo tempo teria um arquivo ignorado em silêncio.
+    if pasta.is_dir() and (fluxo / "cenario.md").is_file():
+        sys.exit(f"{fluxo} tem cenarios/ e cenario.md: passe o cenario.md para cenarios/ ou tire cenarios/")
     if not pasta.is_dir():
+        if (fluxo / "plataforma.md").is_file():
+            sys.exit(f"{fluxo} tem plataforma.md sem cenarios/: o ## Plataforma vai no cenario.md")
         return {"": fluxo / "cenario.md"}
     achados = {f.stem: f for f in sorted(pasta.glob("*.md"))}
     if not achados:
@@ -585,8 +592,12 @@ def ler_variantes(fluxo, bot, nomes):
 
 def pagina_html(pasta):
     """Grava page.html a partir do page.md do ator, só para leitura: o avaliador lê o page.md."""
-    import markdown  # O Python que roda o script é o do ator, que já precisa ter o yfinance; o markdown vem junto no Conda.
-
+    try:
+        import markdown
+    except ImportError:
+        # A cópia é só para leitura: sem o pacote, a rodada segue sem ela.
+        print(f"sem o pacote markdown: {pasta} fica sem page.html", file=sys.stderr, flush=True)
+        return
     md = pasta / "page.md"
     if md.is_file():
         corpo = markdown.markdown(md.read_text(encoding="utf-8"), extensions=["tables"])
@@ -666,7 +677,7 @@ def main():
     p.add_argument("--rodadas", type=int, default=1, help="fluxo: rodadas do ator e do avaliador, cada uma em rodada-<n> (padrao: 1)")
     p.add_argument("--cenario", metavar="NOME", help="fluxo: o cenario <fluxo>/cenarios/NOME.md")
     p.add_argument("--all", dest="todos", action="store_true",
-                   help="fluxo: todos os cenarios de <fluxo>/cenarios/, em paralelo, cada um em <execucao>/<nome>")
+                   help=f"fluxo: todos os cenarios de <fluxo>/cenarios/, ate {PARALELO} em paralelo, cada um em <execucao>/<nome>")
     p.add_argument("--metricas", nargs="+", metavar="PASTA",
                    help="so le: tabela de metricas dos transcript.jsonl guardados nas pastas, sem rodar nada")
     a = p.parse_args()
@@ -742,13 +753,19 @@ def main():
         return
 
     # Um cenário roda na pasta da execução; com mais de um, cada um tem a sua, <execucao>/<nome>, e todos rodam
-    # em paralelo: cada ator e cada avaliador é um processo próprio, numa pasta própria.
+    # em paralelo, até PARALELO juntos: cada ator e cada avaliador é um processo próprio, numa pasta própria.
     destinos = {nome: dest if len(lidos) == 1 else dest / nome for nome in lidos}
-    with ThreadPoolExecutor(max_workers=len(lidos)) as grupo:
+    with ThreadPoolExecutor(max_workers=min(len(lidos), PARALELO)) as grupo:
         futuros = {nome: grupo.submit(rodar_cenario, claude, fluxo, bot, nome, arquivo, pedido, sistema,
                                       destinos[nome], a.rodadas, a.modelo, dados, len(lidos) > 1)
                    for nome, (arquivo, _, pedido, sistema) in lidos.items()}
-    incompletas = [m for f in futuros.values() for m in f.result()]
+    incompletas = []
+    for nome, futuro in futuros.items():
+        # O erro de um cenário vira a linha de incompleta dele: os outros seguem até as tabelas.
+        try:
+            incompletas += futuro.result()
+        except Exception as e:
+            incompletas.append(f"cenario {nome or fluxo.name} parou com erro: {e!r}; veja {destinos[nome]}")
     for nome, pasta in destinos.items():
         if len(lidos) > 1:
             print(f"\n## {nome}\n")
