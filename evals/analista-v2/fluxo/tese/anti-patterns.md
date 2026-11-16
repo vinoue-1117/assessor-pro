@@ -59,7 +59,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 ## 8. Tese sem catalisador nem assimetria
 
 - **No transcript:** numa tese com decisão de alocação, a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
-- **Contraria:** `analista-v2-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há") e seção 5, item 6 (`## Decisão` com a assimetria e o catalisador).
+- **Contraria:** `analista-v2-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há") e seção 5, item 5 (`## Decisão` com a assimetria e o catalisador).
 - **Visto:** no Analista, em dois dry runs seguidos, sem catalisador e sem a perda no cenário contrário.
 
 ## 9. Chat que repete a tese

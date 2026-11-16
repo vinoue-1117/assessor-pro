@@ -79,8 +79,8 @@ A Page tem estas seções, nesta ordem:
 2. Uma seção por argumento, com um gráfico dos dados dele e um parágrafo curto que diz o que o gráfico mostra para a decisão. O gráfico só entra se o pacote de dados tiver uma série ou valores para comparar: `tesouro` e `taxa` trazem só o valor mais recente. Sem isso, o argumento sai com o parágrafo e os números.
 3. `## Contras`.
 4. Tabela de sinais: cada catalisador, risco e gatilho de invalidação numa linha, com o valor de hoje, o limite e o status (verde: a favor; amarelo: a acompanhar; vermelho: contra). A cor fica só na palavra do status.
-5. `## Riscos, limitações e premissas`.
-6. `## Decisão`, em destaque: lado, horizonte, assimetria, catalisador e o que faria mudar de ideia.
+5. `## Decisão`, em destaque: lado, horizonte, assimetria, catalisador e o que faria mudar de ideia.
+6. `## Riscos, limitações e premissas`.
 7. Uma seção `## Fontes` com fonte, data e horário de cada número de mercado e de cada documento aberto.
 
 Seção sem conteúdo sai da Page. Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos, limitações e premissas`.
