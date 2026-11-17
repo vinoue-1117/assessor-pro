@@ -15,9 +15,10 @@ Número de mercado só entra se `analista-v2-mercado` tiver trazido o JSON nesta
 
 A tese sai em um de dois modos. No simples, a Page tem as seções e a ordem da seção 5, e sai rápida. No detalhado, a forma da Page é sua, e as regras de dado são as mesmas do simples.
 
-- Pedido que já diz o modo segue nele, sem pergunta: "rápida", "simples" ou "resumida" é o simples; "detalhada", "detalhado", "completa", "completo" ou "aprofundada" é o detalhado.
+- Pedido que já diz o modo segue nele, sem pergunta. Diz o modo o adjetivo que qualifica a análise, a tese ou o relatório: "tese rápida", "análise simples" ou "análise resumida" é o simples; "análise detalhada", "relatório detalhado" ou "relatório completo" é o detalhado. Adjetivo que descreve o ativo ou o dado ("recuperação rápida", "balanço completo") não diz o modo.
+- Pedido sobre uma tese desta conversa (atualizar a Page, a mesma análise para outro ativo) segue no modo dela, sem pergunta.
 - Pedido que não diz o modo: antes de baixar o script ou buscar qualquer dado, responda só a linha "Análise simples ou detalhada?" e espere o dono.
-- Na mensagem seguinte do dono, siga o modo que ele escolher. Se ela não escolher nenhum dos dois, siga no simples, sem perguntar de novo.
+- Na mensagem seguinte do dono, siga o modo que ele escolher. Se ela responde sem escolher ("tanto faz", "pode fazer"), siga no simples, sem perguntar de novo. Se ela desiste da tese ou pede outra coisa, atenda o pedido novo e não faça a tese.
 
 As seções 1, 3, 4 e 6 valem nos dois modos. Na 2 e na 5, a regra que vale num modo só diz qual.
 
@@ -47,11 +48,13 @@ Conhecimento geral e estável (regra de imposto, como o título paga) não pede 
 
 Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown. No modo simples, a tese já vem nas seções da Page (seção 5). No detalhado, ela traz o texto e os números que vão para a Page, na forma que você quiser: o fact_checker lê só este arquivo. A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte; o que faria mudar de ideia vai para `Riscos e premissas`.
 
-Nos dois modos, você mesmo escreve `## Riscos e premissas`: o que pode dar errado e as premissas de que a decisão depende, com a ressalva sobre o que um número é.
+Nos dois modos:
+
+- Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
+- Riscos e premissas: você mesmo escreve `## Riscos e premissas`, com o que pode dar errado e as premissas de que a decisão depende, e com a ressalva sobre o que um número é.
 
 No modo simples:
 
-- Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
 - Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
 - Contras e decisão: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Decisão`, o que faria mudar de ideia. Nessas duas e em `## Riscos e premissas`, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
 
@@ -85,11 +88,11 @@ Depois das correções, releia a decisão com os números novos. Se o lado, a as
 
 ## 5. Page
 
-Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir da tese final. A skill `canvas` escolhe o componente de cada seção. Todo número e toda série da Page saem do pacote de dados, sem ponto de fora dele. Erro de compilação ou de tipo é passo normal da publicação: corrija o que o erro apontar e publique de novo. Se a Page não publicar por outro motivo, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
+Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir da tese final. A skill `canvas` escolhe o componente de cada seção. Número de mercado, de fundamento, de projeção ou de conta e toda série da Page saem do pacote de dados, sem ponto de fora dele. Conhecimento geral e estável (seção 1) entra sem estar no pacote. Erro de compilação ou de tipo é passo normal da publicação: corrija o que o erro apontar e publique de novo. Se a Page não publicar por outro motivo, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
 
 A resposta do fact_checker é material de trabalho e fica fora da Page: nada de resultado da conferência, selo, seção de resposta à revisão ou ressalva espalhada pelos parágrafos.
 
-Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos e premissas`. Nos dois modos, a Page desse pedido não dá lado (comprar, vender ou ficar de fora).
+Pedido sem decisão de alocação não dá lado na Page (comprar, vender ou ficar de fora).
 
 ### Modo simples
 
@@ -103,7 +106,7 @@ Painel e tabela só usam número que está na tese final. A Page tem estas seç�
 6. `## Riscos e premissas`.
 7. Uma seção `## Fontes` com fonte, data e horário de cada número de mercado e de cada documento aberto.
 
-Seção sem conteúdo sai da Page.
+Seção sem conteúdo sai da Page. Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos e premissas`.
 
 A Page fala do ativo e da decisão, não do trabalho. Fica fora dela o que descreve a conversa ou o processo: dado que faltou ou que o dono não informou, e o que não foi conferido, aberto ou achado. Premissa de que a decisão depende entra como premissa ("Horizonte: até o balanço do próximo trimestre"), sem dizer de onde veio. O que faltou vai na linha curta do chat (seção 6). Ressalva que diz o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento, número de balanço tirado de reportagem) descreve o dado e fica na Page, em `## Riscos e premissas`. Ela diz de onde o número vem, de quando é ou como foi medido, sem dizer o que deixou de ser aberto ou conferido.
 
