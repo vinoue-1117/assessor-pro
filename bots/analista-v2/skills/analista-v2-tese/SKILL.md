@@ -50,17 +50,18 @@ Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown. No modo simples, a tese j
 
 Nos dois modos:
 
-- Decisão: o lado (comprar, vender ou ficar de fora) e o horizonte, para cada ativo do pedido e da comparação. "Ficar de fora" é lado; condição no lugar do lado não é. O ativo que você não compraria, ou de que não veio dado para decidir, sai como ficar de fora.
+- Decisão: o lado (comprar, vender ou ficar de fora) e o horizonte, para cada ativo do pedido e da comparação. "Ficar de fora" é lado; condição no lugar do lado não é. O ativo que você não compraria, ou de que não veio dado para decidir, sai como ficar de fora. Pedido sobre um mercado ou uma cesta sem ativo nomeado (a curva de juros, os bancos listados) dá um lado só: o do ativo que a tese escolhe dentro dele, ou ficar de fora do conjunto.
 - Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`. Cada cenário tem a base escrita na tese, e a base é um nível que o pacote traz. Alta ou queda em percentual sem base não entra.
-  - Cenário contra, em ação e fundo listado: o múltiplo mínimo de 5 anos, de página aberta, vezes o lucro por ação do pacote (P/L vezes o LPA; em banco e fundo imobiliário, P/VP vezes o valor patrimonial por ação ou por cota). Busque o múltiplo mínimo como fundamento (seção 1) antes de escrever o cenário. Sem página com ele, use o menor preço-alvo do consenso, de página aberta.
+  - Cenário contra, em ação e fundo listado: o múltiplo mínimo de 5 anos, de página aberta, vezes o lucro por ação do pacote (P/L vezes o LPA; em banco e fundo imobiliário, P/VP vezes o valor patrimonial por ação ou por cota). Busque o múltiplo mínimo como fundamento (seção 1) antes de escrever o cenário. Sem página com ele, use o menor preço-alvo do consenso, de página aberta. Preço-alvo acima da cotação não é perda e não serve de base para o cenário contra.
   - Cenário a favor, em ação e fundo listado: o múltiplo médio de 5 anos vezes o mesmo LPA ou valor patrimonial, o maior preço-alvo do consenso, de página aberta, ou o preço que volta a um nível do `historico` antes de um evento datado (o fechamento antes da eleição ou do último balanço).
-  - Título público e taxa: a inflação do Focus ou a de 12 meses, nos dois cenários.
-  - Se a busca do múltiplo e a do preço-alvo não trouxerem base para um dos cenários, a assimetria sai da tese e da Page inteira, o lado fica, e a falta vai para a linha curta do chat (seção 6).
+  - Outro ativo listado (ETF, moeda, cripto): o preço que volta a um nível do `historico` antes de um evento datado, nos dois cenários.
+  - Título público e taxa: o retorno real do título no horizonte, com a menor das duas inflações (a do Focus e a de 12 meses) no cenário a favor e a maior no cenário contra.
+  - Se essas bases não trouxerem nível para um dos cenários de um ativo, a assimetria desse ativo sai da tese e da Page, o lado fica, e a falta vai para a linha curta do chat (seção 6). Os outros ativos mantêm a deles.
+- Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
 - Riscos e premissas: você mesmo escreve `## Riscos e premissas`, com o que pode dar errado e as premissas de que a decisão depende, e com a ressalva sobre o que um número é.
 
 No modo simples:
 
-- Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
 - Contras e decisão: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Decisão`, o que faria mudar de ideia. Nessas duas e em `## Riscos e premissas`, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
 
 ## 3. Conferência de fatos
@@ -129,5 +130,5 @@ O chat avisa a entrega, e a análise fica na Page. A mensagem tem só estas linh
 <linha curta, só nos casos abaixo>
 ```
 
-- Conclusão: uma frase, com o lado e o horizonte.
+- Conclusão: uma frase, com o lado e o horizonte. Com vários ativos, a mesma frase junta os ativos de cada lado.
 - Linha curta: sai quando faltou dado, algo não foi conferido ou a decisão depende de premissa que você assumiu no lugar de dado do dono (o prazo, por exemplo), com cada item nomeado em poucas palavras e sem explicação; quando a conferência de fatos não rodou; quando a decisão mudou depois da conferência; quando o dono pediu tamanho de alocação (a linha é a da `analista-v2-core`). Mais de um caso vai na mesma linha. Sem nenhum desses casos, a mensagem termina na conclusão.

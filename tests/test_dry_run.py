@@ -334,8 +334,14 @@ def test_cenarios_do_fluxo_rodam_todos_com_a_plataforma_comum(tmp_path, monkeypa
     with pytest.raises(SystemExit, match='cenarios/ e cenario.md'):
         dry.main()
     (fluxo / 'cenario.md').unlink()
-
+    # Linha de troca com texto a mais para, em vez de deixar o texto da skill sem troca na cópia.
+    plataforma = (fluxo / 'plataforma.md').read_text(encoding='utf-8')
+    _escrever(fluxo / 'plataforma.md', plataforma.replace('`{python}` |', '`{python}`, que já tem o yfinance |'))
     monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--all', '--saida', str(saida)])
+    with pytest.raises(SystemExit, match='fora do formato'):
+        dry.main()
+    _escrever(fluxo / 'plataforma.md', plataforma)
+
     dry.main()
     # Cada cenário roda na sua pasta, com o próprio pedido e a plataforma comum, e é avaliado contra o próprio arquivo.
     assert vistos == {'acao': ('pedido da acao', 'perfil\n\nplataforma comum'),

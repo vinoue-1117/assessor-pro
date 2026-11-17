@@ -130,7 +130,8 @@ def ler_fluxo(fluxo, variante=None, cenario=None):
     O `## Perfil` vem do `bot.md` da variante, se ela tiver um, e do bot se não tiver. O `## Plataforma`
     vem do `plataforma.md` do fluxo, que vale para todos os cenários de `cenarios/`, ou do próprio cenário.
     As trocas vêm da seção `## Trocas nas skills` do mesmo arquivo, que é opcional e que o ator não lê:
-    cada linha da tabela com um texto entre crases em cada coluna é uma troca.
+    cada linha da tabela, com um texto entre crases em cada coluna e nada mais, é uma troca. Linha fora desse
+    formato para o script: descartada, deixaria o texto da skill sem troca na cópia que o ator roda.
     """
     bot = pasta_do_bot(fluxo)
     ficha = variante / "bot.md" if variante and (variante / "bot.md").is_file() else bot / "bot.md"
@@ -138,7 +139,12 @@ def ler_fluxo(fluxo, variante=None, cenario=None):
     plataforma = fluxo / "plataforma.md" if (fluxo / "plataforma.md").is_file() else cenario
     sistema = f"{secao(ficha, 'Perfil')}\n\n{secao(plataforma, 'Plataforma')}"
     tabela = secoes(plataforma.read_text(encoding="utf-8")).get("Trocas nas skills", "")
-    trocas = dict(re.findall(r"^\| `([^`]+)` \| `([^`]+)` \|$", tabela, flags=re.M))
+    trocas = {}
+    for linha in [l for l in tabela.splitlines() if l.startswith("|")][2:]:
+        casou = re.fullmatch(r"\| `([^`]+)` \| `([^`]+)` \|", linha.strip())
+        if not casou:
+            sys.exit(f"{plataforma}: linha de '## Trocas nas skills' fora do formato | `texto` | `troca` |: {linha}")
+        trocas[casou[1]] = casou[2]
     return bot, secao(cenario, "Pedido"), sistema, trocas
 
 
@@ -195,6 +201,7 @@ def montar(bot, pedido, sistema, dest, variante=None, partida=None, nas_skills=N
     if partida:
         shutil.copytree(partida, dest, dirs_exist_ok=True)
     # as_uri codifica espaço e acento, que o curl recusa crus num file:///.
+    # ponytail: {python} vai sem aspas; Python em caminho com espaço quebra o comando da cópia no Bash.
     trocas = {"{execucao}": barra(dest), "{repo_url}": ROOT.as_uri(), "{python}": barra(sys.executable)}
 
     def preencher(texto):
@@ -457,7 +464,8 @@ def avaliar(claude, fluxo, dest, live=False, cenario=None):
         f"- transcript legivel: {barra(dest / 'transcript.md')}\n"
         + (f"- Page publicada pelo bot (pode nao existir): {barra(dest / 'page.md')}\n" if live else do_dry_run)
         + f"- anti-patterns: {barra(fluxo / 'anti-patterns.md')}\n"
-        f"- skills e ficha do bot: {barra(bot / 'skills')} e {barra(bot / 'bot.md')}\n"
+        # No dry run, a cópia que o ator recebeu: as trocas e os arquivos da variante já estão nela.
+        + f"- skills e ficha do bot: {barra(bot / 'skills' if live else dest / '.claude' / 'skills')} e {barra(bot / 'bot.md')}\n"
     )
     comando = [
         claude, "-p", "--agent", "avaliador-transcript", "--model", AVALIADOR, "--add-dir", str(dest),

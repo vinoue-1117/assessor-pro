@@ -31,7 +31,7 @@ Leia tudo antes de escrever: o cenário, se houver, o `bot.md`, cada skill que o
 - Percorra o transcript na ordem e compare cada passo com o que a skill manda naquele ponto do fluxo. Desvio é fazer o que a skill proíbe, deixar de fazer o que ela manda ou fazer fora da ordem que ela dá.
 - Procure no transcript cada entrada do `anti-patterns.md`, pelo que a entrada diz em "No transcript".
 - Confira cada número da `page.md` e da resposta final contra um resultado de ferramenta desta rodada. Número sem origem no transcript é desvio, salvo o caso do corte do export no live run.
-- No dry run, o que a tabela de `## Plataforma` do cenário substitui não é desvio. Desvio é usar o item da esquerda da tabela, ou um terceiro caminho no lugar dos dois. As trocas da tabela de `## Trocas nas skills` o ator recebe já gravadas na cópia das skills: compare o comando que ele roda com o da skill depois dessas trocas.
+- No dry run, o que a tabela de `## Plataforma` do cenário substitui não é desvio. Desvio é usar o item da esquerda da tabela, ou um terceiro caminho no lugar dos dois. As skills que você lê no dry run são a cópia que o ator recebeu, com as trocas da tabela de `## Trocas nas skills` já gravadas.
 - Quando a skill não diz o que fazer num caso, isso não é desvio do bot: é lacuna da skill. Registre na seção de lacunas o que o bot fez com o buraco.
 - Se o `transcript.md` tem a seção `## fora do bot`, o ator viu ou chamou skill que o bot não tem. Isso é falha do ambiente, não desvio. Cite os nomes e os passos no resumo do relatório, separando três casos:
   - skill só em `no init:`: visível, não carregada;

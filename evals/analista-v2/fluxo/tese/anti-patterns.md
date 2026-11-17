@@ -52,15 +52,14 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 7. Comando de download alterado
 
-- **No transcript:** o comando de download difere do da skill depois das trocas de `## Trocas nas skills` do `plataforma.md`, que o ator recebe já gravadas na cópia das skills: um passo tirado da cadeia de `&&`, a mensagem de falha encurtada (sem "Pare e não use a cópia do disco."), um comando acrescentado.
+- **No transcript:** o comando de download difere do da cópia das skills que o ator recebeu, com as trocas de `## Trocas nas skills` do `plataforma.md` já gravadas: um passo tirado da cadeia de `&&`, a mensagem de falha encurtada (sem "Pare e não use a cópia do disco."), um comando acrescentado.
 - **Contraria:** `analista-v2-mercado`, Script (o comando é o da skill; "Se falhar, pare e avise. Não use a cópia do disco"). No dry run, o `dry-run.py` grava os caminhos, o Python e o endereço trocados na cópia das skills, e o `## Plataforma` do `plataforma.md` manda rodar os comandos "como estão escritos".
 - **Visto:** no Analista, em três dry runs. O download deu certo, mas uma falha teria saído sem a ordem de parar. Num deles o `exit 1` também saiu, e o passo seguinte rodaria a cópia do disco. No Analista v2, num dry run do relatório de Nvidia e BBAS3, quando o ator ainda fazia a troca de caminho e de endereço, o `mkdir -p` saiu da cadeia de `&&`, e o `rm -f` e a mensagem de falha saíram.
 
 ## 8. Tese sem catalisador nem assimetria
 
-- **Modo:** só no simples.
-- **No transcript:** a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
-- **Contraria:** `analista-v2-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há") e seção 5, item 5 (`## Decisão` com a assimetria e o catalisador).
+- **No transcript:** a tese (no modo simples, a `## Decisão`) não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
+- **Contraria:** `analista-v2-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há") e, no modo simples, seção 5, item 5 (`## Decisão` com a assimetria e o catalisador).
 - **Visto:** no Analista, em dois dry runs seguidos, sem catalisador e sem a perda no cenário contrário.
 
 ## 9. Chat que repete a tese
@@ -78,7 +77,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 11. Tese sem lado, ou cenário da assimetria sem base
 
-- **No transcript:** a conclusão do chat ou a `page.md` não dá lado (comprar, vender ou ficar de fora) a um ativo do pedido ou da comparação, inclusive em relatório, ou põe uma condição no lugar do lado. Ou um cenário da assimetria não tem base escrita num nível que o pacote traz ("queda de 20%", "premissa minha"). Ou a assimetria sai inteira ou pela metade sem que a rodada tenha buscado as bases que a seção 2 dá para aquele ativo.
+- **No transcript:** a conclusão do chat, a tese ou, no modo simples, a `page.md` não dá lado (comprar, vender ou ficar de fora) a um ativo do pedido ou da comparação, inclusive em relatório, ou põe uma condição no lugar do lado. Ou um cenário da assimetria não tem base escrita num nível que o pacote traz ("queda de 20%", "premissa minha"). Ou a assimetria sai inteira ou pela metade sem que a rodada tenha buscado as bases que a seção 2 dá para aquele ativo.
 - **Contraria:** `analista-v2-tese`, seção 2 ("Decisão: o lado (comprar, vender ou ficar de fora) e o horizonte, para cada ativo do pedido e da comparação"; "Alta ou queda em percentual sem base não entra"), e `analista-v2-core`, Persona ("Em tese, relatório ou comparação, dê o lado").
 - **Visto:** no Analista v2, em dry runs do relatório de Nvidia e BBAS3, quando a skill mandava tirar o lado de pedido sem decisão: a assimetria da compra se apoiou em quedas de 20% e de 30% escolhidas sem fonte. Já com o lado em todo pedido, em cinco rodadas seguidas dos cenários do fluxo: fundos da comparação "sem lado" e um título com "só faz sentido se você quiser"; um cenário contra na mínima de 12 meses; a assimetria tirada pela metade, ou inteira, com a base no pacote ou sem buscá-la.
 
