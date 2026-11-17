@@ -39,23 +39,29 @@ Grave o pacote em `/tmp/analista-v2-dados-<slug>.json` com `json.dump` em Python
 ```
 
 - `mercado`: o JSON do script, sem editar número.
-- `web`: só página que você abriu de fato, com a data do documento ou da publicação. Abra as páginas de que a decisão depende, começando pela fonte primária (`analista-v2-mercado`, Regras), e não todas as que a busca trouxer. Número de fundamento ou de projeção que a tese usa (lucro, receita, dívida, expectativa do boletim Focus) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, projeção, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Em tese sobre empresa, confira a data do último trimestre divulgado. Em tese sobre ativo com ticker no `yfinance`, rode `historico` da última semana antes de concluir. Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: a variação da última semana fica sem conferir, e isso vai para a linha do chat (seção 6).
-- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria). Dado que o dono deu nesta conversa e que a tese usa (o prazo, por exemplo) também entra em `contas`, como ele deu, com a chave `origem_<nome>` valendo `"informado pelo dono"`.
+- `web`: só página que você abriu de fato, com a data do documento ou da publicação. O resumo que a busca devolve não é página aberta: número que só aparece nele não entra no pacote nem na Page. Abra as páginas de que a decisão depende, começando pela fonte primária (`analista-v2-mercado`, Regras), e não todas as que a busca trouxer. Número de fundamento ou de projeção que a tese usa (lucro, receita, dívida, expectativa do boletim Focus) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, projeção, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Em tese sobre empresa, confira a data do último trimestre divulgado. Em tese sobre ativo com ticker no `yfinance`, rode `historico` da última semana antes de concluir. Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: a variação da última semana fica sem conferir, e isso vai para a linha do chat (seção 6).
+- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria). Dado que o dono deu nesta conversa e que a tese usa (o prazo, por exemplo) também entra em `contas`, como ele deu, com a chave `origem_<nome>` valendo `"informado pelo dono"`. Premissa sua (o custo de capital, um prazo que você assumiu) não leva `origem_`: essa chave é só para dado que o dono deu.
 
 Conhecimento geral e estável (regra de imposto, como o título paga) não pede página aberta e não entra no pacote.
 
 ## 2. Tese
 
-Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown. No modo simples, a tese já vem nas seções da Page (seção 5). No detalhado, ela traz o texto e os números que vão para a Page, na forma que você quiser: o fact_checker lê só este arquivo. A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte; o que faria mudar de ideia vai para `Riscos e premissas`.
+Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown. No modo simples, a tese já vem nas seções da Page (seção 5). No detalhado, ela traz o texto e os números que vão para a Page, na forma que você quiser: o fact_checker lê só este arquivo. A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia, em todo pedido: relatório e comparação também.
 
 Nos dois modos:
 
-- Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
+- Decisão: o lado (comprar, vender ou ficar de fora) e o horizonte, para cada ativo do pedido e da comparação. "Ficar de fora" é lado; condição no lugar do lado não é. O ativo que você não compraria, ou de que não veio dado para decidir, sai como ficar de fora. Pedido sobre um mercado ou uma cesta sem ativo nomeado (a curva de juros, os bancos listados) dá um lado só: o do ativo que a tese escolhe dentro dele, ou ficar de fora do conjunto.
+- Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`. Cada cenário tem a base escrita na tese, e a base é um nível que o pacote traz. Alta ou queda em percentual sem base não entra.
+  - Cenário contra, em ação e fundo listado: o múltiplo mínimo de 5 anos, de página aberta, vezes o lucro por ação do pacote (P/L vezes o LPA; em banco e fundo imobiliário, P/VP vezes o valor patrimonial por ação ou por cota). Busque o múltiplo mínimo como fundamento (seção 1) antes de escrever o cenário. Sem página com ele, use o menor preço-alvo do consenso, de página aberta. Preço-alvo acima da cotação não é perda e não serve de base para o cenário contra.
+  - Cenário a favor, em ação e fundo listado: o múltiplo médio de 5 anos vezes o mesmo LPA ou valor patrimonial, o maior preço-alvo do consenso, de página aberta, ou o preço que volta a um nível do `historico` antes de um evento datado (o fechamento antes da eleição ou do último balanço).
+  - Outro ativo listado (ETF, moeda, cripto): o preço que volta a um nível do `historico` antes de um evento datado, nos dois cenários.
+  - Título público e taxa: o retorno real do título no horizonte, com a menor das duas inflações (a do Focus e a de 12 meses) no cenário a favor e a maior no cenário contra.
+  - Se essas bases não trouxerem nível para um dos cenários de um ativo, a assimetria desse ativo sai da tese e da Page, o lado fica, e a falta vai para a linha curta do chat (seção 6). Os outros ativos mantêm a deles.
+- Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
 - Riscos e premissas: você mesmo escreve `## Riscos e premissas`, com o que pode dar errado e as premissas de que a decisão depende, e com a ressalva sobre o que um número é.
 
 No modo simples:
 
-- Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
 - Contras e decisão: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Decisão`, o que faria mudar de ideia. Nessas duas e em `## Riscos e premissas`, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
 
 ## 3. Conferência de fatos
@@ -88,11 +94,9 @@ Depois das correções, releia a decisão com os números novos. Se o lado, a as
 
 ## 5. Page
 
-Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir da tese final. A skill `canvas` escolhe o componente de cada seção. Número de mercado, de fundamento, de projeção ou de conta e toda série da Page saem do pacote de dados, sem ponto de fora dele. Conhecimento geral e estável (seção 1) entra sem estar no pacote. Erro de compilação ou de tipo é passo normal da publicação: corrija o que o erro apontar e publique de novo. Se a Page não publicar por outro motivo, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
+Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir da tese final. A skill `canvas` escolhe o componente de cada seção. Número de mercado, de fundamento, de projeção ou de conta e toda série da Page saem do pacote de dados, sem ponto de fora dele. Todo número que a Page tira de outros (razão, LPA anualizado, assimetria, diferença) tem chave em `contas`, para o fact_checker conferir a conta. Conhecimento geral e estável (seção 1) entra sem estar no pacote. Erro de compilação ou de tipo é passo normal da publicação: corrija o que o erro apontar e publique de novo. Se a Page não publicar por outro motivo, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
 
 A resposta do fact_checker é material de trabalho e fica fora da Page: nada de resultado da conferência, selo, seção de resposta à revisão ou ressalva espalhada pelos parágrafos.
-
-Pedido sem decisão de alocação não dá lado na Page (comprar, vender ou ficar de fora).
 
 ### Modo simples
 
@@ -106,7 +110,7 @@ Painel e tabela só usam número que está na tese final. A Page tem estas seç�
 6. `## Riscos e premissas`.
 7. Uma seção `## Fontes` com fonte, data e horário de cada número de mercado e de cada documento aberto.
 
-Seção sem conteúdo sai da Page. Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos e premissas`.
+Seção sem conteúdo sai da Page.
 
 A Page fala do ativo e da decisão, não do trabalho. Fica fora dela o que descreve a conversa ou o processo: dado que faltou ou que o dono não informou, e o que não foi conferido, aberto ou achado. Premissa de que a decisão depende entra como premissa ("Horizonte: até o balanço do próximo trimestre"), sem dizer de onde veio. O que faltou vai na linha curta do chat (seção 6). Ressalva que diz o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento, número de balanço tirado de reportagem) descreve o dado e fica na Page, em `## Riscos e premissas`. Ela diz de onde o número vem, de quando é ou como foi medido, sem dizer o que deixou de ser aberto ou conferido.
 
@@ -118,4 +122,13 @@ A Page termina com `## Riscos e premissas` e com `## Fontes`, que traz fonte, da
 
 ## 6. Chat
 
-O chat avisa a entrega, e a análise fica na Page. Entregue o link da Page e a decisão de alocação (lado e horizonte), curta. Uma linha curta a mais só nestes casos: faltou dado, algo não foi conferido ou a decisão depende de premissa que você assumiu no lugar de dado do dono (o prazo, por exemplo), com cada item nomeado em poucas palavras, na mesma linha e sem explicação; a conferência de fatos não rodou; a decisão mudou depois da conferência; o dono pediu tamanho de alocação (a linha é a da `analista-v2-core`). Fora desses casos, não acrescente nada: argumento, número, ressalva, o relato da conferência e o do trabalho ficam na Page ou ficam de fora. Não cole a tese nem a resposta do fact_checker no chat. Em pedido sem decisão de alocação, o chat leva o link da Page e a conclusão, sem lado (comprar, vender ou ficar de fora).
+O chat avisa a entrega, e a análise fica na Page. A mensagem tem só estas linhas:
+
+```text
+<link da Page>
+<conclusão>
+<linha curta, só nos casos abaixo>
+```
+
+- Conclusão: uma frase, com o lado e o horizonte. Com vários ativos, a mesma frase junta os ativos de cada lado.
+- Linha curta: sai quando faltou dado, algo não foi conferido ou a decisão depende de premissa que você assumiu no lugar de dado do dono (o prazo, por exemplo), com cada item nomeado em poucas palavras e sem explicação; quando a conferência de fatos não rodou; quando a decisão mudou depois da conferência; quando o dono pediu tamanho de alocação (a linha é a da `analista-v2-core`). Mais de um caso vai na mesma linha. Sem nenhum desses casos, a mensagem termina na conclusão.
