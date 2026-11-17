@@ -59,13 +59,13 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 ## 8. Tese sem catalisador nem assimetria
 
 - **Modo:** só no simples.
-- **No transcript:** numa tese com decisão de alocação, a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
+- **No transcript:** a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
 - **Contraria:** `analista-v2-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há") e seção 5, item 5 (`## Decisão` com a assimetria e o catalisador).
 - **Visto:** no Analista, em dois dry runs seguidos, sem catalisador e sem a perda no cenário contrário.
 
 ## 9. Chat que repete a tese
 
-- **No transcript:** a mensagem final ao dono traz, além do link da Page, da conclusão (com lado e horizonte em pedido com decisão) e de uma linha curta, o corpo da tese: tópicos de argumento, assimetria, o que faria mudar de ideia ou uma lista de ressalvas. Também conta a leitura ou o argumento que o chat traz e a Page não, o relato da conferência fora dos casos da seção 6, a linha que nenhum caso pede (a recusa de tamanho sem o dono ter pedido) e o aviso do que faltou escrito em lista ou com a explicação de cada item. O aviso do que faltou ou não foi conferido, nomeado na linha curta da seção 6, não conta.
+- **No transcript:** a mensagem final ao dono traz, além do link da Page, da conclusão (lado e horizonte) e de uma linha curta, o corpo da tese: tópicos de argumento, assimetria, o que faria mudar de ideia ou uma lista de ressalvas. Também conta a leitura ou o argumento que o chat traz e a Page não, o relato da conferência fora dos casos da seção 6, a linha que nenhum caso pede (a recusa de tamanho sem o dono ter pedido) e o aviso do que faltou escrito em lista ou com a explicação de cada item. O aviso do que faltou ou não foi conferido, nomeado na linha curta da seção 6, não conta.
 - **Contraria:** `analista-v2-tese`, seção 6 ("A mensagem tem só estas linhas": o link da Page, a conclusão e a linha curta, só nos casos listados; "Sem nenhum desses casos, a mensagem termina na conclusão"), e `analista-v2-core`, Entrega ("O resto fica na Page").
 - **Visto:** no Analista v2, em dois dry runs seguidos, com quatro tópicos e cinco ressalvas no chat. Num deles o chat trouxe uma leitura que não estava na Page nem tinha passado pela conferência. Num dry run do relatório de Nvidia e BBAS3, quando a seção 6 ainda listava em prosa o que não entra, o chat trouxe a assimetria, os múltiplos e os argumentos da Page, e mais seis ressalvas explicadas.
 
@@ -76,11 +76,11 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 - **Contraria:** `analista-v2-tese`, seção 2 ("Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais") e seção 5, item 4 ("cada catalisador, risco e gatilho de invalidação numa linha, com o valor de hoje, o limite e o status").
 - **Visto:** no Analista v2, em dois dry runs seguidos. Num deles a Page deu dois limites para o mesmo sinal: o Focus "perto de 7%" na `## Decisão` e "acima de 6%" na tabela. O fact_checker, que confere texto incoerente com os próprios números, não apontou.
 
-## 11. Pedido sem decisão respondido com recomendação
+## 11. Tese sem lado, ou cenário da assimetria sem base
 
-- **No transcript:** o pedido do dono não pede decisão (um relatório, uma comparação sem recomendação, "me fale sobre"), e mesmo assim a `page.md` traz `## Decisão`, frase de decisão antes do painel ou painel com lado, ou o chat dá lado (comprar, vender, ficar de fora).
-- **Contraria:** `analista-v2-tese`, seção 2 ("Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte") e seção 5 ("Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos e premissas`").
-- **Visto:** no Analista v2, num dry run com o pedido de relatório detalhado de dois ativos. A Page e o chat recomendaram comprar um e ficar fora do outro, com painel, `## Decisão` e tabela de sinais, e a assimetria da compra se apoiou numa queda de 20% escolhida sem fonte.
+- **No transcript:** a conclusão do chat ou a `page.md` não dá lado (comprar, vender ou ficar de fora) a um ativo do pedido ou da comparação, inclusive em relatório, ou dá "depende" ou "só se você quiser" no lugar do lado. Ou um cenário da assimetria é uma alta ou queda sem base escrita: nenhum múltiplo, nível do `historico` antes de um evento datado, preço-alvo de página aberta ou projeção do pacote sustenta o número ("queda de 20%", "premissa minha"). A máxima ou a mínima do período do `historico`, sem evento datado, não conta como base. Também conta a `page.md` trazer um cenário só, com frase dizendo que falta base para o outro, ou sair sem assimetria para um ativo com ticker.
+- **Contraria:** `analista-v2-tese`, seção 2 ("Decisão: o lado (comprar, vender ou ficar de fora) e o horizonte. "Ficar de fora" é lado; "depende" não é"; "Alta ou queda em percentual sem base não entra"), e `analista-v2-core`, Persona ("Em tese, relatório ou comparação, dê o lado").
+- **Visto:** no Analista v2, em dois dry runs do relatório de Nvidia e BBAS3, quando a skill mandava tirar o lado de pedido sem decisão. A assimetria da compra se apoiou numa queda de 20% escolhida sem fonte e, na rodada seguinte, em quedas de 30% e de 20% que o ator chamou de "premissas minhas". Já com a regra do lado em todo pedido, num dry run do `fii` quatro fundos da comparação ficaram "sem lado" e o cenário contra usou a mínima de 12 meses; no `alocacao-100k`, o IPCA+ saiu com "só faz sentido se você quiser"; no relatório de Nvidia e BBAS3, a Page do BBAS3 trouxe só o cenário a favor. Quando a skill deixava tirar a assimetria sem base, ela saiu dos dois ativos do relatório, com o fechamento antes da eleição e um preço-alvo do BBAS3 no pacote, e saiu da tese do `fii` sem nenhuma busca de base.
 
 ## 12. Page que narra o trabalho
 
