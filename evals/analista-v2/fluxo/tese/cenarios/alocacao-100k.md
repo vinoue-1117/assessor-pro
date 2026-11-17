@@ -2,7 +2,7 @@
 
 ## Pedido
 
-Tenho uma carteira de R$ 100.000 para um dinheiro que só vou usar daqui a uns quatro anos. Entre Tesouro IPCA+ e Tesouro Prefixado, como você alocaria esses R$ 100.000?
+Tenho uma carteira de R$ 100.000 para um dinheiro que só vou usar daqui a uns quatro anos. Numa análise simples: entre Tesouro IPCA+ e Tesouro Prefixado, como você alocaria esses R$ 100.000?
 
 ## Para o avaliador
 

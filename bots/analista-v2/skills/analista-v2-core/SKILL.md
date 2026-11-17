@@ -29,7 +29,7 @@ Conhecimento geral e estável entra sem fonte e sem busca: regra de imposto, com
 ## Entrega
 
 - Pergunta rápida (preço, variação, um número): responda no chat só o que foi perguntado, com a `fonte` e o horário em `America/Sao_Paulo` (`consultado_em`) da chamada.
-- Tese, relatório, análise aprofundada ou comparação: siga `analista-v2-tese`. A entrega é uma Page limpa, pela skill `canvas`. No chat, entregue o link da Page e a conclusão, curta. Se a `analista-v2-tese` pedir, acrescente uma linha curta. O resto fica na Page.
+- Tese, relatório, análise aprofundada ou comparação: siga `analista-v2-tese`. A entrega é uma Page limpa, pela skill `canvas`, no modo simples ou no detalhado; se o pedido não diz o modo, a `analista-v2-tese` diz o que perguntar. No chat, entregue o link da Page e a conclusão, curta. Se a `analista-v2-tese` pedir, acrescente uma linha curta. O resto fica na Page.
 
 ## Workspace
 
@@ -44,6 +44,6 @@ O `mercado.py` é baixado por `analista-v2-mercado` a cada execução. Não rode
 | Pedido | Skill |
 | --- | --- |
 | cotação, histórico, opções, Selic, CDI, IPCA, Tesouro Direto, conta em Python | `analista-v2-mercado` |
-| tese, comparação, relatório, Page | `analista-v2-tese` |
+| tese, comparação, relatório, Page, análise simples ou detalhada | `analista-v2-tese` |
 
 Suas skills são só estas duas e esta, as três com `v2` no nome. Skill de nome parecido sem `v2` é de outro bot: se aparecer na biblioteca, não carregue.

@@ -31,11 +31,14 @@ Workspace deste bot: `/workspace/analista-v2/` (o script de trabalho fica em `/w
 
 | Passo | O que acontece |
 | --- | --- |
+| Modo | o pedido que diz o modo segue nele ("tese rápida" é o simples; "relatório completo" ou "análise detalhada", o detalhado). O que não diz leva só a linha "Análise simples ou detalhada?", antes de qualquer dado. Se a resposta do dono não escolher, sai o simples |
 | Dados | `mercado.py`, páginas abertas (o fundamento, na fonte primária) e contas em Python, gravados no pacote de dados. Sem o dado principal (a cotação ou a taxa do ativo da tese), o bot para aqui e diz qual dado não veio |
-| Tese | o bot escreve a tese já nas seções da Page, com os contras, os riscos e o que faria mudar de ideia |
+| Tese | o bot escreve a tese em markdown, com os riscos e o que faria mudar de ideia. No modo simples, ela já vem nas seções da Page, com os contras |
 | Conferência de fatos | uma chamada ao fact_checker, um subagente que recebe a tese, o pacote de dados e as mensagens do dono. Ele devolve uma linha por erro, ou `Sem erros.`, sem veredito |
 | Tese final | o bot corrige cada erro, roda de novo a conta que mudou e revê a decisão com os números novos |
 | Page | publicada sempre que o dado principal veio. Se a chamada do fact_checker falhar, a tese sai como está e o chat diz que a conferência não rodou |
+
+Os dois modos mudam a forma da Page, não o dado. No simples, a Page tem seções em ordem fixa (painel, um gráfico e um parágrafo curto por argumento, contras, tabela de sinais, decisão, riscos e premissas, fontes) e sai rápida. No detalhado, o bot escolhe as seções, os gráficos e o tamanho, e a Page termina com `## Riscos e premissas` e `## Fontes`. Nos dois, todo número e toda série da Page saem do pacote de dados, e o fact_checker lê só o markdown da tese: o que existir só na Page não passa por ele. O chat fica curto nos dois.
 
 O fact_checker aponta três tipos de erro: número diferente do pacote de dados (ou número de mercado, fundamento, projeção ou notícia recente que o pacote não traz), fato errado e texto incoerente com os próprios números. Conhecimento geral sem fonte, como uma regra de imposto, não é erro.
 
