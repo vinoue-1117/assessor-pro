@@ -5,11 +5,21 @@ description: 'Analista v2: use quando o pedido envolver tese, comparação, rela
 
 # Tese
 
-Tese, comparação, relatório ou análise aprofundada sai como Page em pt-BR, com as seções e a ordem da seção 5. O caminho é: dados, tese, uma conferência de fatos, tese final, Page. Com o dado principal em mãos, todo pedido termina em Page publicada: a conferência corrige a tese e não decide se ela sai.
+Tese, comparação, relatório ou análise aprofundada sai como Page em pt-BR, no modo simples ou no detalhado (seção 0). O caminho é: modo, dados, tese, uma conferência de fatos, tese final, Page. Com o dado principal em mãos, todo pedido termina em Page publicada: a conferência corrige a tese e não decide se ela sai.
 
 O dono está esperando. Faça cada passo uma vez, você mesmo: refazer uma conta na tese final e republicar a Page depois de erro de compilação fazem parte do passo. O único subagente desta skill é o fact_checker da seção 3, chamado uma vez: não passe dados, escrita, correção nem a Page a outro subagente, e não rode outro revisor nem uma segunda conferência.
 
 Número de mercado só entra se `analista-v2-mercado` tiver trazido o JSON nesta conversa. Conta em Python, não de cabeça. Siga a persona de `analista-v2-core`.
+
+## 0. Modo
+
+A tese sai em um de dois modos. No simples, a Page tem as seções e a ordem da seção 5, e sai rápida. No detalhado, a forma da Page é sua, e as regras de dado são as mesmas do simples.
+
+- Pedido que já diz o modo segue nele, sem pergunta: "rápida", "simples" ou "resumida" é o simples; "detalhada", "detalhado", "completa", "completo" ou "aprofundada" é o detalhado.
+- Pedido que não diz o modo: antes de baixar o script ou buscar qualquer dado, responda só a linha "Análise simples ou detalhada?" e espere o dono.
+- Na mensagem seguinte do dono, siga o modo que ele escolher. Se ela não escolher nenhum dos dois, siga no simples, sem perguntar de novo.
+
+As seções 1, 3, 4 e 6 valem nos dois modos. Na 2 e na 5, a regra que vale num modo só diz qual.
 
 ## 1. Dados
 
@@ -35,11 +45,15 @@ Conhecimento geral e estável (regra de imposto, como o título paga) não pede 
 
 ## 2. Tese
 
-Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown, já nas seções da Page (seção 5). A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte; o que faria mudar de ideia vai para `Riscos e premissas`.
+Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown. No modo simples, a tese já vem nas seções da Page (seção 5). No detalhado, ela traz o texto e os números que vão para a Page, na forma que você quiser: o fact_checker lê só este arquivo. A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia. Pedido sem decisão de alocação (um relatório, uma comparação sem recomendação) fica sem a decisão, a assimetria, o catalisador e o horizonte; o que faria mudar de ideia vai para `Riscos e premissas`.
+
+Nos dois modos, você mesmo escreve `## Riscos e premissas`: o que pode dar errado e as premissas de que a decisão depende, com a ressalva sobre o que um número é.
+
+No modo simples:
 
 - Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`.
 - Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há.
-- Contras e riscos: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Riscos e premissas`, o que pode dar errado e as premissas de que a decisão depende, com a ressalva sobre o que um número é; `## Decisão`, o que faria mudar de ideia. Em cada uma, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
+- Contras e decisão: você mesmo escreve. `## Contras` traz o que pesa contra a decisão; `## Decisão`, o que faria mudar de ideia. Nessas duas e em `## Riscos e premissas`, só os itens que mexem na decisão, do que mais pesa para o que menos pesa. Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais.
 
 ## 3. Conferência de fatos
 
@@ -67,13 +81,19 @@ Corrija no arquivo da tese cada erro apontado. A tese final vai direto para a Pa
 - Fato errado: corrija. Se você não tiver como decidir quem está certo, tire a afirmação. Correção que traz número de mercado que não está no pacote não entra na tese.
 - Texto incoerente com os números: reescreva o trecho.
 
-Depois das correções, releia a decisão com os números novos. Se o lado, a assimetria ou um gatilho mudarem, reescreva a `## Decisão`, a frase de abertura e a tabela de sinais. A decisão publicada é a que os números corrigidos sustentam, mesmo que seja o contrário da primeira.
+Depois das correções, releia a decisão com os números novos. Se o lado, a assimetria ou um gatilho mudarem, reescreva todo trecho que dá a decisão; no modo simples, a `## Decisão`, a frase de abertura e a tabela de sinais. A decisão publicada é a que os números corrigidos sustentam, mesmo que seja o contrário da primeira.
 
 ## 5. Page
 
-Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir da tese final. A skill `canvas` escolhe o componente de cada seção. Painel e tabela só usam número que está na tese final. O gráfico usa a série do pacote de dados, sem ponto de fora dele. Erro de compilação ou de tipo é passo normal da publicação: corrija o que o erro apontar e publique de novo. Se a Page não publicar por outro motivo, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
+Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir da tese final. A skill `canvas` escolhe o componente de cada seção. Todo número e toda série da Page saem do pacote de dados, sem ponto de fora dele. Erro de compilação ou de tipo é passo normal da publicação: corrija o que o erro apontar e publique de novo. Se a Page não publicar por outro motivo, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
 
-A Page tem estas seções, nesta ordem:
+A resposta do fact_checker é material de trabalho e fica fora da Page: nada de resultado da conferência, selo, seção de resposta à revisão ou ressalva espalhada pelos parágrafos.
+
+Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos e premissas`. Nos dois modos, a Page desse pedido não dá lado (comprar, vender ou ficar de fora).
+
+### Modo simples
+
+Painel e tabela só usam número que está na tese final. A Page tem estas seções, nesta ordem:
 
 1. Painel de indicadores: a decisão de alocação (lado e horizonte) e os números que sustentam a tese, cada um com valor e data. Uma frase com a decisão vem antes do painel.
 2. Uma seção por argumento, com um gráfico dos dados dele e um parágrafo curto que diz o que o gráfico mostra para a decisão. O gráfico só entra se o pacote de dados tiver uma série ou valores para comparar: `tesouro` e `taxa` trazem só o valor mais recente. Sem isso, o argumento sai com o parágrafo e os números.
@@ -83,11 +103,15 @@ A Page tem estas seções, nesta ordem:
 6. `## Riscos e premissas`.
 7. Uma seção `## Fontes` com fonte, data e horário de cada número de mercado e de cada documento aberto.
 
-Seção sem conteúdo sai da Page. Pedido sem decisão de alocação sai sem o painel e sem `## Decisão`, e o que faria mudar de ideia vai para `## Riscos e premissas`.
-
-A resposta do fact_checker é material de trabalho e fica fora da Page: nada de resultado da conferência, selo, seção de resposta à revisão ou ressalva espalhada pelos parágrafos.
+Seção sem conteúdo sai da Page.
 
 A Page fala do ativo e da decisão, não do trabalho. Fica fora dela o que descreve a conversa ou o processo: dado que faltou ou que o dono não informou, e o que não foi conferido, aberto ou achado. Premissa de que a decisão depende entra como premissa ("Horizonte: até o balanço do próximo trimestre"), sem dizer de onde veio. O que faltou vai na linha curta do chat (seção 6). Ressalva que diz o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento, número de balanço tirado de reportagem) descreve o dado e fica na Page, em `## Riscos e premissas`. Ela diz de onde o número vem, de quando é ou como foi medido, sem dizer o que deixou de ser aberto ou conferido.
+
+### Modo detalhado
+
+A Page é sua. Faça bonita e impressionante, que surpreenda o dono. Seja visual: visuais grandes e poucas palavras. Você escolhe as seções, a ordem, os gráficos e o tamanho, pelo que o assunto pede.
+
+A Page termina com `## Riscos e premissas` e com `## Fontes`, que traz fonte, data e horário de cada número de mercado e de cada documento aberto.
 
 ## 6. Chat
 

@@ -171,6 +171,14 @@ Nome alternativo de um contato do WhatsApp que o dono confirmou uma vez. Vale co
 Análise do Analista v2 que sustenta uma decisão de alocação: lado, horizonte e o que faria mudar de ideia.
 _Evitar_: relatório
 
+**modo simples**:
+Modo da tese em que a Page tem as seções e a ordem fixas da skill. É rápido e barato, e é o modo quando o dono não escolhe.
+_Evitar_: tese rápida, modo padrão
+
+**modo detalhado**:
+Modo da tese em que o bot escolhe a forma da Page: seções, gráficos e tamanho. As regras de dado são as do modo simples, e a Page termina com `Riscos e premissas` e `Fontes`.
+_Evitar_: modo livre, relatório completo
+
 **Page**:
 Página que o Analista v2 publica com a tese. No chat vão só o link e a decisão.
 _Evitar_: canvas, markdown polido

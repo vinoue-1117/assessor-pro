@@ -2,7 +2,7 @@
 
 ## Pedido
 
-Quero uma tese sobre fundos imobiliários. Quais são os melhores para comprar agora?
+Quero uma tese rápida sobre fundos imobiliários. Quais são os melhores para comprar agora?
 
 ## Para o avaliador
 

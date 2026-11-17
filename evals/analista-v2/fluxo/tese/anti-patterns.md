@@ -12,7 +12,7 @@ Uma falha entra quando as cinco condições abaixo valem. Falhou em uma, fica de
 4. **Não tem dono melhor.** A entrada é a defesa mais fraca. Fica de fora a falha que outro já segura: a conferência de cada número contra um resultado de ferramenta, que o avaliador faz sempre; uma trava de script; o eval de acerto. A instrução da skill não conta como dono, porque toda entrada contraria uma: a entrada diz onde olhar o que a leitura da skill não mostra.
 5. **Tem gatilho reconhecível.** O "No transcript" diz como a falha aparece, estreito o bastante para não casar com qualquer passo.
 
-Cada entrada diz como a falha aparece no transcript, qual instrução da skill ela contraria e onde já foi vista.
+Cada entrada diz como a falha aparece no transcript, qual instrução da skill ela contraria e onde já foi vista. A entrada que vale só num modo da tese diz qual; as outras valem nos dois.
 
 ## 1. Tamanho de alocação proposto
 
@@ -58,6 +58,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 8. Tese sem catalisador nem assimetria
 
+- **Modo:** só no simples.
 - **No transcript:** numa tese com decisão de alocação, a `## Decisão` não diz qual é o catalisador (nem que não há um), ou mostra o ganho no cenário a favor sem a perda no cenário contrário com chave em `contas`.
 - **Contraria:** `analista-v2-tese`, seção 2 ("Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`"; "Catalisador: o evento ou dado que faz a tese andar. Se não houver, escreva que não há") e seção 5, item 5 (`## Decisão` com a assimetria e o catalisador).
 - **Visto:** no Analista, em dois dry runs seguidos, sem catalisador e sem a perda no cenário contrário.
@@ -70,6 +71,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 10. Gatilho da Decisão sem linha na tabela de sinais
 
+- **Modo:** só no simples.
 - **No transcript:** a `## Decisão` da `page.md` dá um gatilho com limite numérico (um nível de taxa, de projeção ou de índice) que nenhuma linha da tabela de sinais traz com o mesmo limite. Ou a tabela traz o mesmo sinal com outro limite.
 - **Contraria:** `analista-v2-tese`, seção 2 ("Risco ou gatilho com limite numérico ganha uma linha na tabela de sinais") e seção 5, item 4 ("cada catalisador, risco e gatilho de invalidação numa linha, com o valor de hoje, o limite e o status").
 - **Visto:** no Analista v2, em dois dry runs seguidos. Num deles a Page deu dois limites para o mesmo sinal: o Focus "perto de 7%" na `## Decisão` e "acima de 6%" na tabela. O fact_checker, que confere texto incoerente com os próprios números, não apontou.
@@ -82,6 +84,7 @@ Cada entrada diz como a falha aparece no transcript, qual instrução da skill e
 
 ## 12. Page que narra o trabalho
 
+- **Modo:** só no simples.
 - **No transcript:** a `page.md` traz frase sobre a conversa ou o processo, e não sobre o ativo ou a decisão: dado que faltou ou que o dono não informou ("você não deu prazo", "não informado", "ausente"), ou o que o bot não conferiu, não abriu ou não achou ("não conferi", "não abri o release", "não achei"). Vale em qualquer seção, inclusive em `## Contras` e em `## Riscos e premissas`. Premissa dita como premissa ("Horizonte: até o balanço do 4T26") e ressalva sobre o que um número é (taxa da manhã do Tesouro Direto, preço sem ajuste de provento, número de balanço tirado de reportagem) não contam. A mesma ressalva conta quando diz o que não foi aberto ou conferido ("não do release do banco").
 - **Contraria:** `analista-v2-tese`, seção 5 ("A Page fala do ativo e da decisão, não do trabalho. Fica fora dela o que descreve a conversa ou o processo: dado que faltou ou que o dono não informou, e o que não foi conferido, aberto ou achado").
 - **Visto:** no Analista v2, num dry run da tese de BBAS3, quando a skill mandava registrar na Page o que faltou. A frase de abertura dizia "Você não deu prazo; assumo 6 a 12 meses", um contra dizia "Não conferi múltiplo (P/VP, P/L) do 3T26" e `## Riscos` dizia "não abri o release oficial".
