@@ -294,14 +294,17 @@ def test_cenarios_do_fluxo_rodam_todos_com_a_plataforma_comum(tmp_path, monkeypa
     monkeypatch.setattr(dry, 'pasta_de_dados', lambda: dados)
     bot, fluxo = repo / 'bots/bot', repo / 'evals/bot/fluxo/tese'
     _escrever(bot / 'bot.md', '## Perfil\n\nperfil\n')
-    _escrever(bot / 'skills/um/SKILL.md', 'um')
-    _escrever(fluxo / 'plataforma.md', '## Plataforma\n\nplataforma comum\n')
+    _escrever(bot / 'skills/um/SKILL.md', 'rode python3 e grave em /workspace/x e em /tmp/y')
+    _escrever(fluxo / 'plataforma.md', '## Plataforma\n\nplataforma comum\n\n## Trocas nas skills\n\n'
+              '| Na skill | Na cópia |\n| --- | --- |\n| `/workspace/` | `{execucao}/workspace/` |\n'
+              '| `/tmp/` | `{execucao}/tmp/` |\n| `python3` | `{python}` |\n')
     _escrever(fluxo / 'cenarios/acao.md', '## Pedido\n\npedido da acao\n')
     _escrever(fluxo / 'cenarios/titulo.md', '## Pedido\n\npedido do titulo\n')
-    vistos, avaliados = {}, {}
+    vistos, avaliados, copias = {}, {}, {}
 
     def ator_falso(claude, fluxo, pedido, sistema, dest, modelo):
         vistos[dest.name] = (pedido, sistema)
+        copias[dest.name] = (dest / '.claude/skills/um/SKILL.md').read_text(encoding='utf-8')
         (dest / 'page.md').write_text('# Tese\n\n| a | b |\n| - | - |\n| 1 | 2 |\n', encoding='utf-8')
         _rodada(dest, modelo, [(None, 'm1', modelo)], 1, {modelo: (10, 5)})
         (dest / 'transcript.md').write_text('t', encoding='utf-8')
@@ -313,7 +316,8 @@ def test_cenarios_do_fluxo_rodam_todos_com_a_plataforma_comum(tmp_path, monkeypa
 
     monkeypatch.setattr(dry, 'atuar', ator_falso)
     monkeypatch.setattr(dry, 'avaliar', avaliador_falso)
-    saida = tmp_path / 'execucao'
+    # A pasta de execução sob /tmp/, como no Linux: a troca de /tmp/ não pode reescrever o caminho já trocado.
+    saida = tmp_path / 'tmp' / 'execucao'
 
     # Com mais de um cenário, sem --cenario nem --all, para e lista os nomes.
     monkeypatch.setattr(sys, 'argv', ['dry-run.py', str(fluxo), '--saida', str(saida)])
@@ -337,6 +341,10 @@ def test_cenarios_do_fluxo_rodam_todos_com_a_plataforma_comum(tmp_path, monkeypa
     assert vistos == {'acao': ('pedido da acao', 'perfil\n\nplataforma comum'),
                       'titulo': ('pedido do titulo', 'perfil\n\nplataforma comum')}
     assert avaliados == {'acao': 'acao.md', 'titulo': 'titulo.md'}
+    # As trocas da plataforma ficam gravadas na cópia das skills que o ator recebe, e o ator não as lê no prompt.
+    acao = (saida / 'acao').as_posix()
+    assert copias['acao'] == f'rode {dry.barra(sys.executable)} e grave em {acao}/workspace/x e em {acao}/tmp/y'
+    assert (bot / 'skills/um/SKILL.md').read_text(encoding='utf-8').startswith('rode python3')
     assert (saida / 'acao' / 'relatorio.md').is_file() and (saida / 'titulo' / 'relatorio.md').is_file()
     # A Page em markdown ganha uma cópia em HTML, com a tabela renderizada.
     assert '<td>1</td>' in (saida / 'acao' / 'page.html').read_text(encoding='utf-8')

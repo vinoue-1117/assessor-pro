@@ -39,8 +39,8 @@ Grave o pacote em `/tmp/analista-v2-dados-<slug>.json` com `json.dump` em Python
 ```
 
 - `mercado`: o JSON do script, sem editar número.
-- `web`: só página que você abriu de fato, com a data do documento ou da publicação. Abra as páginas de que a decisão depende, começando pela fonte primária (`analista-v2-mercado`, Regras), e não todas as que a busca trouxer. Número de fundamento ou de projeção que a tese usa (lucro, receita, dívida, expectativa do boletim Focus) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, projeção, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Em tese sobre empresa, confira a data do último trimestre divulgado. Em tese sobre ativo com ticker no `yfinance`, rode `historico` da última semana antes de concluir. Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: a variação da última semana fica sem conferir, e isso vai para a linha do chat (seção 6).
-- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria). Dado que o dono deu nesta conversa e que a tese usa (o prazo, por exemplo) também entra em `contas`, como ele deu, com a chave `origem_<nome>` valendo `"informado pelo dono"`.
+- `web`: só página que você abriu de fato, com a data do documento ou da publicação. O resumo que a busca devolve não é página aberta: número que só aparece nele não entra no pacote nem na Page. Abra as páginas de que a decisão depende, começando pela fonte primária (`analista-v2-mercado`, Regras), e não todas as que a busca trouxer. Número de fundamento ou de projeção que a tese usa (lucro, receita, dívida, expectativa do boletim Focus) entra em `numeros` como está no documento, com a unidade e o período. Fundamento, projeção, resultado recente e notícia vêm da busca e da leitura web nativas deste bot. Em tese sobre empresa, confira a data do último trimestre divulgado. Em tese sobre ativo com ticker no `yfinance`, rode `historico` da última semana antes de concluir. Em tese sobre Tesouro Direto ou taxa, o script só traz o valor mais recente: a variação da última semana fica sem conferir, e isso vai para a linha do chat (seção 6).
+- `contas`: o que o Python imprimiu a partir de `mercado` e dos `numeros` de `web` (variação, múltiplo, assimetria). Dado que o dono deu nesta conversa e que a tese usa (o prazo, por exemplo) também entra em `contas`, como ele deu, com a chave `origem_<nome>` valendo `"informado pelo dono"`. Premissa sua (o custo de capital, um prazo que você assumiu) não leva `origem_`: essa chave é só para dado que o dono deu.
 
 Conhecimento geral e estável (regra de imposto, como o título paga) não pede página aberta e não entra no pacote.
 
@@ -88,7 +88,7 @@ Depois das correções, releia a decisão com os números novos. Se o lado, a as
 
 ## 5. Page
 
-Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir da tese final. A skill `canvas` escolhe o componente de cada seção. Número de mercado, de fundamento, de projeção ou de conta e toda série da Page saem do pacote de dados, sem ponto de fora dele. Conhecimento geral e estável (seção 1) entra sem estar no pacote. Erro de compilação ou de tipo é passo normal da publicação: corrija o que o erro apontar e publique de novo. Se a Page não publicar por outro motivo, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
+Publique a Page com a skill `canvas`, pela ferramenta `WriteCanvas`, montada a partir da tese final. A skill `canvas` escolhe o componente de cada seção. Número de mercado, de fundamento, de projeção ou de conta e toda série da Page saem do pacote de dados, sem ponto de fora dele. Todo número que a Page tira de outros (razão, LPA anualizado, assimetria, diferença) tem chave em `contas`, para o fact_checker conferir a conta. Conhecimento geral e estável (seção 1) entra sem estar no pacote. Erro de compilação ou de tipo é passo normal da publicação: corrija o que o erro apontar e publique de novo. Se a Page não publicar por outro motivo, pare e diga ao dono qual foi o erro. Não cole a tese no chat.
 
 A resposta do fact_checker é material de trabalho e fica fora da Page: nada de resultado da conferência, selo, seção de resposta à revisão ou ressalva espalhada pelos parágrafos.
 
@@ -118,4 +118,13 @@ A Page termina com `## Riscos e premissas` e com `## Fontes`, que traz fonte, da
 
 ## 6. Chat
 
-O chat avisa a entrega, e a análise fica na Page. Entregue o link da Page e a decisão de alocação (lado e horizonte), curta. Uma linha curta a mais só nestes casos: faltou dado, algo não foi conferido ou a decisão depende de premissa que você assumiu no lugar de dado do dono (o prazo, por exemplo), com cada item nomeado em poucas palavras, na mesma linha e sem explicação; a conferência de fatos não rodou; a decisão mudou depois da conferência; o dono pediu tamanho de alocação (a linha é a da `analista-v2-core`). Fora desses casos, não acrescente nada: argumento, número, ressalva, o relato da conferência e o do trabalho ficam na Page ou ficam de fora. Não cole a tese nem a resposta do fact_checker no chat. Em pedido sem decisão de alocação, o chat leva o link da Page e a conclusão, sem lado (comprar, vender ou ficar de fora).
+O chat avisa a entrega, e a análise fica na Page. A mensagem tem só estas linhas:
+
+```text
+<link da Page>
+<conclusão>
+<linha curta, só nos casos abaixo>
+```
+
+- Conclusão: uma frase. Em pedido com decisão de alocação, ela dá o lado e o horizonte. Em pedido sem decisão, ela fica sem lado (comprar, vender ou ficar de fora).
+- Linha curta: sai quando faltou dado, algo não foi conferido ou a decisão depende de premissa que você assumiu no lugar de dado do dono (o prazo, por exemplo), com cada item nomeado em poucas palavras e sem explicação; quando a conferência de fatos não rodou; quando a decisão mudou depois da conferência; quando o dono pediu tamanho de alocação (a linha é a da `analista-v2-core`). Mais de um caso vai na mesma linha. Sem nenhum desses casos, a mensagem termina na conclusão.

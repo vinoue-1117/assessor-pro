@@ -2,7 +2,8 @@
 """Dry run de um fluxo de bot: um ator faz o papel do bot e um avaliador lê o transcript.
 
 O ator é um `claude -p` headless numa pasta de execução fora do repositório,
-com as skills da branch em `.claude/skills/`, o `## Perfil` do `bot.md` e a
+com as skills da branch em `.claude/skills/` (com as trocas do `## Trocas nas skills`
+do cenário gravadas nelas), o `## Perfil` do `bot.md` e a
 seção `## Plataforma` do cenário no prompt de sistema, e a seção `## Pedido`
 como mensagem do dono. As instruções globais de quem roda (o CLAUDE.md e as
 rules do usuário) ficam fora do contexto do ator.
@@ -124,17 +125,21 @@ def cenarios(fluxo):
 
 
 def ler_fluxo(fluxo, variante=None, cenario=None):
-    """(pasta do bot, pedido, prompt de sistema) do ator, lidos antes de criar a pasta de execução.
+    """(pasta do bot, pedido, prompt de sistema, trocas nas skills) do ator, lidos antes de criar a pasta de execução.
 
     O `## Perfil` vem do `bot.md` da variante, se ela tiver um, e do bot se não tiver. O `## Plataforma`
     vem do `plataforma.md` do fluxo, que vale para todos os cenários de `cenarios/`, ou do próprio cenário.
+    As trocas vêm da seção `## Trocas nas skills` do mesmo arquivo, que é opcional e que o ator não lê:
+    cada linha da tabela com um texto entre crases em cada coluna é uma troca.
     """
     bot = pasta_do_bot(fluxo)
     ficha = variante / "bot.md" if variante and (variante / "bot.md").is_file() else bot / "bot.md"
     cenario = cenario or fluxo / "cenario.md"
     plataforma = fluxo / "plataforma.md" if (fluxo / "plataforma.md").is_file() else cenario
     sistema = f"{secao(ficha, 'Perfil')}\n\n{secao(plataforma, 'Plataforma')}"
-    return bot, secao(cenario, "Pedido"), sistema
+    tabela = secoes(plataforma.read_text(encoding="utf-8")).get("Trocas nas skills", "")
+    trocas = dict(re.findall(r"^\| `([^`]+)` \| `([^`]+)` \|$", tabela, flags=re.M))
+    return bot, secao(cenario, "Pedido"), sistema, trocas
 
 
 def arquivos_da_variante(variante, bot):
@@ -173,11 +178,13 @@ def barra(caminho):
     return str(caminho).replace("\\", "/")
 
 
-def montar(bot, pedido, sistema, dest, variante=None, partida=None):
+def montar(bot, pedido, sistema, dest, variante=None, partida=None, nas_skills=None):
     """Prepara a pasta de execução e devolve o pedido e o prompt de sistema com os caminhos preenchidos.
 
-    Os arquivos de `skills/` da variante substituem os da cópia do bot. A pasta de partida, já
-    conferida por `ler_partida`, traz só `tmp/` e `workspace/` e é copiada por cima delas.
+    Os arquivos de `skills/` da variante substituem os da cópia do bot. As trocas de `nas_skills` (texto da skill ->
+    texto da cópia, com os caminhos preenchidos) são gravadas nos `.md` da cópia: o ator roda o comando
+    como está escrito. A pasta de partida, já conferida por `ler_partida`, traz só `tmp/` e `workspace/`
+    e é copiada por cima delas.
     """
     shutil.copytree(bot / "skills", dest / ".claude" / "skills")
     for rel in arquivos_da_variante(variante, bot) if variante else []:
@@ -195,6 +202,13 @@ def montar(bot, pedido, sistema, dest, variante=None, partida=None):
             texto = texto.replace(chave, valor)
         return texto
 
+    if nas_skills:
+        novos = {antigo: preencher(novo) for antigo, novo in nas_skills.items()}
+        # Uma passada só: texto já trocado não é trocado de novo (pasta de execução sob /tmp/, no Linux).
+        padrao = re.compile("|".join(re.escape(t) for t in sorted(novos, key=len, reverse=True)))
+        for md in (dest / ".claude" / "skills").rglob("*.md"):
+            texto = padrao.sub(lambda m: novos[m.group()], md.read_text(encoding="utf-8"))
+            md.write_text(texto, encoding="utf-8", newline="\n")
     return preencher(pedido), preencher(sistema)
 
 
@@ -554,10 +568,10 @@ def gosto(claude, fluxo, bot, variantes, amostras, partida, rodada, modelo):
     feitas = []
     for n in range(1, amostras + 1):
         # Uma amostra de cada variante por volta: a rodada que parar no meio ainda compara todas.
-        for nome, variante, pedido, sistema in variantes:
+        for nome, variante, pedido, sistema, trocas in variantes:
             dest = rodada / f"{nome}-{n}"
             dest.mkdir()
-            ped, sis = montar(bot, pedido, sistema, dest, variante, partida)
+            ped, sis = montar(bot, pedido, sistema, dest, variante, partida, trocas)
             print(f"amostra: {dest}", flush=True)
             inicio = time.monotonic()
             codigo = atuar(claude, fluxo, ped, sis, dest, modelo)
@@ -569,7 +583,7 @@ def gosto(claude, fluxo, bot, variantes, amostras, partida, rodada, modelo):
 
 
 def ler_variantes(fluxo, bot, nomes):
-    """(nome, pasta, pedido, prompt de sistema) de cada variante, conferidas antes de qualquer amostra rodar.
+    """(nome, pasta, pedido, prompt de sistema, trocas nas skills) de cada variante, conferidas antes de qualquer amostra rodar.
 
     Sem nomes, valem todas as pastas de <cenario>/variantes/.
     """
@@ -585,8 +599,8 @@ def ler_variantes(fluxo, bot, nomes):
     variantes = []
     for nome in nomes:
         arquivos_da_variante(pasta / nome, bot)
-        _, pedido, sistema = ler_fluxo(fluxo, pasta / nome)
-        variantes.append((nome, pasta / nome, pedido, sistema))
+        _, pedido, sistema, trocas = ler_fluxo(fluxo, pasta / nome)
+        variantes.append((nome, pasta / nome, pedido, sistema, trocas))
     return variantes
 
 
@@ -605,7 +619,7 @@ def pagina_html(pasta):
                                          encoding="utf-8", newline="\n")
 
 
-def rodar_cenario(claude, fluxo, bot, nome, arquivo, pedido, sistema, dest, rodadas, modelo, dados, paralelo=False):
+def rodar_cenario(claude, fluxo, bot, nome, arquivo, pedido, sistema, trocas, dest, rodadas, modelo, dados, paralelo=False):
     """Roda as rodadas (ator e avaliador) de um cenário em dest e devolve as mensagens das rodadas incompletas.
 
     Em paralelo, cada linha impressa começa com `[<nome>]`. A cópia na pasta de dados leva o nome do cenário sempre.
@@ -621,7 +635,7 @@ def rodar_cenario(claude, fluxo, bot, nome, arquivo, pedido, sistema, dest, roda
     try:
         for pasta in pastas:
             pasta.mkdir(parents=True, exist_ok=True)
-            ped, sis = montar(bot, pedido, sistema, pasta)
+            ped, sis = montar(bot, pedido, sistema, pasta, nas_skills=trocas)
             log(f"execucao: {pasta}")
             codigo = atuar(claude, fluxo, ped, sis, pasta, modelo)
             pagina_html(pasta)
@@ -756,9 +770,9 @@ def main():
     # em paralelo, até PARALELO juntos: cada ator e cada avaliador é um processo próprio, numa pasta própria.
     destinos = {nome: dest if len(lidos) == 1 else dest / nome for nome in lidos}
     with ThreadPoolExecutor(max_workers=min(len(lidos), PARALELO)) as grupo:
-        futuros = {nome: grupo.submit(rodar_cenario, claude, fluxo, bot, nome, arquivo, pedido, sistema,
+        futuros = {nome: grupo.submit(rodar_cenario, claude, fluxo, bot, nome, arquivo, pedido, sistema, trocas,
                                       destinos[nome], a.rodadas, a.modelo, dados, len(lidos) > 1)
-                   for nome, (arquivo, _, pedido, sistema) in lidos.items()}
+                   for nome, (arquivo, _, pedido, sistema, trocas) in lidos.items()}
     incompletas = []
     for nome, futuro in futuros.items():
         # O erro de um cenário vira a linha de incompleta dele: os outros seguem até as tabelas.

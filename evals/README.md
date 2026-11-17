@@ -53,8 +53,8 @@ Um fluxo com vários pedidos guarda cada um em `cenarios/<nome>.md`, e o `## Pla
 
 | Peça | O que é |
 | --- | --- |
-| `cenario.md` | `## Pedido`: a mensagem do dono. `## Plataforma`: o que substitui, no computador de teste, cada parte da plataforma do bot (pastas, download da `stable`, subagente, Page). `## Para o avaliador`: o que não conta como desvio e o que a rodada não mede |
-| `cenarios/<nome>.md` e `plataforma.md` | no fluxo com vários pedidos, cada cenário traz o `## Pedido` e, se precisar, um `## Para o avaliador` só dele; o `plataforma.md` traz o `## Plataforma` e o `## Para o avaliador` comuns |
+| `cenario.md` | `## Pedido`: a mensagem do dono. `## Plataforma`: o que substitui, no computador de teste, cada parte da plataforma do bot (subagente, Page, leitura web). `## Trocas nas skills`, opcional: os textos das skills (pastas, Python, endereço do download) que o script troca na cópia que o ator recebe; o ator não lê esta seção. `## Para o avaliador`: o que não conta como desvio e o que a rodada não mede |
+| `cenarios/<nome>.md` e `plataforma.md` | no fluxo com vários pedidos, cada cenário traz o `## Pedido` e, se precisar, um `## Para o avaliador` só dele; o `plataforma.md` traz o `## Plataforma`, o `## Trocas nas skills` e o `## Para o avaliador` comuns |
 | `anti-patterns.md` | as falhas já vistas no fluxo, cada uma com o que se vê no transcript e a instrução da skill que ela contraria. A seção `## O que entra` diz quando a falha nova que o relatório aponta entra |
 | `agentes.json` | os subagentes que a plataforma tem e o Claude Code não, no formato do `--agents` |
 | [`scripts/dry-run.py`](../scripts/dry-run.py) | monta a pasta de execução, roda o ator e o avaliador e grava tudo nela |
@@ -62,7 +62,7 @@ Um fluxo com vários pedidos guarda cada um em `cenarios/<nome>.md`, e o `## Pla
 
 ### O ator
 
-`claude -p`, headless, pelo login do plano, com o modelo de `--modelo` (padrão: `sonnet`; vale também no gosto). O `--modelo` muda só o ator: o subagente do `agentes.json` fica com o modelo escrito nele. O script tira a `ANTHROPIC_API_KEY` do ambiente do ator e do avaliador: com ela definida, o `claude -p` se autentica pela chave e cobra pela API. Ele roda numa pasta de execução fora do repositório, com as skills da branch copiadas para `.claude/skills/`. O prompt de sistema é o do Claude Code com o `## Perfil` do `bot.md` e a seção `## Plataforma` do cenário. As skills são as da branch, não as da `stable`: o cenário troca o endereço do download pelo `file:///` do repositório.
+`claude -p`, headless, pelo login do plano, com o modelo de `--modelo` (padrão: `sonnet`; vale também no gosto). O `--modelo` muda só o ator: o subagente do `agentes.json` fica com o modelo escrito nele. O script tira a `ANTHROPIC_API_KEY` do ambiente do ator e do avaliador: com ela definida, o `claude -p` se autentica pela chave e cobra pela API. Ele roda numa pasta de execução fora do repositório, com as skills da branch copiadas para `.claude/skills/`. O prompt de sistema é o do Claude Code com o `## Perfil` do `bot.md` e a seção `## Plataforma` do cenário. As skills são as da branch, não as da `stable`. Na cópia, o script grava as trocas da seção `## Trocas nas skills` do cenário (os caminhos de `/workspace/` e `/tmp/`, o `python3` e o endereço da `stable`, que vira o `file:///` do repositório), e o ator roda os comandos como estão escritos, sem trocar nada de cabeça. Cada linha da tabela com um texto entre crases em cada coluna é uma troca, feita numa passada só em todo `.md` da cópia.
 
 As instruções de quem roda ficam fora do contexto do ator: `--setting-sources project` tira as skills e as rules do usuário, e o `claudeMdExcludes` tira o `~/.claude/CLAUDE.md`.
 
