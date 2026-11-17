@@ -50,8 +50,12 @@ Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown. No modo simples, a tese j
 
 Nos dois modos:
 
-- Decisão: o lado (comprar, vender ou ficar de fora) e o horizonte, para cada ativo do pedido e da comparação. "Ficar de fora" é lado; "depende" e "só se você quiser" não são: o ativo que você não compraria, ou de que não veio dado para decidir, sai como ficar de fora.
-- Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`. Cada cenário tem a base escrita na tese, e a base é um nível que o pacote traz: um múltiplo que volta a um nível de página aberta (P/L médio de 5 anos vezes o LPA), o preço que volta a um nível do `historico` antes de um evento datado (o fechamento antes da eleição ou do último balanço; a máxima ou a mínima do período, sem evento, não é base), o menor e o maior preço-alvo do consenso, de página aberta, ou, em título público, a inflação do Focus ou a de 12 meses. Alta ou queda em percentual sem base não entra. Ativo com ticker sempre tem base: rode `historico` em torno do último balanço ou do evento datado que a tese cita e use o fechamento de antes dele. A assimetria só sai da tese e da Page em ativo sem ticker e sem projeção no pacote; aí sai inteira, o lado fica, e a falta vai para a linha curta do chat (seção 6).
+- Decisão: o lado (comprar, vender ou ficar de fora) e o horizonte, para cada ativo do pedido e da comparação. "Ficar de fora" é lado; condição no lugar do lado não é. O ativo que você não compraria, ou de que não veio dado para decidir, sai como ficar de fora.
+- Assimetria: o ganho no cenário a favor contra a perda no cenário contrário, os dois com chave em `contas`. Cada cenário tem a base escrita na tese, e a base é um nível que o pacote traz. Alta ou queda em percentual sem base não entra.
+  - Cenário contra, em ação e fundo listado: o múltiplo mínimo de 5 anos, de página aberta, vezes o lucro por ação do pacote (P/L vezes o LPA; em banco e fundo imobiliário, P/VP vezes o valor patrimonial por ação ou por cota). Busque o múltiplo mínimo como fundamento (seção 1) antes de escrever o cenário. Sem página com ele, use o menor preço-alvo do consenso, de página aberta.
+  - Cenário a favor, em ação e fundo listado: o múltiplo médio de 5 anos vezes o mesmo LPA ou valor patrimonial, o maior preço-alvo do consenso, de página aberta, ou o preço que volta a um nível do `historico` antes de um evento datado (o fechamento antes da eleição ou do último balanço).
+  - Título público e taxa: a inflação do Focus ou a de 12 meses, nos dois cenários.
+  - Se a busca do múltiplo e a do preço-alvo não trouxerem base para um dos cenários, a assimetria sai da tese e da Page inteira, o lado fica, e a falta vai para a linha curta do chat (seção 6).
 - Riscos e premissas: você mesmo escreve `## Riscos e premissas`, com o que pode dar errado e as premissas de que a decisão depende, e com a ressalva sobre o que um número é.
 
 No modo simples:
