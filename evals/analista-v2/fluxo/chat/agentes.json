@@ -1,0 +1,8 @@
+{
+  "knowledgeWork": {
+    "description": "Subagente de trabalho de conhecimento geral: análise, revisão, pesquisa e escrita. Começa sem o histórico da conversa.",
+    "prompt": "Você é um subagente de trabalho de conhecimento. Faça a tarefa que receber, com o material que vier nela, e devolva o resultado.",
+    "tools": ["Read", "Glob", "Grep", "WebSearch", "WebFetch"],
+    "model": "sonnet"
+  }
+}

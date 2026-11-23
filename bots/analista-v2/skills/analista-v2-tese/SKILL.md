@@ -5,7 +5,9 @@ description: 'Analista v2: use quando o pedido envolver tese, comparação, rela
 
 # Tese
 
-Tese, comparação, relatório ou análise aprofundada sai como Page em pt-BR, no modo simples ou no detalhado (seção 0). O caminho é: modo, dados, tese, uma conferência de fatos, tese final, Page. Com o dado principal em mãos, todo pedido termina em Page publicada: a conferência corrige a tese e não decide se ela sai.
+Esta skill vale só para o pedido da rota da tese (`analista-v2-core`, Entrega). O pedido da rota de chat não passa por ela: nada daqui (a pergunta de modo, o pacote de dados, o fact_checker, a Page) vale para ele.
+
+Tese, comparação, relatório ou análise aprofundada sai como Page em pt-BR, no modo simples ou no detalhado (seção 0). O caminho é: modo, dados, tese, uma conferência de fatos, tese final, Page. Com o dado principal em mãos, todo pedido da rota da tese termina em Page publicada: a conferência corrige a tese e não decide se ela sai.
 
 O dono está esperando. Faça cada passo uma vez, você mesmo: refazer uma conta na tese final e republicar a Page depois de erro de compilação fazem parte do passo. O único subagente desta skill é o fact_checker da seção 3, chamado uma vez: não passe dados, escrita, correção nem a Page a outro subagente, e não rode outro revisor nem uma segunda conferência.
 
@@ -17,7 +19,7 @@ A tese sai em um de dois modos. No simples, a Page tem as seções e a ordem da 
 
 - Pedido que já diz o modo segue nele, sem pergunta. Diz o modo o adjetivo que qualifica a análise, a tese ou o relatório: "tese rápida", "análise simples" ou "análise resumida" é o simples; "análise detalhada", "relatório detalhado" ou "relatório completo" é o detalhado. Adjetivo que descreve o ativo ou o dado ("recuperação rápida", "balanço completo") não diz o modo.
 - Pedido sobre uma tese desta conversa (atualizar a Page, a mesma análise para outro ativo) segue no modo dela, sem pergunta.
-- Pedido que não diz o modo: antes de baixar o script ou buscar qualquer dado, responda só a linha "Análise simples ou detalhada?" e espere o dono.
+- Pedido da rota da tese que não diz o modo: antes de baixar o script ou buscar qualquer dado, responda só a linha "Análise simples ou detalhada?" e espere o dono.
 - Na mensagem seguinte do dono, siga o modo que ele escolher. Se ela responde sem escolher ("tanto faz", "pode fazer"), siga no simples, sem perguntar de novo. Se ela desiste da tese ou pede outra coisa, atenda o pedido novo e não faça a tese.
 
 As seções 1, 3, 4 e 6 valem nos dois modos. Na 2 e na 5, a regra que vale num modo só diz qual.
@@ -46,7 +48,7 @@ Conhecimento geral e estável (regra de imposto, como o título paga) não pede 
 
 ## 2. Tese
 
-Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown. No modo simples, a tese já vem nas seções da Page (seção 5). No detalhado, ela traz o texto e os números que vão para a Page, na forma que você quiser: o fact_checker lê só este arquivo. A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia, em todo pedido: relatório e comparação também.
+Escreva `/tmp/analista-v2-tese-<slug>.md` em markdown. No modo simples, a tese já vem nas seções da Page (seção 5). No detalhado, ela traz o texto e os números que vão para a Page, na forma que você quiser: o fact_checker lê só este arquivo. A tese traz a decisão de alocação, a assimetria de upside contra downside, o catalisador, o horizonte e o que faria mudar de ideia, em todo pedido da rota da tese: relatório e comparação também.
 
 Nos dois modos:
 

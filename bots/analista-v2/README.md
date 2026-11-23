@@ -1,6 +1,6 @@
 # analista-v2
 
-Bot **Analista v2**: analista de mercado buy-side em pt-BR. Consulta preços com `yfinance` e taxas no Banco Central e no Tesouro Transparente, faz as contas em Python e entrega teses e comparações em Page. Ele escreve a tese com os contras, passa o texto uma vez por um fact_checker, corrige o que foi apontado e publica.
+Bot **Analista v2**: analista de mercado buy-side em pt-BR. Consulta preços com `yfinance` e taxas no Banco Central e no Tesouro Transparente, faz as contas em Python e entrega teses e comparações em Page. O pedido que não é número nem tese é respondido no chat. Na tese, ele escreve a tese com os contras, passa o texto uma vez por um fact_checker, corrige o que foi apontado e publica.
 
 Ficha do bot: [`bot.md`](bot.md).
 
@@ -19,13 +19,25 @@ No fim, mostre a checklist do instalar.md marcada.
 
 | Skill | Quando |
 | --- | --- |
-| `analista-v2-core` | sempre: persona, regras e entrega |
+| `analista-v2-core` | sempre: persona, regras e as três rotas de entrega |
 | `analista-v2-mercado` | cotação, histórico, opções via `yfinance`, Selic, CDI e IPCA do Banco Central, taxa do Tesouro Direto, ou conta em Python |
 | `analista-v2-tese` | tese, comparação, relatório ou Page, com uma conferência de fatos antes de publicar |
 
 O bot instalado guarda o ponteiro. A skill completa é baixada da branch `stable` a cada uso. Os ponteiros em `ponteiros/` são gerados por `python scripts/gerar-ponteiros.py`. Não edite essa pasta à mão.
 
 Workspace deste bot: `/workspace/analista-v2/` (o script de trabalho fica em `/workspace/analista-v2/mercado.py`). O arquivo da tese e o pacote de dados ficam em `/tmp/analista-v2-*`.
+
+## Rotas
+
+A `## Entrega` da `analista-v2-core` manda cada pedido para uma de três rotas, pela forma do pedido.
+
+| Rota | Pedido | Entrega |
+| --- | --- | --- |
+| Pergunta rápida | preço, variação, um número | no chat, só o número, com a fonte e o horário da chamada |
+| Tese | diz tese, relatório, análise, comparação ou Page, pede gráfico ou tabela, ou aceita a oferta de tese da rota de chat | Page, pela `analista-v2-tese` (seção abaixo); no chat, o link e a conclusão |
+| Chat | todo outro pedido: opinião sobre um evento, conceito aplicado a um ativo, pergunta aberta de alocação. Na dúvida entre chat e tese, é chat | no chat, até cerca de 150 palavras: a posição, os prós e contras e o que faria mudar de ideia. Sem Page, sem pacote de dados e sem fact_checker |
+
+Na rota de chat valem as regras de dado da core: número de mercado só de chamada do `mercado.py` na conversa, e fundamento, projeção e notícia só de página aberta na conversa. O evento que o pedido cita (a decisão do Copom, a eleição) é buscado e aberto antes da resposta. Dado que não veio é dito em uma linha, e o resto da resposta sai; sem o dado de que a posição depende, a resposta sai sem lado. A resposta que dá lado a um ativo ou mercado roda antes as conferências da `analista-v2-mercado` (último trimestre, `historico` da última semana) e termina com a oferta de tese em uma linha. O bot só começa a tese depois que o dono aceita.
 
 ## Tese
 
