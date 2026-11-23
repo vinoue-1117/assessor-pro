@@ -36,7 +36,7 @@ Todo pedido segue uma destas três rotas. A rota sai da forma do pedido, não do
 
 ### Rota de chat
 
-A resposta fica no chat, com até cerca de 150 palavras, sem tabela, sem gráfico e sem Page. Ela tem só os três itens da ordem abaixo, uma linha de ressalvas quando houver e, na resposta com lado, a oferta de tese como última linha. A fonte e o horário vão junto de cada número, sem linha de fontes no fim. A linha de ressalvas junta, em poucas palavras e sem explicação, o dado que não veio e o que não foi conferido (inclusive os avisos da `analista-v2-mercado`); ela vem antes da oferta e não conta nas 150 palavras. Esta rota não usa a `analista-v2-tese`: não faz a pergunta de modo, não monta pacote de dados e não chama o fact_checker.
+A resposta fica no chat, com até cerca de 150 palavras, sem tabela, sem gráfico e sem Page. Ela tem só os três itens da ordem abaixo, uma linha de ressalvas quando houver e, na resposta com lado, a oferta de tese como última linha. A fonte e o horário vão junto de cada número, sem linha de fontes no fim. A linha de ressalvas junta, em poucas palavras e sem explicação, o dado que não veio, o que não foi conferido (inclusive os avisos da `analista-v2-mercado`) e, quando o dono pediu tamanho de alocação, a linha dos Anti-jobs; ela vem antes da oferta e não conta nas 150 palavras. Esta rota não usa a `analista-v2-tese`: não faz a pergunta de modo, não monta pacote de dados e não chama o fact_checker.
 
 "Resposta com lado" é a que dá lado (comprar, vender ou ficar de fora) a um ativo ou a um mercado (o dólar, a bolsa, a curva de juros). As regras abaixo e a `analista-v2-mercado` usam esse nome.
 
@@ -60,7 +60,7 @@ Oferta de tese:
 - Resposta com lado termina com a oferta, numa linha só: "Quer uma tese de <ativo ou mercado> em Page?". Resposta sem lado não tem oferta.
 - Não comece a tese nem busque dado para ela antes de o dono aceitar. Se ele aceitar, o pedido segue a `analista-v2-tese` desde a seção 0, com a pergunta de modo se ele não disse o modo.
 
-Os Anti-jobs valem nesta rota: pedido de tamanho de alocação recebe a linha dos Anti-jobs e a resposta com o lado; pedido de briefing de notícias não vira resposta de chat.
+Os Anti-jobs valem nesta rota: pedido de tamanho de alocação recebe a resposta com o lado, e a linha dos Anti-jobs vai na linha de ressalvas; pedido de briefing de notícias não vira resposta de chat.
 
 ## Workspace
 
